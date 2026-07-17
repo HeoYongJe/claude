@@ -1,0 +1,170 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  background-color: #f7f8fa;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.header {
+  padding: 48px 24px 32px;
+  text-align: center;
+  background-color: #1a2b4c;
+  color: #fff;
+}
+
+.header__title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.header__subtitle {
+  font-size: 15px;
+  color: #c9d3e8;
+}
+
+.main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.controls__sort {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-btn {
+  border: 1px solid #d7dbe3;
+  background-color: #fff;
+  color: #555;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.sort-btn:hover {
+  border-color: #1a2b4c;
+}
+
+.sort-btn.active {
+  background-color: #1a2b4c;
+  border-color: #1a2b4c;
+  color: #fff;
+}
+
+.date-info {
+  font-size: 13px;
+  color: #888;
+}
+
+.status-message {
+  text-align: center;
+  padding: 48px 0;
+  color: #888;
+  font-size: 15px;
+}
+
+.status-message[hidden] {
+  display: none;
+}
+
+.show-more-btn {
+  display: block;
+  margin: 24px auto 0;
+  padding: 10px 28px;
+  border: 1px solid #d7dbe3;
+  border-radius: 20px;
+  background-color: #fff;
+  color: #555;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.show-more-btn:hover {
+  border-color: #1a2b4c;
+  color: #1a2b4c;
+}
+
+.show-more-btn[hidden] {
+  display: none;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.country-card {
+  background-color: #fff;
+  border: 1px solid #eceef2;
+  border-radius: 12px;
+  padding: 20px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.country-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.country-card__flag {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.country-card__name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.country-card__rate {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.country-card__change {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.country-card__change.favorable {
+  color: #d6336c;
+}
+
+.country-card__change.unfavorable {
+  color: #1971c2;
+}
+
+@media (max-width: 480px) {
+  .header__title {
+    font-size: 22px;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
