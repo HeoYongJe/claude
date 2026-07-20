@@ -3,4 +3,5 @@
 // 이 키는 서버(server.js)에서만 사용되며 브라우저로는 절대 전달되지 않습니다.
 module.exports = {
   EXIM_AUTH_KEY: "여기에_한국수출입은행_인증키_입력",
+  KOTRA_SERVICE_KEY: "여기에_KOTRA_serviceKey_입력",
 };

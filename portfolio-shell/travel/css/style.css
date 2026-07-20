@@ -1,0 +1,16 @@
+/* travel — 핸드오프(design_handoff_travel_web) 재현
+   상세 스타일은 마크업 인라인에 그대로 유지. 여기엔 베이스 + 키프레임만 둔다. */
+
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; }
+body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: #0F172A; background: #FFFFFF; }
+a { color: #0E4AEB; text-decoration: none; }
+a:hover { color: #0b3bc0; }
+/* 시맨틱 <button>이 인라인 스타일을 그대로 쓰도록 브라우저 기본값 리셋 */
+button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; line-height: 1.2; }
+
+@keyframes t-dashflow { to { stroke-dashoffset: -20; } }
+@keyframes t-planebob { 0%,100% { transform: translateX(-3px); } 50% { transform: translateX(3px); } }
+@keyframes t-fly { to { offset-distance: 100%; } }
+@keyframes t-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes t-float2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
