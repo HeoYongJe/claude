@@ -29,40 +29,60 @@ export default function BackgroundScrub() {
     );
     if (sections.length < 2) return;
 
-    // 이제 배경은 이 레이어가 담당하므로 각 섹션 자체 배경은 투명 처리한다.
+    // 배경은 이제 이 레이어가 전담하므로 각 섹션 자체 배경은 투명 처리한다.
     sections.forEach((s) => {
       s.el.style.backgroundColor = "transparent";
     });
 
-    const ctx = gsap.context(() => {
-      const totalScroll =
-        document.documentElement.scrollHeight - window.innerHeight;
+    // 구간별 보간 함수(색1→색2). 위치(y)는 Works의 pin 때문에 레이아웃이 늦게
+    // 확정되므로 정적으로 캐싱하지 않고, refresh/스크롤마다 실측한다.
+    const interpolators = sections
+      .slice(1)
+      .map((s, i) => gsap.utils.interpolate(sections[i].color, s.color));
 
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          start: 0,
-          end: () => document.documentElement.scrollHeight - window.innerHeight,
-          scrub: true,
-        },
-      });
+    let stopsY: number[] = [];
 
-      // 타임라인 전체 길이를 1로 고정해서 position 값이 실제 스크롤 진행률(0~1)과 일치하게 만든다.
-      tl.set({}, {}, 1);
-      gsap.set(layer, { backgroundColor: sections[0].color });
+    const recomputeStops = () => {
+      const scrollY = window.scrollY;
+      stopsY = sections.map(
+        (s) => s.el.getBoundingClientRect().top + scrollY
+      );
+    };
 
-      sections.forEach((s, i) => {
-        if (i === 0) return;
-        const pos = Math.min(0.999, s.el.offsetTop / totalScroll);
-        tl.to(
-          layer,
-          { backgroundColor: s.color, ease: "none", duration: 0.001 },
-          pos
-        );
-      });
+    const st = ScrollTrigger.create({
+      start: 0,
+      end: () => document.documentElement.scrollHeight - window.innerHeight,
+      scrub: true,
+      onRefresh: recomputeStops,
+      onUpdate: (self) => {
+        const y = self.scroll();
+        let idx = 0;
+        for (let i = 1; i < stopsY.length; i++) {
+          if (y >= stopsY[i]) idx = i;
+        }
+        if (idx >= stopsY.length - 1) {
+          layer.style.backgroundColor = sections[sections.length - 1].color;
+          return;
+        }
+        const segStart = stopsY[idx];
+        const segEnd = stopsY[idx + 1];
+        const segT =
+          segEnd > segStart
+            ? gsap.utils.clamp(0, 1, (y - segStart) / (segEnd - segStart))
+            : 1;
+        layer.style.backgroundColor = interpolators[idx](segT);
+      },
+    });
+
+    // Works의 pin-spacer 등 다른 컴포넌트의 레이아웃이 먼저 자리잡은 뒤 계산하도록
+    // 한 프레임 늦춰서 refresh한다.
+    requestAnimationFrame(() => {
+      recomputeStops();
+      ScrollTrigger.refresh();
     });
 
     return () => {
-      ctx.revert();
+      st.kill();
       sections.forEach((s) => {
         s.el.style.backgroundColor = "";
       });
