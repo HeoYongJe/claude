@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { works } from "@/content/site";
+import { prefersReducedMotion } from "@/lib/motion";
 
 export default function Works() {
   const listRef = useRef<HTMLDivElement>(null);
@@ -11,7 +12,7 @@ export default function Works() {
   const [cursorActive, setCursorActive] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (prefersReducedMotion()) return;
     if (!listRef.current) return;
 
     const ctx = gsap.context(() => {

@@ -4,6 +4,7 @@ import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 import ScrollProgress from "@/components/ScrollProgress";
 import Nav from "@/components/Nav";
 import RevealController from "@/components/RevealController";
+import MotionClassSync from "@/components/MotionClassSync";
 
 export const metadata: Metadata = {
   title: "YUJIN LEE — Web Publisher Portfolio",
@@ -32,6 +33,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-light text-heading-light antialiased">
         <SmoothScrollProvider>
+          <MotionClassSync />
           <ScrollProgress />
           <Nav />
           <RevealController />

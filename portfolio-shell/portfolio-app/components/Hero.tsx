@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { hero } from "@/content/site";
+import { prefersReducedMotion } from "@/lib/motion";
 
 export default function Hero() {
   const orbRef = useRef<HTMLDivElement>(null);
@@ -11,7 +12,7 @@ export default function Hero() {
   const paraRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (prefersReducedMotion()) return;
 
     let ticking = false;
 

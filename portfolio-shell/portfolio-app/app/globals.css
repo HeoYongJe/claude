@@ -114,20 +114,20 @@ body {
   animation: yjBounce 1.6s ease-in-out infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
+/* prefers-reduced-motion 대신 :root.motion-reduced로 통일해서 처리한다.
+   ?motion=on|off 쿼리 오버라이드(lib/motion.ts)도 같은 클래스로 반영되게 하기 위함. */
+:root.motion-reduced [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
 
-  .yj-marquee-track,
-  .yj-orb-float,
-  .yj-scroll-dot {
-    animation: none !important;
-  }
+:root.motion-reduced .yj-marquee-track,
+:root.motion-reduced .yj-orb-float,
+:root.motion-reduced .yj-scroll-dot {
+  animation: none !important;
+}
 
-  * {
-    scroll-behavior: auto !important;
-  }
+:root.motion-reduced * {
+  scroll-behavior: auto !important;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { prefersReducedMotion } from "@/lib/motion";
 
 function easeOutCubic(p: number) {
   return 1 - Math.pow(1 - p, 3);
@@ -20,7 +21,7 @@ export default function CountUp({
     const el = ref.current;
     if (!el) return;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (prefersReducedMotion()) {
       setValue(to);
       return;
     }

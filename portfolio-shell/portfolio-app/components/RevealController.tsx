@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { prefersReducedMotion } from "@/lib/motion";
 
 export default function RevealController() {
   useEffect(() => {
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const reduceMotion = prefersReducedMotion();
 
     const observer = new IntersectionObserver(
       (entries) => {

@@ -4,6 +4,7 @@ import { ReactLenis, useLenis } from "lenis/react";
 import { useEffect, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { prefersReducedMotion } from "@/lib/motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -22,11 +23,11 @@ export default function SmoothScrollProvider({
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduceMotion(mq.matches);
+    setReduceMotion(prefersReducedMotion());
     gsap.ticker.lagSmoothing(0);
 
-    const onChange = (e: MediaQueryListEvent) => setReduceMotion(e.matches);
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduceMotion(prefersReducedMotion());
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
