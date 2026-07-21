@@ -15,31 +15,52 @@ export default function Works() {
     if (prefersReducedMotion()) return;
     if (!listRef.current) return;
 
-    const ctx = gsap.context(() => {
-      const rows = listRef.current!.querySelectorAll<HTMLElement>(
-        "[data-work-row]"
-      );
-      rows.forEach((row) => {
-        const img = row.querySelector<HTMLElement>("[data-parallax-img]");
-        if (!img) return;
-        gsap.fromTo(
-          img,
-          { yPercent: -12 },
-          {
-            yPercent: 12,
-            ease: "none",
+    const mm = gsap.matchMedia();
+
+    mm.add("(min-width: 900px)", () => {
+      const ctx = gsap.context(() => {
+        const rows = listRef.current!.querySelectorAll<HTMLElement>(
+          "[data-work-row]"
+        );
+
+        rows.forEach((row) => {
+          const img = row.querySelector<HTMLElement>("[data-parallax-img]");
+          const body = row.querySelector<HTMLElement>(
+            "[data-work-body-inner]"
+          );
+          if (!img || !body) return;
+
+          gsap.set(body, { opacity: 0, y: 60 });
+
+          const tl = gsap.timeline({
             scrollTrigger: {
               trigger: row,
-              start: "top bottom",
-              end: "bottom top",
-              scrub: true,
+              start: "top top",
+              end: "+=90%",
+              scrub: 0.5,
+              pin: true,
+              pinSpacing: true,
             },
-          }
-        );
-      });
-    }, listRef);
+          });
 
-    return () => ctx.revert();
+          tl.fromTo(
+            img,
+            { scale: 1.32, yPercent: -8 },
+            { scale: 1, yPercent: 8, ease: "none" },
+            0
+          ).fromTo(
+            body,
+            { opacity: 0, y: 60 },
+            { opacity: 1, y: 0, ease: "none" },
+            0.05
+          );
+        });
+      }, listRef);
+
+      return () => ctx.revert();
+    });
+
+    return () => mm.revert();
   }, []);
 
   useEffect(() => {
@@ -80,7 +101,7 @@ export default function Works() {
 
         <div
           ref={listRef}
-          className="yj-works-list mt-20 flex flex-col gap-[clamp(64px,11vh,128px)]"
+          className="yj-works-list mt-20 flex flex-col gap-[clamp(64px,11vh,128px)] tab:mt-0 tab:gap-0"
         >
           {works.items.map((work, i) => {
             const mediaOrder = i % 2 === 1 ? "tab:order-2" : "tab:order-1";
@@ -90,7 +111,7 @@ export default function Works() {
                 key={work.number}
                 data-work-row
                 data-reveal
-                className="yj-work-row grid items-center gap-10 tab:grid-cols-[1.12fr_0.88fr]"
+                className="yj-work-row grid items-center gap-10 tab:grid-cols-[1.12fr_0.88fr] tab:min-h-screen tab:gap-16 tab:py-24"
               >
                 <div
                   className={`yj-work-media relative overflow-hidden rounded-thumb aspect-[16/10] ${mediaOrder}`}
@@ -108,7 +129,10 @@ export default function Works() {
                   </span>
                 </div>
 
-                <div className={`yj-work-body ${bodyOrder}`}>
+                <div
+                  data-work-body-inner
+                  className={`yj-work-body ${bodyOrder}`}
+                >
                   <div className="font-display font-extrabold text-primary text-[clamp(44px,5.2vw,76px)] leading-none">
                     {work.number}
                   </div>
