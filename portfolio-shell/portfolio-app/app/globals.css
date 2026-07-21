@@ -71,6 +71,29 @@ body {
   transform: translateY(0);
 }
 
+/* -------- split text mask reveal -------- */
+.split-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.split-word {
+  display: inline-block;
+  transform: translateY(115%);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+[data-reveal-split].is-revealed .split-word {
+  transform: translateY(0);
+}
+
+:root.motion-reduced [data-reveal-split] .split-word {
+  transition: none !important;
+  transform: translateY(0) !important;
+}
+
 /* -------- marquee -------- */
 @keyframes yjMarquee {
   from {

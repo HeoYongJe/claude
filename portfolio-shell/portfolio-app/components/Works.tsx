@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { works } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
+import SplitHeading from "./SplitHeading";
 
 export default function Works() {
   const listRef = useRef<HTMLDivElement>(null);
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const [cursorActive, setCursorActive] = useState(false);
 
   useEffect(() => {
     if (prefersReducedMotion()) return;
@@ -63,16 +62,6 @@ export default function Works() {
     return () => mm.revert();
   }, []);
 
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
-      }
-    };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
-  }, []);
-
   return (
     <section id="works" className="section-pad bg-light">
       <div className="section-shell">
@@ -84,12 +73,11 @@ export default function Works() {
             >
               {works.eyebrow}
             </div>
-            <h2
-              data-reveal
+            <SplitHeading
+              as="h2"
+              text={works.heading}
               className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)]"
-            >
-              {works.heading}
-            </h2>
+            />
           </div>
           <p
             data-reveal
@@ -114,9 +102,8 @@ export default function Works() {
                 className="yj-work-row grid items-center gap-10 tab:grid-cols-[1.12fr_0.88fr] tab:min-h-screen tab:gap-16 tab:py-24"
               >
                 <div
+                  data-cursor="VIEW"
                   className={`yj-work-media relative overflow-hidden rounded-thumb aspect-[16/10] ${mediaOrder}`}
-                  onMouseEnter={() => setCursorActive(true)}
-                  onMouseLeave={() => setCursorActive(false)}
                 >
                   <img
                     data-parallax-img
@@ -165,20 +152,6 @@ export default function Works() {
               </div>
             );
           })}
-        </div>
-      </div>
-
-      <div
-        ref={cursorRef}
-        aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[130]"
-      >
-        <div
-          className={`flex h-20 w-20 items-center justify-center rounded-full bg-primary text-xs font-bold text-white transition-[opacity,transform] duration-200 ${
-            cursorActive ? "opacity-100 scale-100" : "opacity-0 scale-75"
-          }`}
-        >
-          VIEW
         </div>
       </div>
     </section>

@@ -93,19 +93,27 @@ export default function Hero() {
 
         <h1
           ref={h1Ref}
+          data-reveal-split
           className="font-display font-extrabold leading-[0.98] tracking-[-0.035em] text-[clamp(46px,8.6vw,124px)]"
         >
           {hero.titleLines.map((line, i) => (
-            <span key={i} className="block">
-              {line.includes(hero.titleAccentWord) ? (
-                <>
-                  {line.split(hero.titleAccentWord)[0]}
-                  <span className="text-primary">{hero.titleAccentWord}</span>
-                  {line.split(hero.titleAccentWord)[1]}
-                </>
-              ) : (
-                line
-              )}
+            <span className="split-word-mask block" key={i}>
+              <span
+                className="split-word"
+                style={{ transitionDelay: `${i * 0.08}s` }}
+              >
+                {line.includes(hero.titleAccentWord) ? (
+                  <>
+                    {line.split(hero.titleAccentWord)[0]}
+                    <span className="text-primary">
+                      {hero.titleAccentWord}
+                    </span>
+                    {line.split(hero.titleAccentWord)[1]}
+                  </>
+                ) : (
+                  line
+                )}
+              </span>
             </span>
           ))}
         </h1>

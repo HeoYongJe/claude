@@ -15,12 +15,17 @@ export default function Intro() {
         <div className="yj-intro-grid grid gap-16 sm:grid-cols-[1.6fr_1fr]">
           <div>
             <h2
-              data-reveal
+              data-reveal-split
               className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)] leading-tight"
             >
-              {intro.heading.map((line) => (
-                <span key={line} className="block">
-                  {line}
+              {intro.heading.map((line, i) => (
+                <span className="split-word-mask block" key={line}>
+                  <span
+                    className="split-word"
+                    style={{ transitionDelay: `${i * 0.08}s` }}
+                  >
+                    {line}
+                  </span>
                 </span>
               ))}
             </h2>

@@ -20,7 +20,9 @@ export default function RevealController() {
     );
 
     const wire = () => {
-      document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+      document
+        .querySelectorAll<HTMLElement>("[data-reveal], [data-reveal-split]")
+        .forEach((el) => {
         if (el.dataset.wired) return;
         el.dataset.wired = "true";
         if (reduceMotion) {

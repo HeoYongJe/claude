@@ -1,4 +1,5 @@
 import { skills } from "@/content/site";
+import SplitHeading from "./SplitHeading";
 
 export default function Skills() {
   return (
@@ -10,12 +11,11 @@ export default function Skills() {
         >
           {skills.eyebrow}
         </div>
-        <h2
-          data-reveal
+        <SplitHeading
+          as="h2"
+          text={skills.heading}
           className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)]"
-        >
-          {skills.heading}
-        </h2>
+        />
 
         <div className="yj-skills-grid mt-14 grid gap-6 tab:grid-cols-3">
           {skills.items.map((item, i) => (

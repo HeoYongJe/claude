@@ -1,4 +1,5 @@
 import { contact, profile } from "@/content/site";
+import Magnetic from "./Magnetic";
 
 export default function Contact() {
   return (
@@ -23,12 +24,17 @@ export default function Contact() {
           {contact.eyebrow}
         </div>
         <h2
-          data-reveal
+          data-reveal-split
           className="font-display font-extrabold leading-[1.05] tracking-[-0.03em] text-[clamp(38px,7vw,96px)]"
         >
-          {contact.headingLines.map((line) => (
-            <span key={line} className="block">
-              {line}
+          {contact.headingLines.map((line, i) => (
+            <span className="split-word-mask block" key={line}>
+              <span
+                className="split-word"
+                style={{ transitionDelay: `${i * 0.08}s` }}
+              >
+                {line}
+              </span>
             </span>
           ))}
         </h2>
@@ -36,13 +42,16 @@ export default function Contact() {
           {contact.paragraph}
         </p>
 
-        <a
-          href={`mailto:${profile.email}`}
-          data-reveal
-          className="mt-10 rounded-pill bg-primary px-10 py-5 text-lg font-bold text-white transition-colors hover:bg-white hover:text-primary"
-        >
-          {contact.ctaLabel}
-        </a>
+        <Magnetic className="mt-10">
+          <a
+            href={`mailto:${profile.email}`}
+            data-reveal
+            data-cursor="MAIL"
+            className="inline-block rounded-pill bg-primary px-10 py-5 text-lg font-bold text-white transition-colors hover:bg-white hover:text-primary"
+          >
+            {contact.ctaLabel}
+          </a>
+        </Magnetic>
 
         <ul className="mt-12 flex gap-8">
           {profile.socials.map((social) => (

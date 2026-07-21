@@ -5,6 +5,9 @@ import ScrollProgress from "@/components/ScrollProgress";
 import Nav from "@/components/Nav";
 import RevealController from "@/components/RevealController";
 import MotionClassSync from "@/components/MotionClassSync";
+import BackgroundScrub from "@/components/BackgroundScrub";
+import CustomCursor from "@/components/CustomCursor";
+import GrainOverlay from "@/components/GrainOverlay";
 
 export const metadata: Metadata = {
   title: "YUJIN LEE — Web Publisher Portfolio",
@@ -34,9 +37,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-light text-heading-light antialiased">
         <SmoothScrollProvider>
           <MotionClassSync />
+          <BackgroundScrub />
           <ScrollProgress />
           <Nav />
           <RevealController />
+          <CustomCursor />
+          <GrainOverlay />
           {children}
         </SmoothScrollProvider>
       </body>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { nav, profile } from "@/content/site";
+import Magnetic from "./Magnetic";
 
 export default function Nav() {
   const [solid, setSolid] = useState(false);
@@ -70,12 +71,14 @@ export default function Nav() {
             </a>
           ))}
         </nav>
-        <a
-          href="#contact"
-          className="rounded-pill bg-primary text-white text-sm font-semibold px-5 py-2.5 hover:bg-white hover:text-primary transition-colors"
-        >
-          Contact
-        </a>
+        <Magnetic>
+          <a
+            href="#contact"
+            className="inline-block rounded-pill bg-primary text-white text-sm font-semibold px-5 py-2.5 hover:bg-white hover:text-primary transition-colors"
+          >
+            Contact
+          </a>
+        </Magnetic>
       </div>
     </header>
   );
