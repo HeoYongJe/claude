@@ -6,6 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { works } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
 import SplitHeading from "./SplitHeading";
+import Skills from "./Skills";
 
 type Work = (typeof works.items)[number];
 
@@ -199,6 +200,9 @@ export default function Works() {
           </span>
         </div>
       </div>
+
+      {/* Works 하위 서브섹션: 사용 스킬 */}
+      <Skills />
     </section>
   );
 }

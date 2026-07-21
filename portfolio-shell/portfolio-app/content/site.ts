@@ -15,9 +15,9 @@ export const profile = {
 };
 
 export const nav = [
-  { label: "Works", href: "#works" },
-  { label: "Skills", href: "#skills" },
   { label: "Intro", href: "#intro" },
+  { label: "Works", href: "#works" },
+  { label: "Contact", href: "#contact" },
 ];
 
 export const hero = {
@@ -33,7 +33,7 @@ export const hero = {
 };
 
 export const intro = {
-  eyebrow: "03 — ABOUT",
+  eyebrow: "01 — ABOUT",
   heading: ["보이지 않는 코드로", "보이는 경험을 만듭니다."],
   paragraphs: [
     "레이아웃과 인터랙션의 디테일이 사용자 경험을 좌우한다고 생각합니다. 픽셀 단위의 정렬과 자연스러운 모션까지 신경 써서 작업합니다.",
@@ -53,7 +53,7 @@ export const intro = {
 };
 
 export const skills = {
-  eyebrow: "02 — SKILLS",
+  eyebrow: "TOOLKIT",
   heading: "구현에 사용하는 도구",
   items: [
     {
@@ -78,7 +78,7 @@ export const skills = {
 };
 
 export const works = {
-  eyebrow: "01 — WORKS",
+  eyebrow: "02 — WORKS",
   heading: "선택된 작업물",
   description: "스크롤과 모션으로 이야기를 전달한 작업들입니다.",
   items: [
@@ -119,7 +119,7 @@ export const works = {
 };
 
 export const contact = {
-  eyebrow: "04 — CONTACT",
+  eyebrow: "03 — CONTACT",
   headingLines: ["함께 만들", "준비가 되어 있어요."],
   paragraph: "새로운 프로젝트나 협업 제안, 언제든 편하게 연락 주세요.",
   ctaLabel: profile.email,

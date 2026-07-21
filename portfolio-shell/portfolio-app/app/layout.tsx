@@ -6,6 +6,7 @@ import Nav from "@/components/Nav";
 import RevealController from "@/components/RevealController";
 import MotionClassSync from "@/components/MotionClassSync";
 import BackgroundScrub from "@/components/BackgroundScrub";
+import GeometricScene from "@/components/GeometricScene";
 import CustomCursor from "@/components/CustomCursor";
 import GrainOverlay from "@/components/GrainOverlay";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
         <SmoothScrollProvider>
           <MotionClassSync />
           <BackgroundScrub />
+          <GeometricScene />
           <ScrollProgress />
           <Nav />
           <RevealController />
