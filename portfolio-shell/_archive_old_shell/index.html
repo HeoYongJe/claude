@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HeoYongJe — Portfolio</title>
+<meta name="description" content="퍼블리셔/프론트엔드 포트폴리오. Travel, Nike, Alliza 프로젝트.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav__inner">
+    <a href="#" class="nav__brand">HeoYongJe</a>
+    <ul class="nav__links">
+      <li><a href="#work">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <div class="container hero__inner">
+      <p class="hero__eyebrow">Publisher · Frontend</p>
+      <h1 class="hero__title">화면을 만들고,<br><em>데이터로</em> 완성합니다</h1>
+      <p class="hero__desc">퍼블리싱 기반으로 시작해 실제 데이터와 API를 다루는 프론트엔드로 넓혀가는 중입니다. 아래 프로젝트에서 확인하실 수 있어요.</p>
+      <div class="hero__actions">
+        <a href="#work" class="btn btn--primary">프로젝트 보기</a>
+        <a href="#contact" class="btn btn--ghost">연락하기</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="work" class="work">
+    <div class="container">
+      <header class="work__head" data-reveal>
+        <p class="kicker">Work</p>
+        <h2 class="section-title">프로젝트 3개</h2>
+        <p class="section-desc">디자인 재현, 퍼블리싱, 실데이터 연동까지 — 각기 다른 역량을 보여주는 프로젝트들입니다.</p>
+      </header>
+
+      <ul class="work__grid" data-reveal>
+        <li>
+          <a class="card card--live" href="/travel/">
+            <span class="card__tag">JavaScript · API 연동</span>
+            <h3 class="card__title">여행하기 좋은 나라</h3>
+            <p class="card__desc">환율·물가 데이터를 실시간으로 연동해, 지금 원화로 가장 이득인 여행지를 추천하는 서비스.</p>
+            <span class="card__link">사이트 보기 →</span>
+          </a>
+        </li>
+        <li>
+          <a class="card card--live" href="/nike/">
+            <span class="card__tag">HTML/CSS/JS 100%</span>
+            <h3 class="card__title">Nike</h3>
+            <p class="card__desc">Nike 웹사이트 리메이크. 퍼블리싱과 스크롤 인터랙션 구현.</p>
+            <span class="card__link">사이트 보기 →</span>
+          </a>
+        </li>
+        <li>
+          <div class="card card--soon">
+            <span class="card__tag">준비중</span>
+            <h3 class="card__title">알리자</h3>
+            <p class="card__desc">모바일 UI/UX 디자인 프로젝트. 콘텐츠 정리 중입니다.</p>
+            <span class="card__link">Coming soon</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer id="contact" class="footer">
+  <div class="container footer__inner">
+    <span class="footer__brand">HeoYongJe</span>
+    <a class="footer__contact" href="mailto:hyj.campus@gmail.com">hyj.campus@gmail.com</a>
+    <span class="footer__meta">© yjportfolio.co.kr</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
