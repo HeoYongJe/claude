@@ -94,31 +94,7 @@ body {
   transform: translateY(0) !important;
 }
 
-/* -------- marquee -------- */
-@keyframes yjMarquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.yj-marquee-track {
-  animation: yjMarquee 24s linear infinite;
-}
-
-/* -------- hero float / bounce -------- */
-@keyframes yjFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-18px);
-  }
-}
-
+/* -------- scroll indicator bounce -------- */
 @keyframes yjBounce {
   0%,
   100% {
@@ -127,10 +103,6 @@ body {
   50% {
     transform: translateY(10px);
   }
-}
-
-.yj-orb-float {
-  animation: yjFloat 14s ease-in-out infinite;
 }
 
 .yj-scroll-dot {
@@ -145,8 +117,6 @@ body {
   transition: none !important;
 }
 
-:root.motion-reduced .yj-marquee-track,
-:root.motion-reduced .yj-orb-float,
 :root.motion-reduced .yj-scroll-dot {
   animation: none !important;
 }

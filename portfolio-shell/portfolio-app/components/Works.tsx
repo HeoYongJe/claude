@@ -9,6 +9,26 @@ import SplitHeading from "./SplitHeading";
 
 type Work = (typeof works.items)[number];
 
+function WorksHeader() {
+  return (
+    <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div>
+        <div data-reveal className="mb-4 font-mono text-sm font-bold text-primary">
+          {works.eyebrow}
+        </div>
+        <SplitHeading
+          as="h2"
+          text={works.heading}
+          className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)]"
+        />
+      </div>
+      <p data-reveal className="max-w-sm text-sm text-[rgba(46,47,51,0.7)]">
+        {works.description}
+      </p>
+    </div>
+  );
+}
+
 function WorkCardBody({ work }: { work: Work }) {
   return (
     <>
@@ -26,13 +46,13 @@ function WorkCardBody({ work }: { work: Work }) {
         </span>
       </div>
       <div>
-        <div className="font-display font-extrabold text-primary text-[clamp(44px,5.2vw,76px)] leading-none">
+        <div className="font-display font-extrabold text-primary text-[clamp(40px,4.6vw,64px)] leading-none">
           {work.number}
         </div>
         <div className="mt-3 font-mono text-sm text-[rgba(46,47,51,0.6)]">
           {work.year}
         </div>
-        <h3 className="mt-3 font-display font-extrabold tracking-[-0.02em] text-[clamp(26px,3.2vw,42px)]">
+        <h3 className="mt-3 font-display font-extrabold tracking-[-0.02em] text-[clamp(24px,2.8vw,38px)]">
           {work.title}
         </h3>
         <p className="mt-4 max-w-md text-[15px] leading-[1.75] text-[rgba(46,47,51,0.7)]">
@@ -78,12 +98,12 @@ export default function Works() {
         const n = cards.length;
         if (n === 0) return;
 
-        // 초기 상태: 맨 앞 카드만 보이고, 나머지는 그 뒤에 살짝 밀린 채 숨어있다.
+        // 초기 상태: 맨 앞 카드만 보이고, 나머지는 그 뒤에 숨어있다.
         cards.forEach((card, i) => {
           gsap.set(card, {
             opacity: i === 0 ? 1 : 0,
-            scale: i === 0 ? 1 : 0.94,
-            y: i === 0 ? 0 : 24,
+            scale: i === 0 ? 1 : 0.95,
+            y: i === 0 ? 0 : 20,
             zIndex: n - i,
           });
         });
@@ -96,6 +116,11 @@ export default function Works() {
             scrub: 0.6,
             pin: true,
             pinSpacing: true,
+            snap: {
+              snapTo: 1 / (n - 1),
+              duration: 0.35,
+              ease: "power1.inOut",
+            },
             onUpdate: (self) => {
               const idx = Math.min(n - 1, Math.floor(self.progress * n));
               setActiveIndex(idx);
@@ -103,16 +128,17 @@ export default function Works() {
           },
         });
 
-        // 카드 i가 뒤로 빠지는 것과 카드 i+1이 앞으로 나오는 것을 같은 구간에서 동시에.
+        // 이미지+텍스트가 한 블록이라 겹쳐 보이면 지저분해지므로, 겹치는
+        // 구간을 최소화한다: 이전 카드가 거의 다 빠진 뒤에 다음 카드가 들어온다.
         for (let i = 0; i < n - 1; i++) {
           tl.to(
             cards[i],
-            { opacity: 0, scale: 0.94, y: -24, ease: "power1.inOut" },
+            { opacity: 0, scale: 0.95, y: -20, ease: "power2.in", duration: 0.55 },
             i
           ).to(
             cards[i + 1],
-            { opacity: 1, scale: 1, y: 0, ease: "power1.inOut" },
-            i
+            { opacity: 1, scale: 1, y: 0, ease: "power2.out", duration: 0.55 },
+            i + 0.45
           );
         }
       }, stack);
@@ -125,58 +151,37 @@ export default function Works() {
 
   return (
     <section id="works" className="bg-light">
-      <div className="section-shell section-pad tab:pb-0">
-        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <div
-              data-reveal
-              className="mb-4 font-mono text-sm font-bold text-primary"
-            >
-              {works.eyebrow}
-            </div>
-            <SplitHeading
-              as="h2"
-              text={works.heading}
-              className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)]"
-            />
-          </div>
-          <p data-reveal className="max-w-sm text-sm text-[rgba(46,47,51,0.7)]">
-            {works.description}
-          </p>
-        </div>
-
-        {/* 모바일: 스택 효과 없이 그냥 순서대로 쌓임 */}
-        <div className="mt-16 flex flex-col gap-16 tab:hidden">
+      {/* 모바일: pin/스택 없이 헤더 + 순서대로 쌓이는 목록 */}
+      <div className="section-shell section-pad tab:hidden">
+        <WorksHeader />
+        <div className="mt-16 flex flex-col gap-16">
           {works.items.map((work) => (
-            <div
-              key={work.number}
-              data-reveal
-              className="grid gap-8"
-            >
+            <div key={work.number} data-reveal className="grid gap-8">
               <WorkCardBody work={work} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* 데스크탑: 카드 스택 - 하나의 pin 안에서 카드가 한 장씩 앞으로 나온다 */}
+      {/* 데스크탑: 헤더까지 함께 pin되고, 그 안에서 카드가 한 장씩 앞으로 나온다 */}
       <div
         ref={stackWrapperRef}
-        className="relative hidden tab:block tab:h-screen tab:mt-16"
+        className="relative hidden tab:block tab:h-screen"
       >
-        <div
-          ref={stackRef}
-          className="section-shell relative h-full flex items-center"
-        >
-          {works.items.map((work) => (
-            <div
-              key={work.number}
-              data-work-card
-              className="absolute inset-x-[clamp(20px,5vw,64px)] grid grid-cols-[1.12fr_0.88fr] items-center gap-16"
-            >
-              <WorkCardBody work={work} />
-            </div>
-          ))}
+        <div className="section-shell flex h-full flex-col justify-center gap-10 py-20">
+          <WorksHeader />
+
+          <div ref={stackRef} className="relative flex-1">
+            {works.items.map((work) => (
+              <div
+                key={work.number}
+                data-work-card
+                className="absolute inset-0 grid grid-cols-[1.12fr_0.88fr] items-center gap-16"
+              >
+                <WorkCardBody work={work} />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="absolute bottom-10 right-[clamp(20px,5vw,64px)] flex items-center gap-2">

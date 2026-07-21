@@ -15,9 +15,9 @@ export const profile = {
 };
 
 export const nav = [
-  { label: "Intro", href: "#intro" },
-  { label: "Skills", href: "#skills" },
   { label: "Works", href: "#works" },
+  { label: "Skills", href: "#skills" },
+  { label: "Intro", href: "#intro" },
 ];
 
 export const hero = {
@@ -32,20 +32,8 @@ export const hero = {
   ],
 };
 
-export const marqueeItems = [
-  "HTML5",
-  "CSS3",
-  "SCSS",
-  "JavaScript",
-  "웹접근성",
-  "반응형",
-  "GSAP",
-  "웹표준",
-  "React",
-];
-
 export const intro = {
-  eyebrow: "01 — ABOUT",
+  eyebrow: "03 — ABOUT",
   heading: ["보이지 않는 코드로", "보이는 경험을 만듭니다."],
   paragraphs: [
     "레이아웃과 인터랙션의 디테일이 사용자 경험을 좌우한다고 생각합니다. 픽셀 단위의 정렬과 자연스러운 모션까지 신경 써서 작업합니다.",
@@ -90,7 +78,7 @@ export const skills = {
 };
 
 export const works = {
-  eyebrow: "03 — WORKS",
+  eyebrow: "01 — WORKS",
   heading: "선택된 작업물",
   description: "스크롤과 모션으로 이야기를 전달한 작업들입니다.",
   items: [
@@ -135,5 +123,11 @@ export const contact = {
   headingLines: ["함께 만들", "준비가 되어 있어요."],
   paragraph: "새로운 프로젝트나 협업 제안, 언제든 편하게 연락 주세요.",
   ctaLabel: profile.email,
+  channels: [
+    { index: "01", label: "Email", value: profile.email, href: `mailto:${profile.email}` },
+    { index: "02", label: "GitHub", value: "github.com", href: profile.socials[0].href },
+    { index: "03", label: "Behance", value: "behance.net", href: profile.socials[1].href },
+    { index: "04", label: "Blog", value: "blog.naver.com", href: profile.socials[2].href },
+  ],
   footerNote: `© 2026 ${profile.nameEn}. Built with web standards.`,
 };

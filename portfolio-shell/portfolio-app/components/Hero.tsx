@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { hero } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
+import CanvasBlob from "./CanvasBlob";
 
 export default function Hero() {
   const orbRef = useRef<HTMLDivElement>(null);
@@ -57,23 +58,9 @@ export default function Hero() {
       id="top"
       className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-dark text-white pt-[100px] pb-[128px]"
     >
-      <div
-        ref={orbRef}
-        aria-hidden="true"
-        className="yj-orb-float pointer-events-none absolute -top-40 -right-40 h-[560px] w-[560px] rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(51,102,255,0.55) 0%, rgba(51,102,255,0) 70%)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-160px] left-[-120px] h-[420px] w-[420px] rounded-full blur-3xl"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 70%)",
-        }}
-      />
+      <div ref={orbRef} aria-hidden="true" className="pointer-events-none absolute inset-0 blur-2xl">
+        <CanvasBlob />
+      </div>
       <div
         ref={ghostRef}
         aria-hidden="true"

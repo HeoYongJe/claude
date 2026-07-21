@@ -7,9 +7,9 @@ import { prefersReducedMotion } from "@/lib/motion";
 
 const CHAIN = [
   { id: "top", color: "#0e0e10" },
-  { id: "intro", color: "#ffffff" },
-  { id: "skills", color: "#f7f7f8" },
   { id: "works", color: "#ffffff" },
+  { id: "skills", color: "#f7f7f8" },
+  { id: "intro", color: "#ffffff" },
   { id: "contact", color: "#0e0e10" },
 ];
 
