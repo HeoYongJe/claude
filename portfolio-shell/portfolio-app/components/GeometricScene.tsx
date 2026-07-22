@@ -30,6 +30,36 @@ export default function GeometricScene() {
     dir.position.set(4, 6, 8);
     scene.add(ambient, dir);
 
+    // -------- 기술도면(블루프린트) 느낌의 격자 배경 --------
+    const grid = new THREE.GridHelper(46, 46, 0x3366ff, 0x3366ff);
+    (grid.material as THREE.Material).transparent = true;
+    (grid.material as THREE.Material).opacity = 0.06;
+    grid.rotation.x = Math.PI / 2; // 바닥용 그리드를 카메라를 마주보는 벽으로 세운다
+    grid.position.z = -16;
+    scene.add(grid);
+
+    // 격자 위 측정점처럼 보이는 작은 십자(+) 마커
+    const tickGroup = new THREE.Group();
+    const tickMat = new THREE.LineBasicMaterial({
+      color: 0x3366ff,
+      transparent: true,
+      opacity: 0.22,
+    });
+    const TICKS = 10;
+    for (let i = 0; i < TICKS; i++) {
+      const x = (Math.random() - 0.5) * 40;
+      const y = (Math.random() - 0.5) * 26;
+      const s = 0.18;
+      const pts = new Float32Array([
+        x - s, y, -15.9, x + s, y, -15.9,
+        x, y - s, -15.9, x, y + s, -15.9,
+      ]);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+      tickGroup.add(new THREE.LineSegments(geo, tickMat));
+    }
+    scene.add(tickGroup);
+
     const geometries = [
       new THREE.IcosahedronGeometry(1, 0),
       new THREE.BoxGeometry(1.4, 1.4, 1.4),
@@ -42,8 +72,6 @@ export default function GeometricScene() {
       mesh: THREE.Mesh;
       edges: THREE.LineSegments;
       spin: THREE.Vector3;
-      float: number;
-      floatSpeed: number;
     }[] = [];
 
     const SHAPE_COUNT = 12;
@@ -84,13 +112,12 @@ export default function GeometricScene() {
       shapes.push({
         mesh,
         edges,
+        // 각 도형마다 스크롤량에 대한 회전 반응 배율(축마다 다르게 = 기계 부품처럼 제각각 돌아가는 느낌)
         spin: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.15,
-          (Math.random() - 0.5) * 0.15,
-          (Math.random() - 0.5) * 0.15
+          (Math.random() - 0.5) * 1.4,
+          (Math.random() - 0.5) * 1.4,
+          (Math.random() - 0.5) * 1.4
         ),
-        float: Math.random() * Math.PI * 2,
-        floatSpeed: 0.2 + Math.random() * 0.3,
       });
     }
     scene.add(group);
@@ -108,41 +135,41 @@ export default function GeometricScene() {
     resize();
     window.addEventListener("resize", resize);
 
-    let scrollProgress = 0;
+    let scrollY = window.scrollY;
+    let lastScrollY = scrollY;
     const onScroll = () => {
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight || 1;
-      scrollProgress = window.scrollY / max;
+      scrollY = window.scrollY;
     };
-    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
 
     if (reduceMotion) {
-      group.rotation.y = 0.1;
       renderer.render(scene, camera);
       return () => {
         window.removeEventListener("resize", resize);
         window.removeEventListener("scroll", onScroll);
-        renderer.dispose();
       };
     }
 
     let raf = 0;
-    const clock = new THREE.Clock();
 
     const loop = () => {
-      const t = clock.getElapsedTime();
+      // 스크롤 "이동량"(속도)에만 반응한다 - 가만히 있으면 거의 멈춰있고,
+      // 스크롤하는 동안에만 기계 부품처럼 돌아간다.
+      const delta = scrollY - lastScrollY;
+      lastScrollY = scrollY;
 
-      shapes.forEach((s) => {
-        s.mesh.rotation.x += s.spin.x * 0.01;
-        s.mesh.rotation.y += s.spin.y * 0.01;
-        s.mesh.position.y +=
-          Math.sin(t * s.floatSpeed + s.float) * 0.0025;
-      });
+      if (Math.abs(delta) > 0.001) {
+        shapes.forEach((s) => {
+          s.mesh.rotation.x += delta * s.spin.x * 0.004;
+          s.mesh.rotation.y += delta * s.spin.y * 0.004;
+          s.mesh.rotation.z += delta * s.spin.z * 0.004;
+        });
+        group.rotation.y += delta * 0.0006;
+      }
 
-      // 스크롤에 따라 전체 그룹이 천천히 회전 + 이동 (스크롤 반응성)
-      group.rotation.y = scrollProgress * Math.PI * 0.6;
-      group.position.y = scrollProgress * 6;
+      const max =
+        document.documentElement.scrollHeight - window.innerHeight || 1;
+      group.position.y = (scrollY / max) * 6;
 
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
@@ -159,6 +186,13 @@ export default function GeometricScene() {
         s.edges.geometry.dispose();
         (s.edges.material as THREE.Material).dispose();
       });
+      grid.geometry.dispose();
+      (grid.material as THREE.Material).dispose();
+      tickGroup.children.forEach((c) => {
+        const line = c as THREE.LineSegments;
+        line.geometry.dispose();
+      });
+      tickMat.dispose();
       renderer.dispose();
     };
   }, []);
