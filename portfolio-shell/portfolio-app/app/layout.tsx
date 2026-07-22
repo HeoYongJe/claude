@@ -9,6 +9,7 @@ import BackgroundScrub from "@/components/BackgroundScrub";
 import GeometricScene from "@/components/GeometricScene";
 import CustomCursor from "@/components/CustomCursor";
 import GrainOverlay from "@/components/GrainOverlay";
+import Preloader from "@/components/Preloader";
 
 export const metadata: Metadata = {
   title: "YUJIN LEE — Web Publisher Portfolio",
@@ -37,6 +38,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col bg-light text-heading-light antialiased">
         <SmoothScrollProvider>
+          <Preloader />
           <MotionClassSync />
           <BackgroundScrub />
           <GeometricScene />
