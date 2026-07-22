@@ -1,10 +1,14 @@
 import { intro } from "@/content/site";
 import CountUp from "./CountUp";
+import SectionDivider from "./SectionDivider";
 
 export default function Intro() {
   return (
-    <section id="intro" className="section-pad bg-light">
-      <div className="section-shell">
+    <section id="intro" className="section-pad relative overflow-hidden bg-light">
+      {/* 이전 다크 섹션(Hero)과의 경계 - 다크 페이드 + 블루 글로우 라인 */}
+      <SectionDivider from="#0e0e10" />
+
+      <div className="section-shell relative">
         <div
           data-reveal
           className="mb-4 font-mono text-sm font-bold text-primary"

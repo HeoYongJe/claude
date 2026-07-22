@@ -6,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { works } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
 import SplitHeading from "./SplitHeading";
-import Skills from "./Skills";
+import ContributionGraph from "./ContributionGraph";
 
 type Work = (typeof works.items)[number];
 
@@ -30,21 +30,24 @@ function WorksHeader() {
   );
 }
 
-function WorkCardBody({ work }: { work: Work }) {
+function WorkCardBody({ work, active }: { work: Work; active?: boolean }) {
   return (
     <>
-      <div
-        data-cursor="VIEW"
-        className="relative overflow-hidden rounded-thumb aspect-[16/10]"
-      >
-        <img
-          src={work.image}
-          alt={`${work.title} 썸네일`}
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-        <span className="absolute left-4 top-4 rounded-pill bg-black/50 px-3 py-1.5 font-mono text-xs text-white backdrop-blur-md">
-          {work.category}
-        </span>
+      <div>
+        <div
+          data-cursor="VIEW"
+          className="relative overflow-hidden rounded-thumb aspect-[16/10]"
+        >
+          <img
+            src={work.image}
+            alt={`${work.title} 썸네일`}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <span className="absolute left-4 top-4 rounded-pill bg-black/50 px-3 py-1.5 font-mono text-xs text-white backdrop-blur-md">
+            {work.category}
+          </span>
+        </div>
+        <ContributionGraph items={work.contributions} active={active} />
       </div>
       <div>
         <div className="font-display font-extrabold text-primary text-[clamp(40px,4.6vw,64px)] leading-none">
@@ -151,7 +154,7 @@ export default function Works() {
   }, []);
 
   return (
-    <section id="works" className="bg-light">
+    <section id="works" className="relative bg-light">
       {/* 모바일: pin/스택 없이 헤더 + 순서대로 쌓이는 목록 */}
       <div className="section-shell section-pad tab:hidden">
         <WorksHeader />
@@ -169,17 +172,17 @@ export default function Works() {
         ref={stackWrapperRef}
         className="relative hidden tab:block tab:h-screen"
       >
-        <div className="section-shell flex h-full flex-col justify-center gap-10 py-20">
+        <div className="section-shell flex h-full flex-col justify-center gap-8 py-16">
           <WorksHeader />
 
           <div ref={stackRef} className="relative flex-1">
-            {works.items.map((work) => (
+            {works.items.map((work, i) => (
               <div
                 key={work.number}
                 data-work-card
                 className="absolute inset-0 grid grid-cols-[1.12fr_0.88fr] items-center gap-16"
               >
-                <WorkCardBody work={work} />
+                <WorkCardBody work={work} active={i === activeIndex} />
               </div>
             ))}
           </div>
@@ -200,9 +203,6 @@ export default function Works() {
           </span>
         </div>
       </div>
-
-      {/* Works 하위 서브섹션: 사용 스킬 */}
-      <Skills />
     </section>
   );
 }

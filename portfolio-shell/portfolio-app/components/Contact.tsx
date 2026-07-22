@@ -1,5 +1,7 @@
 import { contact, profile } from "@/content/site";
 import Magnetic from "./Magnetic";
+import GeometricScene from "./GeometricScene";
+import SectionDivider from "./SectionDivider";
 
 export default function Contact() {
   return (
@@ -7,9 +9,16 @@ export default function Contact() {
       id="contact"
       className="section-pad relative overflow-hidden bg-dark text-white"
     >
+      {/* 이전 라이트 섹션(Works)과의 경계 - 흰색 페이드 + 블루 글로우 라인 */}
+      <SectionDivider from="#ffffff" />
+
+      <div aria-hidden="true" className="absolute inset-0 z-0 opacity-70">
+        <GeometricScene />
+      </div>
+
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute bottom-[-220px] left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full blur-3xl"
+        className="pointer-events-none absolute bottom-[-220px] left-1/2 z-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full blur-3xl"
         style={{
           background:
             "radial-gradient(circle, rgba(51,102,255,0.5) 0%, rgba(51,102,255,0) 70%)",

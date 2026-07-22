@@ -52,35 +52,11 @@ export const intro = {
   ],
 };
 
-export const skills = {
-  eyebrow: "TOOLKIT",
-  heading: "구현에 사용하는 도구",
-  items: [
-    {
-      index: "D/01",
-      title: "Design",
-      description: "시안 편집 · 이미지 리터칭",
-      chips: ["Photoshop", "Illustrator"],
-    },
-    {
-      index: "M/02",
-      title: "Markup",
-      description: "구조 설계 · 스타일링 · 반응형",
-      chips: ["마크업", "CSS3", "반응형", "Flexbox"],
-    },
-    {
-      index: "S/03",
-      title: "Script",
-      description: "동작 구현 (학습 중)",
-      chips: ["JavaScript"],
-    },
-  ],
-};
-
 export const works = {
   eyebrow: "02 — WORKS",
   heading: "선택된 작업물",
   description: "스크롤과 모션으로 이야기를 전달한 작업들입니다.",
+  contribTitle: "작업물 기여도",
   items: [
     {
       number: "01",
@@ -92,6 +68,12 @@ export const works = {
       tags: ["반응형", "패럴랙스", "인터랙션"],
       image: "/works/placeholder-01.svg",
       href: "#",
+      contributions: [
+        { label: "HTML", value: 100 },
+        { label: "CSS", value: 100 },
+        { label: "Design", value: 90 },
+        { label: "JavaScript", value: 40 },
+      ],
     },
     {
       number: "02",
@@ -103,6 +85,12 @@ export const works = {
       tags: ["마크업", "CSS3", "Flex"],
       image: "/works/placeholder-02.svg",
       href: "#",
+      contributions: [
+        { label: "HTML", value: 100 },
+        { label: "CSS", value: 100 },
+        { label: "Design", value: 100 },
+        { label: "JavaScript", value: 20 },
+      ],
     },
     {
       number: "03",
@@ -114,6 +102,12 @@ export const works = {
       tags: ["반응형", "마크업", "웹표준"],
       image: "/works/placeholder-03.svg",
       href: "#",
+      contributions: [
+        { label: "HTML", value: 100 },
+        { label: "CSS", value: 100 },
+        { label: "Design", value: 80 },
+        { label: "JavaScript", value: 30 },
+      ],
     },
   ],
 };

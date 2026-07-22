@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { hero } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
 import MouseSpotlight from "./MouseSpotlight";
+import GeometricScene from "./GeometricScene";
 
 export default function Hero() {
   const orbRef = useRef<HTMLDivElement>(null);
@@ -58,7 +59,10 @@ export default function Hero() {
       id="top"
       className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-dark text-white pt-[100px] pb-[128px]"
     >
-      <div ref={orbRef} aria-hidden="true" className="absolute inset-0">
+      <div aria-hidden="true" className="absolute inset-0 z-0">
+        <GeometricScene />
+      </div>
+      <div ref={orbRef} aria-hidden="true" className="absolute inset-0 z-0">
         <MouseSpotlight />
       </div>
       <div

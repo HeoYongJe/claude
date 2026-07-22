@@ -4,19 +4,21 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { prefersReducedMotion } from "@/lib/motion";
 
+// 다크 섹션(히어로/컨택트) 안에 절대배치되는 유리 느낌의 기하학 배경.
+// 겹치지 않도록 격자 셀마다 하나씩 배치하고, 스크롤에 반응해 회전한다.
 export default function GeometricScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return; // 모바일은 생략(성능)
+    if (window.matchMedia("(pointer: coarse)").matches) return; // 모바일 생략
 
     const reduceMotion = prefersReducedMotion();
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-    camera.position.z = 18;
+    camera.position.z = 16;
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
@@ -25,116 +27,102 @@ export default function GeometricScene() {
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.7);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-    dir.position.set(4, 6, 8);
-    scene.add(ambient, dir);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const key = new THREE.DirectionalLight(0xffffff, 1);
+    key.position.set(5, 8, 6);
+    scene.add(key);
+    const rim = new THREE.DirectionalLight(0x3366ff, 0.6);
+    rim.position.set(-6, -3, 4);
+    scene.add(rim);
 
-    // -------- 기술도면(블루프린트) 느낌의 격자 배경 --------
-    const grid = new THREE.GridHelper(46, 46, 0x3366ff, 0x3366ff);
-    (grid.material as THREE.Material).transparent = true;
-    (grid.material as THREE.Material).opacity = 0.06;
-    grid.rotation.x = Math.PI / 2; // 바닥용 그리드를 카메라를 마주보는 벽으로 세운다
-    grid.position.z = -16;
-    scene.add(grid);
-
-    // 격자 위 측정점처럼 보이는 작은 십자(+) 마커
-    const tickGroup = new THREE.Group();
-    const tickMat = new THREE.LineBasicMaterial({
-      color: 0x3366ff,
-      transparent: true,
-      opacity: 0.22,
-    });
-    const TICKS = 10;
-    for (let i = 0; i < TICKS; i++) {
-      const x = (Math.random() - 0.5) * 40;
-      const y = (Math.random() - 0.5) * 26;
-      const s = 0.18;
-      const pts = new Float32Array([
-        x - s, y, -15.9, x + s, y, -15.9,
-        x, y - s, -15.9, x, y + s, -15.9,
-      ]);
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute("position", new THREE.BufferAttribute(pts, 3));
-      tickGroup.add(new THREE.LineSegments(geo, tickMat));
-    }
-    scene.add(tickGroup);
-
-    // 이전 대비 살짝 작은 기본 크기 + 유리 느낌(투명도↑, 러프니스↓)
     const geometries = [
-      new THREE.IcosahedronGeometry(0.85, 0),
-      new THREE.BoxGeometry(1.1, 1.1, 1.1),
-      new THREE.TetrahedronGeometry(1, 0),
-      new THREE.OctahedronGeometry(0.9, 0),
+      new THREE.IcosahedronGeometry(1.15, 0),
+      new THREE.BoxGeometry(1.7, 1.7, 1.7),
+      new THREE.TetrahedronGeometry(1.5, 0),
+      new THREE.OctahedronGeometry(1.35, 0),
+      new THREE.DodecahedronGeometry(1.2, 0),
     ];
 
     const group = new THREE.Group();
-    const shapes: {
-      mesh: THREE.Mesh;
-      edges: THREE.LineSegments;
-      spin: THREE.Vector3;
-    }[] = [];
+    const shapes: { mesh: THREE.Mesh; spin: THREE.Vector3; drift: number }[] = [];
 
-    const SHAPE_COUNT = 12;
-    for (let i = 0; i < SHAPE_COUNT; i++) {
-      const geo = geometries[i % geometries.length];
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.1,
-        roughness: 0.25,
-        metalness: 0.05,
-      });
-      const mesh = new THREE.Mesh(geo, material);
+    // 격자 배치(겹침 방지). 셀 간격이 도형 지름보다 충분히 크다.
+    const COLS = 4;
+    const ROWS = 3;
+    const CELL_X = 5.4;
+    const CELL_Y = 4.8;
+    let idx = 0;
 
-      const edgeGeo = new THREE.EdgesGeometry(geo);
-      const edgeMat = new THREE.LineBasicMaterial({
-        color: 0x3366ff,
-        transparent: true,
-        opacity: 0.35,
-      });
-      const edges = new THREE.LineSegments(edgeGeo, edgeMat);
-      mesh.add(edges);
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const geo = geometries[idx % geometries.length];
+        const fill = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          transparent: true,
+          opacity: 0.08,
+          roughness: 0.15,
+          metalness: 0.2,
+        });
+        const mesh = new THREE.Mesh(geo, fill);
 
-      const scale = 0.5 + Math.random() * 0.9;
-      mesh.scale.setScalar(scale);
-      mesh.position.set(
-        (Math.random() - 0.5) * 22,
-        (Math.random() - 0.5) * 14 - 4,
-        (Math.random() - 0.5) * 10 - 4
-      );
-      mesh.rotation.set(
-        Math.random() * Math.PI,
-        Math.random() * Math.PI,
-        Math.random() * Math.PI
-      );
+        const edges = new THREE.LineSegments(
+          new THREE.EdgesGeometry(geo),
+          new THREE.LineBasicMaterial({
+            color: 0x3366ff,
+            transparent: true,
+            opacity: 0.5,
+          })
+        );
+        mesh.add(edges);
 
-      group.add(mesh);
-      shapes.push({
-        mesh,
-        edges,
-        // 각 도형마다 스크롤량에 대한 회전 반응 배율(축마다 다르게 = 기계 부품처럼 제각각 돌아가는 느낌)
-        spin: new THREE.Vector3(
-          (Math.random() - 0.5) * 1.4,
-          (Math.random() - 0.5) * 1.4,
-          (Math.random() - 0.5) * 1.4
-        ),
-      });
+        const scale = 0.85 + Math.random() * 0.4;
+        mesh.scale.setScalar(scale);
+        mesh.position.set(
+          (c - (COLS - 1) / 2) * CELL_X + (Math.random() - 0.5) * 1.1,
+          (r - (ROWS - 1) / 2) * CELL_Y + (Math.random() - 0.5) * 1.0,
+          (Math.random() - 0.5) * 3
+        );
+        mesh.rotation.set(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI
+        );
+
+        group.add(mesh);
+        shapes.push({
+          mesh,
+          spin: new THREE.Vector3(
+            (Math.random() - 0.5) * 1.2,
+            (Math.random() - 0.5) * 1.2,
+            (Math.random() - 0.5) * 1.2
+          ),
+          drift: 0.04 + Math.random() * 0.05,
+        });
+        idx++;
+      }
     }
     scene.add(group);
 
     let width = 0;
     let height = 0;
-
     const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      const rect = canvas.getBoundingClientRect();
+      width = rect.width;
+      height = rect.height;
       renderer.setSize(width, height, false);
-      camera.aspect = width / height;
+      camera.aspect = width / height || 1;
       camera.updateProjectionMatrix();
     };
     resize();
-    window.addEventListener("resize", resize);
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const renderOnce = () => renderer.render(scene, camera);
+
+    if (reduceMotion) {
+      renderOnce();
+      return () => ro.disconnect();
+    }
 
     let scrollY = window.scrollY;
     let lastScrollY = scrollY;
@@ -143,71 +131,40 @@ export default function GeometricScene() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Hero(#top) 구간에는 안 보이다가, About 섹션에 들어설 때부터 서서히 나타난다.
-    const updateVisibility = () => {
-      const heroHeight = document.getElementById("top")?.offsetHeight ?? window.innerHeight;
-      const fadeStart = heroHeight * 0.5;
-      const fadeEnd = heroHeight;
-      const opacity = clamp01((scrollY - fadeStart) / (fadeEnd - fadeStart));
-      canvas.style.opacity = String(opacity);
-    };
-    function clamp01(v: number) {
-      return Math.min(1, Math.max(0, v));
-    }
-
-    if (reduceMotion) {
-      updateVisibility();
-      renderer.render(scene, camera);
-      return () => {
-        window.removeEventListener("resize", resize);
-        window.removeEventListener("scroll", onScroll);
-      };
-    }
+    renderOnce(); // rAF 지연 환경에서도 최소 1프레임은 그려두기
 
     let raf = 0;
+    const clock = new THREE.Clock();
 
     const loop = () => {
-      // 스크롤 "이동량"(속도)에만 반응한다 - 가만히 있으면 거의 멈춰있고,
-      // 스크롤하는 동안에만 기계 부품처럼 돌아간다.
+      const dt = clock.getDelta();
       const delta = scrollY - lastScrollY;
       lastScrollY = scrollY;
 
-      if (Math.abs(delta) > 0.001) {
-        shapes.forEach((s) => {
-          s.mesh.rotation.x += delta * s.spin.x * 0.004;
-          s.mesh.rotation.y += delta * s.spin.y * 0.004;
-          s.mesh.rotation.z += delta * s.spin.z * 0.004;
-        });
-        group.rotation.y += delta * 0.0006;
-      }
+      shapes.forEach((s) => {
+        // 은은한 idle 회전 + 스크롤량에 반응하는 추가 회전
+        s.mesh.rotation.x += s.drift * dt + delta * s.spin.x * 0.003;
+        s.mesh.rotation.y += s.drift * dt + delta * s.spin.y * 0.003;
+        s.mesh.rotation.z += delta * s.spin.z * 0.003;
+      });
+      group.rotation.y += delta * 0.0004;
 
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight || 1;
-      group.position.y = (scrollY / max) * 6;
-
-      updateVisibility();
-      renderer.render(scene, camera);
+      renderOnce();
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
 
     return () => {
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
+      ro.disconnect();
       window.removeEventListener("scroll", onScroll);
       geometries.forEach((g) => g.dispose());
       shapes.forEach((s) => {
         (s.mesh.material as THREE.Material).dispose();
-        s.edges.geometry.dispose();
-        (s.edges.material as THREE.Material).dispose();
+        const e = s.mesh.children[0] as THREE.LineSegments;
+        e.geometry.dispose();
+        (e.material as THREE.Material).dispose();
       });
-      grid.geometry.dispose();
-      (grid.material as THREE.Material).dispose();
-      tickGroup.children.forEach((c) => {
-        const line = c as THREE.LineSegments;
-        line.geometry.dispose();
-      });
-      tickMat.dispose();
       renderer.dispose();
     };
   }, []);
@@ -216,8 +173,7 @@ export default function GeometricScene() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-[9] backdrop-blur-[2px]"
-      style={{ opacity: 0 }}
+      className="pointer-events-none absolute inset-0 h-full w-full"
     />
   );
 }
