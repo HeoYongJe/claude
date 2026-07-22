@@ -142,7 +142,20 @@ export default function GeometricScene() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
+    // Hero(#top) 구간에는 안 보이다가, About 섹션에 들어설 때부터 서서히 나타난다.
+    const updateVisibility = () => {
+      const heroHeight = document.getElementById("top")?.offsetHeight ?? window.innerHeight;
+      const fadeStart = heroHeight * 0.5;
+      const fadeEnd = heroHeight;
+      const opacity = clamp01((scrollY - fadeStart) / (fadeEnd - fadeStart));
+      canvas.style.opacity = String(opacity);
+    };
+    function clamp01(v: number) {
+      return Math.min(1, Math.max(0, v));
+    }
+
     if (reduceMotion) {
+      updateVisibility();
       renderer.render(scene, camera);
       return () => {
         window.removeEventListener("resize", resize);
@@ -171,6 +184,7 @@ export default function GeometricScene() {
         document.documentElement.scrollHeight - window.innerHeight || 1;
       group.position.y = (scrollY / max) * 6;
 
+      updateVisibility();
       renderer.render(scene, camera);
       raf = requestAnimationFrame(loop);
     };
@@ -202,6 +216,7 @@ export default function GeometricScene() {
       ref={canvasRef}
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 -z-[9]"
+      style={{ opacity: 0 }}
     />
   );
 }
