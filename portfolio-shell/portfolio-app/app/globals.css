@@ -25,8 +25,8 @@ html {
 }
 
 body {
-  background: var(--color-light);
-  color: var(--color-heading-light);
+  background: var(--color-dark);
+  color: #ffffff;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }

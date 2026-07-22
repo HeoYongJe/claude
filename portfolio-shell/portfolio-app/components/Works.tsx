@@ -23,7 +23,7 @@ function WorksHeader() {
           className="font-display font-extrabold tracking-[-0.03em] text-[clamp(30px,4.6vw,60px)]"
         />
       </div>
-      <p data-reveal className="max-w-sm text-sm text-[rgba(46,47,51,0.7)]">
+      <p data-reveal className="max-w-sm text-sm text-white/55">
         {works.description}
       </p>
     </div>
@@ -32,11 +32,44 @@ function WorksHeader() {
 
 function WorkCardBody({ work, active }: { work: Work; active?: boolean }) {
   return (
-    <>
-      <div>
+    <div className="w-full">
+      {/* 텍스트 */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex items-baseline gap-4">
+          <span className="font-display font-extrabold text-primary text-[clamp(36px,4.2vw,60px)] leading-none">
+            {work.number}
+          </span>
+          <span className="font-mono text-sm text-white/45">{work.year}</span>
+        </div>
+        <a
+          href={work.href}
+          className="inline-flex items-center gap-2 font-semibold text-primary"
+        >
+          View Project <span aria-hidden="true">→</span>
+        </a>
+      </div>
+      <h3 className="mt-3 font-display font-extrabold tracking-[-0.02em] text-[clamp(24px,2.8vw,40px)]">
+        {work.title}
+      </h3>
+      <p className="mt-3 max-w-2xl text-[15px] leading-[1.75] text-white/65">
+        {work.description}
+      </p>
+      <ul className="mt-4 flex flex-wrap gap-2">
+        {work.tags.map((tag) => (
+          <li
+            key={tag}
+            className="rounded-pill border border-white/12 bg-white/[0.04] px-3 py-1.5 text-sm font-semibold text-white/80"
+          >
+            {tag}
+          </li>
+        ))}
+      </ul>
+
+      {/* 이미지 + 작업물 기여도 */}
+      <div className="mt-8 grid items-center gap-8 tab:grid-cols-2">
         <div
           data-cursor="VIEW"
-          className="relative overflow-hidden rounded-thumb aspect-[16/10]"
+          className="relative overflow-hidden rounded-thumb h-[clamp(200px,30vh,320px)]"
         >
           <img
             src={work.image}
@@ -49,37 +82,7 @@ function WorkCardBody({ work, active }: { work: Work; active?: boolean }) {
         </div>
         <ContributionGraph items={work.contributions} active={active} />
       </div>
-      <div>
-        <div className="font-display font-extrabold text-primary text-[clamp(40px,4.6vw,64px)] leading-none">
-          {work.number}
-        </div>
-        <div className="mt-3 font-mono text-sm text-[rgba(46,47,51,0.6)]">
-          {work.year}
-        </div>
-        <h3 className="mt-3 font-display font-extrabold tracking-[-0.02em] text-[clamp(24px,2.8vw,38px)]">
-          {work.title}
-        </h3>
-        <p className="mt-4 max-w-md text-[15px] leading-[1.75] text-[rgba(46,47,51,0.7)]">
-          {work.description}
-        </p>
-        <ul className="mt-5 flex flex-wrap gap-2">
-          {work.tags.map((tag) => (
-            <li
-              key={tag}
-              className="rounded-pill border border-border bg-light-alt px-3 py-1.5 text-sm font-semibold"
-            >
-              {tag}
-            </li>
-          ))}
-        </ul>
-        <a
-          href={work.href}
-          className="mt-6 inline-flex items-center gap-2 font-semibold text-primary"
-        >
-          View Project <span aria-hidden="true">→</span>
-        </a>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -102,7 +105,6 @@ export default function Works() {
         const n = cards.length;
         if (n === 0) return;
 
-        // 초기 상태: 맨 앞 카드만 보이고, 나머지는 그 뒤에 숨어있다.
         cards.forEach((card, i) => {
           gsap.set(card, {
             opacity: i === 0 ? 1 : 0,
@@ -132,8 +134,6 @@ export default function Works() {
           },
         });
 
-        // 이미지+텍스트가 한 블록이라 겹쳐 보이면 지저분해지므로, 겹치는
-        // 구간을 최소화한다: 이전 카드가 거의 다 빠진 뒤에 다음 카드가 들어온다.
         for (let i = 0; i < n - 1; i++) {
           tl.to(
             cards[i],
@@ -154,20 +154,20 @@ export default function Works() {
   }, []);
 
   return (
-    <section id="works" className="relative bg-light">
+    <section id="works" className="relative text-white">
       {/* 모바일: pin/스택 없이 헤더 + 순서대로 쌓이는 목록 */}
       <div className="section-shell section-pad tab:hidden">
         <WorksHeader />
-        <div className="mt-16 flex flex-col gap-16">
+        <div className="mt-16 flex flex-col gap-20">
           {works.items.map((work) => (
-            <div key={work.number} data-reveal className="grid gap-8">
+            <div key={work.number} data-reveal>
               <WorkCardBody work={work} />
             </div>
           ))}
         </div>
       </div>
 
-      {/* 데스크탑: 헤더까지 함께 pin되고, 그 안에서 카드가 한 장씩 앞으로 나온다 */}
+      {/* 데스크탑: 헤더까지 함께 pin, 카드가 한 장씩 앞으로 나온다 */}
       <div
         ref={stackWrapperRef}
         className="relative hidden tab:block tab:h-screen"
@@ -180,7 +180,7 @@ export default function Works() {
               <div
                 key={work.number}
                 data-work-card
-                className="absolute inset-0 grid grid-cols-[1.12fr_0.88fr] items-center gap-16"
+                className="absolute inset-0 flex items-center"
               >
                 <WorkCardBody work={work} active={i === activeIndex} />
               </div>
@@ -194,7 +194,7 @@ export default function Works() {
               key={work.number}
               aria-hidden="true"
               className={`h-1.5 rounded-pill transition-all duration-300 ${
-                i === activeIndex ? "w-6 bg-primary" : "w-1.5 bg-border"
+                i === activeIndex ? "w-6 bg-primary" : "w-1.5 bg-white/25"
               }`}
             />
           ))}

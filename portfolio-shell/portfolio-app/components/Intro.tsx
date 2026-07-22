@@ -1,13 +1,9 @@
 import { intro } from "@/content/site";
 import CountUp from "./CountUp";
-import SectionDivider from "./SectionDivider";
 
 export default function Intro() {
   return (
-    <section id="intro" className="section-pad relative overflow-hidden bg-light">
-      {/* 이전 다크 섹션(Hero)과의 경계 - 다크 페이드 + 블루 글로우 라인 */}
-      <SectionDivider from="#0e0e10" />
-
+    <section id="intro" className="section-pad relative overflow-hidden text-white">
       <div className="section-shell relative">
         <div
           data-reveal
@@ -39,7 +35,7 @@ export default function Intro() {
                   key={p}
                   data-reveal
                   style={{ transitionDelay: `${(i % 4) * 0.08}s` }}
-                  className="max-w-xl text-[16px] leading-[1.75] text-[rgba(46,47,51,0.7)]"
+                  className="max-w-xl text-[16px] leading-[1.75] text-white/65"
                 >
                   {p}
                 </p>
@@ -53,15 +49,15 @@ export default function Intro() {
                 key={card.label}
                 data-reveal
                 style={{ transitionDelay: `${(i % 4) * 0.08}s` }}
-                className={`rounded-card p-6 ${
+                className={`rounded-card p-6 backdrop-blur-sm ${
                   card.accent
                     ? "bg-primary text-white"
-                    : "bg-light-alt text-[rgba(46,47,51,0.88)]"
+                    : "border border-white/10 bg-white/[0.04] text-white/90"
                 }`}
               >
                 <div
                   className={`font-mono text-xs ${
-                    card.accent ? "text-white/70" : "text-[rgba(46,47,51,0.55)]"
+                    card.accent ? "text-white/70" : "text-white/45"
                   }`}
                 >
                   {card.label}
@@ -72,7 +68,7 @@ export default function Intro() {
           </div>
         </div>
 
-        <div className="yj-stats-grid mt-20 grid grid-cols-2 gap-8 border-t border-border pt-12 sm:grid-cols-4">
+        <div className="yj-stats-grid mt-20 grid grid-cols-2 gap-8 border-t border-white/10 pt-12 sm:grid-cols-4">
           {intro.stats.map((stat, i) => (
             <div
               key={stat.label}
@@ -82,9 +78,7 @@ export default function Intro() {
               <div className="font-display font-extrabold text-[44px] leading-none">
                 <CountUp to={stat.to} suffix={stat.suffix} />
               </div>
-              <div className="mt-2 text-sm text-[rgba(46,47,51,0.7)]">
-                {stat.label}
-              </div>
+              <div className="mt-2 text-sm text-white/60">{stat.label}</div>
             </div>
           ))}
         </div>

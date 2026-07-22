@@ -39,17 +39,17 @@ export default function ContributionGraph({
   const filled = active !== undefined ? active : inView;
 
   return (
-    <div ref={ref} className="mt-7 border-t border-border pt-5">
-      <div className="mb-4 font-mono text-xs font-bold tracking-[0.15em] text-primary">
+    <div ref={ref} className="rounded-card border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm">
+      <div className="mb-5 font-mono text-xs font-bold tracking-[0.15em] text-primary">
         {works.contribTitle.toUpperCase()}
       </div>
-      <ul className="flex flex-col gap-3">
+      <ul className="flex flex-col gap-3.5">
         {items.map((it, i) => (
           <li key={it.label} className="flex items-center gap-3">
-            <span className="w-[84px] shrink-0 font-mono text-[13px] text-[rgba(46,47,51,0.7)]">
+            <span className="w-[92px] shrink-0 font-mono text-[13px] text-white/70">
               {it.label}
             </span>
-            <span className="relative h-[7px] flex-1 overflow-hidden rounded-pill bg-light-alt">
+            <span className="relative h-[7px] flex-1 overflow-hidden rounded-pill bg-white/10">
               <span
                 className="absolute inset-y-0 left-0 rounded-pill bg-primary"
                 style={{
@@ -59,7 +59,7 @@ export default function ContributionGraph({
                 }}
               />
             </span>
-            <span className="w-[46px] shrink-0 text-right font-mono text-[13px] font-bold tabular-nums text-heading-light">
+            <span className="w-[46px] shrink-0 text-right font-mono text-[13px] font-bold tabular-nums text-white">
               {it.value}%
             </span>
           </li>
