@@ -7,6 +7,7 @@ import { works } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
 import SplitHeading from "./SplitHeading";
 import Skills from "./Skills";
+import WorksLaptop from "./WorksLaptop";
 
 type Work = (typeof works.items)[number];
 
@@ -163,6 +164,9 @@ export default function Works() {
           ))}
         </div>
       </div>
+
+      {/* 데스크탑: 스크롤하는 동안 와이어프레임 노트북이 열리는 인트로 */}
+      <WorksLaptop />
 
       {/* 데스크탑: 헤더까지 함께 pin되고, 그 안에서 카드가 한 장씩 앞으로 나온다 */}
       <div
