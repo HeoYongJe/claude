@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { prefersReducedMotion } from "@/lib/motion";
-import { blueGradient } from "@/lib/theme3d";
 
 export default function GeometricScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,47 +30,79 @@ export default function GeometricScene() {
     dir.position.set(4, 6, 8);
     scene.add(ambient, dir);
 
-    // -------- 큐브(모듈/블록) 클러스터 - "웹을 조립한다"는 은유 --------
-    const boxGeo = new THREE.BoxGeometry(1.3, 1.3, 1.3);
-    const edgeGeo = new THREE.EdgesGeometry(boxGeo);
+    // -------- 기술도면(블루프린트) 느낌의 격자 배경 --------
+    const grid = new THREE.GridHelper(46, 46, 0x3366ff, 0x3366ff);
+    (grid.material as THREE.Material).transparent = true;
+    (grid.material as THREE.Material).opacity = 0.06;
+    grid.rotation.x = Math.PI / 2; // 바닥용 그리드를 카메라를 마주보는 벽으로 세운다
+    grid.position.z = -16;
+    scene.add(grid);
+
+    // 격자 위 측정점처럼 보이는 작은 십자(+) 마커
+    const tickGroup = new THREE.Group();
+    const tickMat = new THREE.LineBasicMaterial({
+      color: 0x3366ff,
+      transparent: true,
+      opacity: 0.22,
+    });
+    const TICKS = 10;
+    for (let i = 0; i < TICKS; i++) {
+      const x = (Math.random() - 0.5) * 40;
+      const y = (Math.random() - 0.5) * 26;
+      const s = 0.18;
+      const pts = new Float32Array([
+        x - s, y, -15.9, x + s, y, -15.9,
+        x, y - s, -15.9, x, y + s, -15.9,
+      ]);
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+      tickGroup.add(new THREE.LineSegments(geo, tickMat));
+    }
+    scene.add(tickGroup);
+
+    // 이전 대비 살짝 작은 기본 크기 + 유리 느낌(투명도↑, 러프니스↓)
+    const geometries = [
+      new THREE.IcosahedronGeometry(0.85, 0),
+      new THREE.BoxGeometry(1.1, 1.1, 1.1),
+      new THREE.TetrahedronGeometry(1, 0),
+      new THREE.OctahedronGeometry(0.9, 0),
+    ];
 
     const group = new THREE.Group();
     const shapes: {
       mesh: THREE.Mesh;
+      edges: THREE.LineSegments;
       spin: THREE.Vector3;
-      pos: THREE.Vector3;
     }[] = [];
 
-    const SHAPE_COUNT = 11;
+    const SHAPE_COUNT = 12;
     for (let i = 0; i < SHAPE_COUNT; i++) {
-      const t = i / (SHAPE_COUNT - 1);
-      const color = blueGradient(t);
-
-      const bodyMat = new THREE.MeshStandardMaterial({
-        color,
+      const geo = geometries[i % geometries.length];
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
         transparent: true,
-        opacity: 0.14,
-        roughness: 0.5,
-        metalness: 0.1,
+        opacity: 0.1,
+        roughness: 0.25,
+        metalness: 0.05,
       });
+      const mesh = new THREE.Mesh(geo, material);
+
+      const edgeGeo = new THREE.EdgesGeometry(geo);
       const edgeMat = new THREE.LineBasicMaterial({
-        color,
+        color: 0x3366ff,
         transparent: true,
-        opacity: 0.45,
+        opacity: 0.35,
       });
-
-      const mesh = new THREE.Mesh(boxGeo, bodyMat);
       const edges = new THREE.LineSegments(edgeGeo, edgeMat);
       mesh.add(edges);
 
-      const scale = 0.7 + Math.random() * 0.9;
+      const scale = 0.5 + Math.random() * 0.9;
       mesh.scale.setScalar(scale);
-      const pos = new THREE.Vector3(
+      mesh.position.set(
         (Math.random() - 0.5) * 22,
         (Math.random() - 0.5) * 14 - 4,
         (Math.random() - 0.5) * 10 - 4
       );
-      mesh.position.copy(pos);
       mesh.rotation.set(
         Math.random() * Math.PI,
         Math.random() * Math.PI,
@@ -81,7 +112,7 @@ export default function GeometricScene() {
       group.add(mesh);
       shapes.push({
         mesh,
-        pos,
+        edges,
         // 각 도형마다 스크롤량에 대한 회전 반응 배율(축마다 다르게 = 기계 부품처럼 제각각 돌아가는 느낌)
         spin: new THREE.Vector3(
           (Math.random() - 0.5) * 1.4,
@@ -90,40 +121,6 @@ export default function GeometricScene() {
         ),
       });
     }
-
-    // -------- 큐브들을 잇는 은은한 네트워크 회로선 (가까운 것들끼리만) --------
-    const linkMat = new THREE.LineBasicMaterial({
-      color: 0x3366ff,
-      transparent: true,
-      opacity: 0.1,
-    });
-    const linkPoints: number[] = [];
-    for (let i = 0; i < shapes.length; i++) {
-      let nearest = -1;
-      let nearestDist = Infinity;
-      for (let j = 0; j < shapes.length; j++) {
-        if (i === j) continue;
-        const d = shapes[i].pos.distanceTo(shapes[j].pos);
-        if (d < nearestDist) {
-          nearestDist = d;
-          nearest = j;
-        }
-      }
-      if (nearest >= 0) {
-        linkPoints.push(
-          shapes[i].pos.x, shapes[i].pos.y, shapes[i].pos.z,
-          shapes[nearest].pos.x, shapes[nearest].pos.y, shapes[nearest].pos.z
-        );
-      }
-    }
-    const linkGeo = new THREE.BufferGeometry();
-    linkGeo.setAttribute(
-      "position",
-      new THREE.BufferAttribute(new Float32Array(linkPoints), 3)
-    );
-    const links = new THREE.LineSegments(linkGeo, linkMat);
-    group.add(links);
-
     scene.add(group);
 
     let width = 0;
@@ -198,13 +195,19 @@ export default function GeometricScene() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("scroll", onScroll);
-      boxGeo.dispose();
-      edgeGeo.dispose();
-      linkGeo.dispose();
-      linkMat.dispose();
+      geometries.forEach((g) => g.dispose());
       shapes.forEach((s) => {
         (s.mesh.material as THREE.Material).dispose();
+        s.edges.geometry.dispose();
+        (s.edges.material as THREE.Material).dispose();
       });
+      grid.geometry.dispose();
+      (grid.material as THREE.Material).dispose();
+      tickGroup.children.forEach((c) => {
+        const line = c as THREE.LineSegments;
+        line.geometry.dispose();
+      });
+      tickMat.dispose();
       renderer.dispose();
     };
   }, []);
@@ -213,7 +216,7 @@ export default function GeometricScene() {
     <canvas
       ref={canvasRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 -z-[9]"
+      className="pointer-events-none fixed inset-0 -z-[9] backdrop-blur-[2px]"
       style={{ opacity: 0 }}
     />
   );

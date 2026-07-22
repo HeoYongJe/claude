@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { hero } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
-import HeroKeyboardGrid from "./HeroKeyboardGrid";
+import MouseSpotlight from "./MouseSpotlight";
 
 export default function Hero() {
   const orbRef = useRef<HTMLDivElement>(null);
@@ -59,7 +59,7 @@ export default function Hero() {
       className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-dark text-white pt-[100px] pb-[128px]"
     >
       <div ref={orbRef} aria-hidden="true" className="absolute inset-0">
-        <HeroKeyboardGrid />
+        <MouseSpotlight />
       </div>
       <div
         ref={ghostRef}
