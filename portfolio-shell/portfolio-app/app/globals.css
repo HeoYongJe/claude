@@ -109,6 +109,23 @@ body {
   animation: yjBounce 1.6s ease-in-out infinite;
 }
 
+/* -------- hero blueprint node drift (거의 감지되지 않는 미세 이동) -------- */
+@keyframes yjHeroNode {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.yj-hero-node {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: yjHeroNode 9s ease-in-out infinite;
+}
+
 /* prefers-reduced-motion 대신 :root.motion-reduced로 통일해서 처리한다.
    ?motion=on|off 쿼리 오버라이드(lib/motion.ts)도 같은 클래스로 반영되게 하기 위함. */
 :root.motion-reduced [data-reveal] {
@@ -117,7 +134,8 @@ body {
   transition: none !important;
 }
 
-:root.motion-reduced .yj-scroll-dot {
+:root.motion-reduced .yj-scroll-dot,
+:root.motion-reduced .yj-hero-node {
   animation: none !important;
 }
 

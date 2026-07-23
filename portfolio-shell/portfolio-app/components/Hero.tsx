@@ -3,11 +3,9 @@
 import { useEffect, useRef } from "react";
 import { hero } from "@/content/site";
 import { prefersReducedMotion } from "@/lib/motion";
-import MouseSpotlight from "./MouseSpotlight";
+import HeroGrid from "./HeroGrid";
 
 export default function Hero() {
-  const orbRef = useRef<HTMLDivElement>(null);
-  const ghostRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLDivElement>(null);
   const h1Ref = useRef<HTMLHeadingElement>(null);
   const paraRef = useRef<HTMLParagraphElement>(null);
@@ -16,38 +14,25 @@ export default function Hero() {
     if (prefersReducedMotion()) return;
 
     let ticking = false;
-
     const apply = () => {
       const y = window.scrollY;
-
-      if (orbRef.current) {
-        orbRef.current.style.transform = `translateY(${y * 0.28}px)`;
-      }
-      if (ghostRef.current) {
-        ghostRef.current.style.transform = `translate(-50%, ${y * 0.35}px)`;
-      }
       if (h1Ref.current) {
-        h1Ref.current.style.transform = `translateY(${y * -0.06}px)`;
+        h1Ref.current.style.transform = `translateY(${y * -0.04}px)`;
       }
       if (eyebrowRef.current) {
-        eyebrowRef.current.style.opacity = String(
-          Math.max(0, 1 - y / 300)
-        );
+        eyebrowRef.current.style.opacity = String(Math.max(0, 1 - y / 300));
       }
       if (paraRef.current) {
         paraRef.current.style.opacity = String(Math.max(0, 1 - y / 420));
       }
-
       ticking = false;
     };
-
     const onScroll = () => {
       if (!ticking) {
         requestAnimationFrame(apply);
         ticking = true;
       }
     };
-
     apply();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -58,16 +43,7 @@ export default function Hero() {
       id="top"
       className="relative min-h-screen flex flex-col justify-center overflow-hidden text-white pt-[100px] pb-[128px]"
     >
-      <div ref={orbRef} aria-hidden="true" className="absolute inset-0 z-0">
-        <MouseSpotlight />
-      </div>
-      <div
-        ref={ghostRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap font-display font-extrabold text-[clamp(80px,20vw,300px)] leading-none text-white/[0.03]"
-      >
-        PUBLISHER
-      </div>
+      <HeroGrid />
 
       <div className="section-shell relative z-[2] w-full">
         <div
@@ -81,7 +57,7 @@ export default function Hero() {
         <h1
           ref={h1Ref}
           data-reveal-split
-          className="font-display font-extrabold leading-[0.98] tracking-[-0.035em] text-[clamp(46px,8.6vw,124px)]"
+          className="font-display font-extrabold leading-[1.02] tracking-[-0.035em] text-[clamp(44px,7.4vw,104px)]"
         >
           {hero.titleLines.map((line, i) => (
             <span className="split-word-mask block" key={i}>
@@ -105,26 +81,13 @@ export default function Hero() {
           ))}
         </h1>
 
-        <div className="mt-16 flex flex-col md:flex-row md:items-end md:justify-between gap-10">
-          <p
-            ref={paraRef}
-            className="max-w-md text-[16px] leading-[1.7] text-white/70"
-          >
-            {hero.paragraph}
-          </p>
-          <div className="flex gap-10">
-            {hero.stats.map((stat) => (
-              <div key={stat.label}>
-                <div className="font-display font-extrabold text-[44px] leading-none">
-                  {stat.value}
-                </div>
-                <div className="mt-2 font-mono text-sm text-white/60">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <p
+          ref={paraRef}
+          data-reveal
+          className="mt-10 max-w-xl text-[16px] leading-[1.75] text-white/65"
+        >
+          {hero.paragraph}
+        </p>
       </div>
 
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 text-white/60">

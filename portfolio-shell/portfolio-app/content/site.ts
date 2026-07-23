@@ -21,11 +21,11 @@ export const nav = [
 ];
 
 export const hero = {
-  eyebrow: "WEB PUBLISHER · PORTFOLIO 2026",
-  titleLines: ["웹의 구조와", "인터랙션을", "설계합니다"],
-  titleAccentWord: "설계",
+  eyebrow: "UX-DRIVEN WEB PUBLISHER",
+  titleLines: ["사용자 경험을", "만드는 퍼블리셔"],
+  titleAccentWord: "경험",
   paragraph:
-    "사용자의 흐름을 먼저 그리고, 그 위에 마크업과 스타일과 동작을 쌓습니다. 화면 하나하나가 자연스럽게 이어지도록 만드는 일을 합니다.",
+    "사용하기 편한 경험은 좋은 구조와 작은 디테일에서 시작된다고 생각합니다.",
   stats: [
     { value: "6+", label: "Years" },
     { value: "50+", label: "Projects" },
