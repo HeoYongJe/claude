@@ -5,13 +5,11 @@ import * as THREE from "three";
 import { prefersReducedMotion } from "@/lib/motion";
 
 /**
- * "웹의 구조가 인터랙션이 된다"를 은유하는 배경.
- * 깊이 층으로 서사를 연속 배치한다(장면 전환 없이 그라데이션):
- *   FAR  : HTML 문법 글리프(< > / { }) + 레이아웃 격자 — 날것의 마크업/레이아웃
- *   MID  : 노드(점) + 관계(선) — 조직화되는 DOM
- *   NEAR : 와이어프레임 컴포넌트 — 형성된 UI/인터랙션
- * 모션: 각자 중심축 느린 자전 + 부유, 스크롤=깊이 패럴랙스, 마우스=스프링 자석.
- * 저채도·저투명으로 타이포가 주인공이 되도록(주목도 5~10%).
+ * "Invisible Architecture of the Web" — 절제된 추상 배경.
+ * 서로 다른 깊이 층에 놓인 소수(4개)의 와이어프레임 오브젝트. 직역(태그/DOM/격자)
+ * 없이, 웹 컴포넌트가 공간에 조용히 존재하는 느낌만 준다. 깊이는 글로우가 아니라
+ * 거리·안개·투명도로. 모션은 거의 감지되지 않을 만큼 느리며, 가끔 오브젝트 내부
+ * 구조(연결선·노드)가 아주 옅게 나타났다 사라진다. 타이포가 언제나 주인공.
  */
 export default function GeometricScene() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -19,211 +17,121 @@ export default function GeometricScene() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (window.matchMedia("(pointer: coarse)").matches) return; // 모바일 생략
+    if (window.matchMedia("(pointer: coarse)").matches) return;
 
     const reduceMotion = prefersReducedMotion();
-    const DARK = 0x0e0e10;
-    const BLUE = 0x3366ff;
+    const BG = 0x090909;
+    const BLUE = 0x3b60ff;
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(DARK, 18, 60);
+    scene.fog = new THREE.Fog(BG, 14, 46);
 
-    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 120);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
     camera.position.set(0, 0, 18);
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas,
-      alpha: true,
-      antialias: true,
-    });
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(5, 8, 10);
-    scene.add(key);
-    const rim = new THREE.DirectionalLight(BLUE, 0.7);
-    rim.position.set(-6, -4, 6);
-    scene.add(rim);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    const soft = new THREE.DirectionalLight(0xffffff, 0.4);
+    soft.position.set(3, 5, 8);
+    scene.add(soft);
 
     const disposables: { dispose: () => void }[] = [];
-    const track = <T extends { dispose: () => void }>(x: T) => {
-      disposables.push(x);
-      return x;
-    };
+    const keep = <T extends { dispose: () => void }>(x: T) => (disposables.push(x), x);
 
-    // ---------- MID: DOM 노드 + 관계선 ----------
-    const NODE_COUNT = 90;
-    const nodePositions: THREE.Vector3[] = [];
-    for (let i = 0; i < NODE_COUNT; i++) {
-      nodePositions.push(
-        new THREE.Vector3(
-          (Math.random() - 0.5) * 30,
-          (Math.random() - 0.5) * 18,
-          -6 - Math.random() * 18 // z: -6 ~ -24
-        )
-      );
-    }
-
-    const nodeGeo = track(new THREE.BufferGeometry());
-    nodeGeo.setAttribute(
-      "position",
-      new THREE.BufferAttribute(
-        new Float32Array(nodePositions.flatMap((p) => [p.x, p.y, p.z])),
-        3
-      )
-    );
-    const nodeMat = track(
-      new THREE.PointsMaterial({
-        color: 0x9db8ff,
-        size: 0.09,
-        transparent: true,
-        opacity: 0.55,
-        sizeAttenuation: true,
-        depthWrite: false,
-      })
-    );
-    const nodes = new THREE.Points(nodeGeo, nodeMat);
-
-    // 관계선: 가까운 노드끼리 최대 2개씩 연결
-    const edgePts: number[] = [];
-    const MAX_D = 5.5;
-    for (let i = 0; i < nodePositions.length; i++) {
-      const dists = [];
-      for (let j = 0; j < nodePositions.length; j++) {
-        if (i === j) continue;
-        const d = nodePositions[i].distanceTo(nodePositions[j]);
-        if (d < MAX_D) dists.push({ j, d });
+    const uniqueVerts = (geo: THREE.BufferGeometry) => {
+      const pos = geo.getAttribute("position");
+      const seen = new Set<string>();
+      const out: THREE.Vector3[] = [];
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const k = `${x.toFixed(2)},${y.toFixed(2)},${z.toFixed(2)}`;
+        if (!seen.has(k)) {
+          seen.add(k);
+          out.push(new THREE.Vector3(x, y, z));
+        }
       }
-      dists.sort((a, b) => a.d - b.d);
-      dists.slice(0, 2).forEach(({ j }) => {
-        const a = nodePositions[i];
-        const b = nodePositions[j];
-        edgePts.push(a.x, a.y, a.z, b.x, b.y, b.z);
-      });
-    }
-    const edgeGeo = track(new THREE.BufferGeometry());
-    edgeGeo.setAttribute(
-      "position",
-      new THREE.BufferAttribute(new Float32Array(edgePts), 3)
-    );
-    const edgeMat = track(
-      new THREE.LineBasicMaterial({
-        color: BLUE,
-        transparent: true,
-        opacity: 0.12,
-        depthWrite: false,
-      })
-    );
-    const edges = new THREE.LineSegments(edgeGeo, edgeMat);
-
-    const midGroup = new THREE.Group();
-    midGroup.add(nodes, edges);
-    scene.add(midGroup);
-
-    // ---------- NEAR: 와이어프레임 컴포넌트 ----------
-    const compGeos = [
-      track(new THREE.IcosahedronGeometry(1.5, 0)),
-      track(new THREE.BoxGeometry(2, 2, 2)),
-      track(new THREE.OctahedronGeometry(1.7, 0)),
-      track(new THREE.DodecahedronGeometry(1.6, 0)),
-      track(new THREE.IcosahedronGeometry(1.3, 0)),
-    ];
-    const components: { group: THREE.Group; drift: THREE.Vector3; phase: number }[] =
-      [];
-    const compSlots = [
-      new THREE.Vector3(-9, 3.5, 2),
-      new THREE.Vector3(9.5, -3, 0),
-      new THREE.Vector3(-8, -5, -3),
-      new THREE.Vector3(10, 4.5, -4),
-      new THREE.Vector3(0, 6.5, -5),
-    ];
-    compGeos.forEach((geo, i) => {
-      const fill = track(
-        new THREE.MeshStandardMaterial({
-          color: 0xffffff,
-          transparent: true,
-          opacity: 0.05,
-          roughness: 0.2,
-          metalness: 0.2,
-        })
-      );
-      const mesh = new THREE.Mesh(geo, fill);
-      const eGeo = track(new THREE.EdgesGeometry(geo));
-      const eMat = track(
-        new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0.4 })
-      );
-      mesh.add(new THREE.LineSegments(eGeo, eMat));
-
-      const g = new THREE.Group();
-      g.position.copy(compSlots[i]);
-      g.scale.setScalar(0.85 + Math.random() * 0.4);
-      g.add(mesh);
-      scene.add(g);
-      components.push({
-        group: g,
-        drift: new THREE.Vector3(
-          (Math.random() - 0.5) * 0.04,
-          (Math.random() - 0.5) * 0.04,
-          (Math.random() - 0.5) * 0.03
-        ),
-        phase: Math.random() * Math.PI * 2,
-      });
-    });
-
-    // ---------- FAR: 레이아웃 격자 ----------
-    const grid = new THREE.GridHelper(60, 24, BLUE, BLUE);
-    grid.rotation.x = Math.PI / 2;
-    grid.position.z = -34;
-    const gm = grid.material as THREE.Material;
-    gm.transparent = true;
-    gm.opacity = 0.05;
-    track(gm);
-    track(grid.geometry);
-    scene.add(grid);
-
-    // ---------- FAR: HTML 문법 글리프 ----------
-    const makeGlyph = (ch: string) => {
-      const c = document.createElement("canvas");
-      c.width = c.height = 128;
-      const g = c.getContext("2d")!;
-      g.clearRect(0, 0, 128, 128);
-      g.fillStyle = "#9db8ff";
-      g.font = "700 84px ui-monospace, Menlo, monospace";
-      g.textAlign = "center";
-      g.textBaseline = "middle";
-      g.fillText(ch, 64, 70);
-      const tex = new THREE.CanvasTexture(c);
-      tex.minFilter = THREE.LinearFilter;
-      return track(tex);
+      return out;
     };
-    const glyphChars = ["<", ">", "/", "{", "}", "[", "]", ";", "<", "/"];
-    const glyphs: { sprite: THREE.Sprite; phase: number; baseY: number }[] = [];
-    glyphChars.forEach((ch) => {
-      const tex = makeGlyph(ch);
-      const mat = track(
-        new THREE.SpriteMaterial({
-          map: tex,
+
+    // 깊이 층: 앞은 또렷, 뒤로 갈수록 옅게(거리/안개로 깊이 표현). 중앙은 비운다.
+    const specs = [
+      { geo: new THREE.IcosahedronGeometry(1.7, 0), pos: [-11, 3.5, 1], edge: 0.22, rot: 0.010 },
+      { geo: new THREE.DodecahedronGeometry(1.6, 0), pos: [12, -4, -7], edge: 0.15, rot: 0.008 },
+      { geo: new THREE.OctahedronGeometry(1.9, 0), pos: [10.5, 6, -12], edge: 0.1, rot: 0.007 },
+      { geo: new THREE.IcosahedronGeometry(2.1, 0), pos: [-9.5, -6, -18], edge: 0.07, rot: 0.006 },
+    ];
+
+    type Obj = {
+      group: THREE.Group;
+      rot: number;
+      floatPhase: number;
+      revealPhase: number;
+      internalLineMat: THREE.LineBasicMaterial;
+      internalPtMat: THREE.PointsMaterial;
+    };
+    const objects: Obj[] = [];
+
+    specs.forEach((s) => {
+      const geo = keep(s.geo);
+
+      // 겉 와이어프레임 (저투명 블루, 글로우 없음)
+      const fill = keep(
+        new THREE.MeshBasicMaterial({ color: BG, transparent: true, opacity: 0.35 })
+      );
+      const mesh = new THREE.Mesh(geo, fill); // 뒤 오브젝트를 살짝 가려 깊이감
+      const edgeGeo = keep(new THREE.EdgesGeometry(geo));
+      const edgeMat = keep(
+        new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: s.edge })
+      );
+      mesh.add(new THREE.LineSegments(edgeGeo, edgeMat));
+
+      // 내부 구조: 꼭짓점→중심 구성선 + 꼭짓점 노드 (평소엔 투명, 가끔 살짝 드러남)
+      const verts = uniqueVerts(geo);
+      const linePts: number[] = [];
+      verts.forEach((v) => linePts.push(0, 0, 0, v.x, v.y, v.z));
+      const ilGeo = keep(new THREE.BufferGeometry());
+      ilGeo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(linePts), 3));
+      const ilMat = keep(
+        new THREE.LineBasicMaterial({ color: BLUE, transparent: true, opacity: 0, depthWrite: false })
+      );
+      const internalLines = new THREE.LineSegments(ilGeo, ilMat);
+
+      const ipGeo = keep(new THREE.BufferGeometry());
+      ipGeo.setAttribute(
+        "position",
+        new THREE.BufferAttribute(new Float32Array(verts.flatMap((v) => [v.x, v.y, v.z])), 3)
+      );
+      const ipMat = keep(
+        new THREE.PointsMaterial({
+          color: 0xbcd0ff,
+          size: 0.07,
           transparent: true,
-          opacity: 0.14,
+          opacity: 0,
+          sizeAttenuation: true,
           depthWrite: false,
         })
       );
-      const sp = new THREE.Sprite(mat);
-      const y = (Math.random() - 0.5) * 16;
-      sp.position.set(
-        (Math.random() - 0.5) * 34,
-        y,
-        -24 - Math.random() * 12 // z: -24 ~ -36 (가장 깊은 층)
-      );
-      sp.scale.setScalar(1.6 + Math.random() * 1.2);
-      scene.add(sp);
-      glyphs.push({ sprite: sp, phase: Math.random() * Math.PI * 2, baseY: y });
+      const internalPts = new THREE.Points(ipGeo, ipMat);
+
+      const g = new THREE.Group();
+      g.position.set(s.pos[0], s.pos[1], s.pos[2]);
+      g.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+      g.add(mesh, internalLines, internalPts);
+      scene.add(g);
+
+      objects.push({
+        group: g,
+        rot: s.rot,
+        floatPhase: Math.random() * Math.PI * 2,
+        revealPhase: Math.random() * Math.PI * 2,
+        internalLineMat: ilMat,
+        internalPtMat: ipMat,
+      });
     });
 
-    // ---------- 리사이즈 ----------
-    let width = 0;
-    let height = 0;
+    let width = 0, height = 0;
     const resize = () => {
       width = window.innerWidth;
       height = window.innerHeight;
@@ -236,18 +144,15 @@ export default function GeometricScene() {
 
     const renderOnce = () => renderer.render(scene, camera);
 
-    // ---------- 입력: 스크롤(깊이 패럴랙스) + 마우스(스프링 자석) ----------
     let scrollProgress = 0;
     const readScroll = () => {
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight || 1;
+      const max = document.documentElement.scrollHeight - window.innerHeight || 1;
       scrollProgress = Math.min(1, Math.max(0, window.scrollY / max));
     };
     readScroll();
     window.addEventListener("scroll", readScroll, { passive: true });
 
-    let targetMX = 0;
-    let targetMY = 0;
+    let targetMX = 0, targetMY = 0;
     const onMouse = (e: MouseEvent) => {
       targetMX = (e.clientX / window.innerWidth) * 2 - 1;
       targetMY = (e.clientY / window.innerHeight) * 2 - 1;
@@ -268,40 +173,34 @@ export default function GeometricScene() {
     renderOnce();
 
     let raf = 0;
-    let mx = 0;
-    let my = 0;
-    let camZ = 18;
+    let mx = 0, my = 0;
+    const baseY = objects.map((o) => o.group.position.y);
     const clock = new THREE.Clock();
 
     const loop = () => {
       const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.elapsedTime;
 
-      // 마우스 스프링(부드러운 자석)
-      mx += (targetMX - mx) * 0.045;
-      my += (targetMY - my) * 0.045;
+      // 마우스 스프링(아주 부드럽고 미세하게)
+      mx += (targetMX - mx) * 0.035;
+      my += (targetMY - my) * 0.035;
+      camera.position.x += (mx * 1.1 - camera.position.x) * 0.04;
+      camera.position.y += (-my * 0.7 - camera.position.y) * 0.04;
+      // 스크롤 = 깊이 패럴랙스(시점만 아주 조금 전진)
+      const targetZ = 18 - scrollProgress * 5;
+      camera.position.z += (targetZ - camera.position.z) * 0.05;
+      camera.lookAt(0, 0, -4);
 
-      // 카메라: 스크롤=깊이(전진), 마우스=미세 오프셋. 오브젝트를 끌지 않고 시점만 움직인다.
-      camZ += (18 - scrollProgress * 10 - camZ) * 0.05;
-      camera.position.x += (mx * 2.2 - camera.position.x) * 0.05;
-      camera.position.y += (-my * 1.4 - camera.position.y) * 0.05;
-      camera.position.z = camZ;
-      camera.lookAt(0, 0, -6);
+      objects.forEach((o, i) => {
+        // 거의 감지되지 않는 자전 + 2~6px 수준의 미세 부유
+        o.group.rotation.y += o.rot * dt;
+        o.group.rotation.x += o.rot * 0.4 * dt;
+        o.group.position.y = baseY[i] + Math.sin(t * 0.25 + o.floatPhase) * 0.06;
 
-      // 컴포넌트: 각자 중심축 아주 느린 자전 + 부유
-      components.forEach((c) => {
-        c.group.rotation.x += c.drift.x;
-        c.group.rotation.y += c.drift.y;
-        c.group.position.y += Math.sin(t * 0.35 + c.phase) * 0.0015;
-      });
-
-      // 노드망: 전체가 아주 느리게 드리프트
-      midGroup.rotation.y = Math.sin(t * 0.05) * 0.05;
-      midGroup.rotation.x = Math.cos(t * 0.04) * 0.03;
-
-      // 글리프: 제자리에서 은은히 부유
-      glyphs.forEach((g) => {
-        g.sprite.position.y = g.baseY + Math.sin(t * 0.3 + g.phase) * 0.4;
+        // 내부 구조: 대부분 0, 가끔 아주 옅게 떠올랐다 사라짐(글리치/효과 아님)
+        const pulse = Math.pow(Math.max(0, Math.sin(t * 0.06 + o.revealPhase)), 8);
+        o.internalLineMat.opacity = pulse * 0.14;
+        o.internalPtMat.opacity = pulse * 0.35;
       });
 
       renderOnce();
