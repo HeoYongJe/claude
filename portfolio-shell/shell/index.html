@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YUJIN — Web Publisher Portfolio</title>
+<meta name="description" content="사용자 경험을 만드는 웹 퍼블리셔 YUJIN의 포트폴리오. 시맨틱 마크업, 반응형 웹, 인터랙션 구현.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- scroll progress -->
+  <div class="yj-progress">
+    <div class="yj-progress__fill" id="yj-bar"></div>
+  </div>
+
+  <!-- nav -->
+  <nav class="yj-nav" id="yj-nav">
+    <a href="#top" class="yj-nav__logo">YUJIN</a>
+    <div class="yj-nav__menu">
+      <a href="#top" class="yj-navlink active" data-nav="top">Intro</a>
+      <a href="#works" class="yj-navlink" data-nav="works">Works</a>
+      <a href="#about" class="yj-navlink" data-nav="about">About</a>
+      <a href="#contact" class="yj-navlink" data-nav="contact">Contact</a>
+      <a href="#contact" class="yj-nav__resume">Resume <span class="yj-nav__resume-arrow">↗</span></a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <section id="top" class="yj-hero">
+    <div class="yj-hero-grid">
+      <div>
+        <div class="yj-hero__eyebrow" id="yj-eyebrow">
+          <span class="yj-hero__eyebrow-line"></span>
+          <span class="yj-hero__eyebrow-text">UX-DRIVEN WEB PUBLISHER</span>
+        </div>
+        <h1 class="yj-hero__title" id="yj-title">
+          사용자 <span class="yj-hero__title-accent">경험</span>을<br>만드는 퍼블리셔
+        </h1>
+        <p class="yj-hero__sub" id="yj-sub">
+          사용하기 편한 경험은<br>좋은 구조와 작은 디테일에서 시작됩니다.
+        </p>
+        <a href="#works" class="yj-circuit">
+          <svg viewBox="0 0 220 56" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="219" height="55" rx="27.5" pathLength="100"></rect></svg>
+          View Selected Work <span class="yj-circuit__arrow">→</span>
+        </a>
+      </div>
+
+      <!-- connected glass UI-card composition (decorative) -->
+      <div class="yj-hero-visual" id="yj-visual" aria-hidden="true">
+        <div class="yj-hero__dots"></div>
+        <div class="yj-hero__glow"></div>
+
+        <div class="yj-stage">
+          <!-- circuit connectors -->
+          <svg class="yj-connectors" viewBox="0 0 550 470" preserveAspectRatio="xMidYMid meet">
+            <g class="yj-base" fill="none" stroke="rgba(120,150,240,.28)" stroke-width="2" stroke-linecap="round">
+              <path d="M375 60 H452 Q464 60 464 72 V178 Q464 190 452 190 H392"></path>
+              <path d="M275 112 V196"></path>
+              <path d="M205 133 H222 Q234 133 234 145 V238 Q234 250 222 250 H205"></path>
+              <path d="M133 210 H160 Q172 210 172 222 V250 H205"></path>
+              <path d="M280 392 H418 Q430 392 430 380 V364"></path>
+            </g>
+            <g fill="none" stroke="#aecbff" stroke-width="2" stroke-linecap="round">
+              <path class="yj-flow" d="M375 60 H452 Q464 60 464 72 V178 Q464 190 452 190 H392"></path>
+              <path class="yj-flow" d="M275 112 V196"></path>
+              <path class="yj-flow" d="M205 133 H222 Q234 133 234 145 V238 Q234 250 222 250 H205"></path>
+              <path class="yj-flow" d="M133 210 H160 Q172 210 172 222 V250 H205"></path>
+              <path class="yj-flow" d="M280 392 H418 Q430 392 430 380 V364"></path>
+            </g>
+            <g class="yj-nodes">
+              <circle cx="375" cy="60" r="5.5"></circle><circle cx="392" cy="190" r="5"></circle>
+              <circle cx="275" cy="112" r="5"></circle><circle cx="275" cy="196" r="5.5"></circle>
+              <circle cx="205" cy="133" r="4.5"></circle><circle cx="205" cy="250" r="5.5"></circle>
+              <circle cx="133" cy="210" r="5"></circle>
+              <circle cx="280" cy="392" r="5"></circle><circle cx="430" cy="364" r="4.5"></circle>
+            </g>
+          </svg>
+
+          <!-- 1. browser / wireframe card -->
+          <div class="yj-glass yj-glass--browser">
+            <div class="yj-glass__dots"><span></span><span></span><span></span></div>
+            <div class="yj-glass__wire">
+              <svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M0 0 L100 60 M100 0 L0 60" stroke="rgba(150,180,255,.28)" stroke-width="1" fill="none"></path></svg>
+            </div>
+          </div>
+
+          <!-- 2. text lines card -->
+          <div class="yj-glass yj-glass--text">
+            <div class="yj-skel"></div>
+            <div class="yj-skel"></div>
+            <div class="yj-skel"></div>
+          </div>
+
+          <!-- 3. small toggle card -->
+          <div class="yj-glass yj-glass--toggle">
+            <div class="yj-glass__toggle-row">
+              <span class="yj-glass__switch"><i></i></span>
+              <span class="yj-skel"></span>
+            </div>
+            <div class="yj-skel"></div>
+          </div>
+
+          <!-- 4. center portrait card -->
+          <div class="yj-glass yj-glass--portrait">
+            <div class="yj-glass__preview">
+              <svg width="34" height="26" viewBox="0 0 34 26" fill="none"><rect x="1" y="1" width="32" height="24" rx="3" stroke="rgba(160,190,255,.6)" stroke-width="1.4"></rect><circle cx="10" cy="9" r="2.6" fill="rgba(160,190,255,.6)"></circle><path d="M4 22 L13 13 L19 18 L24 13 L30 20" stroke="rgba(160,190,255,.6)" stroke-width="1.4" fill="none"></path></svg>
+            </div>
+            <div class="yj-skel"></div>
+            <div class="yj-skel"></div>
+            <div class="yj-glass__pager"><span></span><span></span></div>
+          </div>
+
+          <!-- 5. avatar card -->
+          <div class="yj-glass yj-glass--avatar">
+            <div class="yj-glass__row">
+              <span class="yj-glass__avatar"></span>
+              <div class="yj-glass__lines">
+                <div class="yj-skel"></div>
+                <div class="yj-skel"></div>
+              </div>
+            </div>
+            <div class="yj-skel"></div>
+          </div>
+
+          <!-- 6. small card -->
+          <div class="yj-glass yj-glass--small">
+            <div class="yj-glass__row--tight">
+              <span class="yj-glass__bullet"></span>
+              <span class="yj-skel"></span>
+            </div>
+            <div class="yj-skel"></div>
+          </div>
+
+          <!-- 7. button card -->
+          <div class="yj-glass yj-glass--button">
+            <div class="yj-glass__btn"></div>
+            <div class="yj-skel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="yj-scroll">
+      <span class="yj-scroll__label">SCROLL</span>
+      <span class="yj-scroll__mouse">
+        <span class="yj-scroll__dot"></span>
+      </span>
+    </div>
+  </section>
+
+  <!-- ============ SELECTED WORK ============ -->
+  <section id="works" class="yj-section yj-section--works">
+    <div class="yj-shell">
+      <div class="yj-head">
+        <div>
+          <div class="yj-head__num" data-reveal>02</div>
+          <h2 class="yj-head__title" data-reveal>Selected Work</h2>
+        </div>
+        <a href="#works" class="yj-head__link" data-reveal>All Projects <span>→</span></a>
+      </div>
+
+      <div class="yj-works-grid">
+        <!-- work 01 -->
+        <a href="#works" class="yj-work" data-reveal>
+          <div class="yj-thumb yj-work__thumb">
+            <!-- replace with: <img src="assets/work-1.jpg" alt="LawPilot"> -->
+            <div class="yj-ph">LawPilot</div>
+            <span class="yj-work__num">01</span>
+          </div>
+          <div class="yj-work__body">
+            <span class="yj-work__tag">Web Publishing</span>
+            <h3 class="yj-work__title">LawPilot</h3>
+            <div class="yj-work__foot">
+              <p class="yj-work__desc">법률 업무 플랫폼 · 반응형 웹</p>
+              <span class="yj-arrow yj-arrow--circle">→</span>
+            </div>
+          </div>
+        </a>
+        <!-- work 02 -->
+        <a href="#works" class="yj-work" data-reveal>
+          <div class="yj-thumb yj-work__thumb">
+            <div class="yj-ph">그리다랩</div>
+            <span class="yj-work__num">02</span>
+          </div>
+          <div class="yj-work__body">
+            <span class="yj-work__tag">Responsive</span>
+            <h3 class="yj-work__title">그리다랩</h3>
+            <div class="yj-work__foot">
+              <p class="yj-work__desc">프리미엄 인테리어 플랫폼</p>
+              <span class="yj-arrow yj-arrow--circle">→</span>
+            </div>
+          </div>
+        </a>
+        <!-- work 03 -->
+        <a href="#works" class="yj-work" data-reveal>
+          <div class="yj-thumb yj-work__thumb">
+            <div class="yj-ph">CoreSoft Internal System</div>
+            <span class="yj-work__num">03</span>
+          </div>
+          <div class="yj-work__body">
+            <span class="yj-work__tag">Web UI</span>
+            <h3 class="yj-work__title">CoreSoft Internal System</h3>
+            <div class="yj-work__foot">
+              <p class="yj-work__desc">사내 관리 시스템 · UI 퍼블리싱</p>
+              <span class="yj-arrow yj-arrow--circle">→</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DESIGN PRINCIPLES ============ -->
+  <section id="principles" class="yj-section">
+    <div class="yj-shell">
+      <div class="yj-head yj-head--wide">
+        <div>
+          <div class="yj-head__num" data-reveal>03</div>
+          <h2 class="yj-head__title" data-reveal>Design Principles</h2>
+        </div>
+        <p class="yj-head__note" data-reveal>사용자의 경험을 먼저 생각하는<br>저만의 세 가지 원칙입니다.</p>
+      </div>
+      <div class="yj-principles">
+        <!-- Purpose -->
+        <div class="yj-principle" data-reveal>
+          <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="2"></circle><circle cx="20" cy="20" r="5" fill="currentColor"></circle></svg></span>
+          <div>
+            <h3 class="yj-principle__title">Purpose</h3>
+            <p class="yj-principle__desc">모든 요소에는 이유가 있어야 합니다. 명확한 목적이 좋은 경험을 만듭니다.</p>
+          </div>
+        </div>
+        <!-- Clarity -->
+        <div class="yj-principle" data-reveal>
+          <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><rect x="6" y="6" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="22" y="6" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="6" y="22" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="22" y="22" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect></svg></span>
+          <div>
+            <h3 class="yj-principle__title">Clarity</h3>
+            <p class="yj-principle__desc">복잡한 것을 단순하게, 직관적으로 전달하는 것을 중요하게 생각합니다.</p>
+          </div>
+        </div>
+        <!-- Precision -->
+        <div class="yj-principle" data-reveal>
+          <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><path d="M20 7v26M7 20h26" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></span>
+          <div>
+            <h3 class="yj-principle__title">Precision</h3>
+            <p class="yj-principle__desc">작은 디테일이 전체의 완성도를 만듭니다. 정확한 구현으로 신뢰를 만듭니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about" class="yj-section">
+    <div class="yj-shell">
+      <div class="yj-about-grid">
+        <div>
+          <div class="yj-head__num" data-reveal>04</div>
+          <h2 class="yj-about__title" data-reveal>About Me</h2>
+          <p class="yj-about__lead" data-reveal>웹 퍼블리싱을 기반으로<br>사용자 중심의 웹 경험을 만드는 것을 좋아합니다.</p>
+        </div>
+
+        <div class="yj-skills">
+          <div class="yj-skillgroup" data-reveal>
+            <div class="yj-skillgroup__head">
+              <span class="yj-skillgroup__dot"></span>
+              <span class="yj-skillgroup__label">주력</span>
+              <span class="yj-skillgroup__en">CORE</span>
+            </div>
+            <div class="yj-chips">
+              <span class="yj-chip">HTML5</span>
+              <span class="yj-chip">시맨틱 마크업</span>
+              <span class="yj-chip">CSS3</span>
+              <span class="yj-chip">반응형 · Responsive</span>
+              <span class="yj-chip">Flexbox</span>
+              <span class="yj-chip">SCSS</span>
+              <span class="yj-chip">Git / GitHub</span>
+            </div>
+          </div>
+          <div class="yj-skillgroup" data-reveal>
+            <div class="yj-skillgroup__head">
+              <span class="yj-skillgroup__dot yj-skillgroup__dot--learning"></span>
+              <span class="yj-skillgroup__label yj-skillgroup__label--muted">학습 중</span>
+              <span class="yj-skillgroup__en yj-skillgroup__en--muted">LEARNING</span>
+            </div>
+            <div class="yj-chips">
+              <span class="yj-chip yj-chip--learning">JavaScript</span>
+              <span class="yj-chip yj-chip--learning">인터랙션 · 모션</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="yj-thumb yj-about__photo" data-reveal>
+          <!-- replace with: <img src="assets/desk.jpg" alt="작업 공간"> -->
+          <div class="yj-ph">작업 공간 사진</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="yj-section yj-contact">
+    <div class="yj-contact__fade"></div>
+    <div class="yj-shell yj-contact__inner">
+      <div class="yj-contact-outer">
+        <div>
+          <div class="yj-head__num yj-contact__num" data-reveal>05</div>
+          <h2 class="yj-contact__title" data-reveal>Let's Build<br>Better Experiences</h2>
+          <p class="yj-contact__lead" data-reveal>함께 더 나은 경험을 만들어가요.</p>
+        </div>
+
+        <div class="yj-contact-grid">
+          <!-- Email -->
+          <a href="mailto:yujin.dev@gmail.com" class="yj-work yj-contact-card" data-reveal>
+            <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"></rect><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8"></path></svg></span>
+            <div class="yj-contact-card__body">
+              <div class="yj-contact-card__title">Email</div>
+              <div class="yj-contact-card__value">yujin.dev@gmail.com</div>
+            </div>
+            <span class="yj-arrow yj-arrow--plain">→</span>
+          </a>
+          <!-- GitHub -->
+          <a href="#contact" class="yj-work yj-contact-card" data-reveal>
+            <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0012 2z"></path></svg></span>
+            <div class="yj-contact-card__body">
+              <div class="yj-contact-card__title">GitHub</div>
+              <div class="yj-contact-card__value">github.com/yujin-dev</div>
+            </div>
+            <span class="yj-arrow yj-arrow--plain">→</span>
+          </a>
+          <!-- Resume -->
+          <a href="#contact" class="yj-work yj-contact-card" data-reveal>
+            <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M14 3v4h4M9 12h6M9 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>
+            <div class="yj-contact-card__body">
+              <div class="yj-contact-card__title">Resume</div>
+              <div class="yj-contact-card__value">Download PDF</div>
+            </div>
+            <span class="yj-arrow yj-arrow--plain">→</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="yj-footer">
+        <span class="yj-footer__logo">YUJIN</span>
+        <span class="yj-footer__copy">© 2026 YUJIN. All rights reserved.</span>
+        <div class="yj-footer__socials">
+          <a href="#contact" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0012 2z"></path></svg></a>
+          <a href="#contact" aria-label="Email"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"></rect><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8"></path></svg></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="script.js"></script>
+</body>
+</html>

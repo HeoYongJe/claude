@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "shell",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5177", "--directory", "portfolio-shell/shell"],
+      "port": 5177
+    }
+  ]
+}
