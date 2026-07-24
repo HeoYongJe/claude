@@ -64,6 +64,31 @@ p{margin:0}
 .yj-head__link:hover{color:var(--blue-light)}
 
 /* ==========================================================================
+   preloader — 첫 로드 시 카운터 인트로. 끝나면 위로 걷히고 DOM에서 제거된다.
+   ========================================================================== */
+.yj-noscroll{overflow:hidden}
+
+.yj-preloader{position:fixed;inset:0;z-index:300;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:var(--bg);color:#fff;
+  transition:transform .9s cubic-bezier(.76,0,.24,1)}
+.yj-preloader.is-revealing{transform:translateY(-100%)}
+
+.yj-preloader__logo{display:flex;align-items:center;gap:8px;
+  font-family:var(--font-wanted-sans);font-weight:800;font-size:20px;letter-spacing:-.02em}
+.yj-preloader__dot{width:8px;height:8px;border-radius:2px;background:var(--blue)}
+
+.yj-preloader__count{margin-top:20px;
+  font-family:var(--font-wanted-sans);font-weight:800;font-size:clamp(56px,10vw,120px);
+  line-height:1;font-variant-numeric:tabular-nums}
+.yj-preloader__pct{color:var(--blue)}
+
+.yj-preloader__track{margin-top:32px;height:2px;width:min(180px,50vw);overflow:hidden;background:rgba(255,255,255,.1)}
+.yj-preloader__fill{height:100%;width:0%;background:var(--blue)}
+
+.yj-preloader__label{margin-top:16px;font-family:var(--font-mono);font-size:12px;letter-spacing:.3em;color:rgba(255,255,255,.4)}
+
+/* ==========================================================================
    scroll progress
    ========================================================================== */
 .yj-progress{position:fixed;top:0;left:0;width:100%;height:3px;z-index:120;background:rgba(255,255,255,.06)}
@@ -333,4 +358,5 @@ p{margin:0}
   html{scroll-behavior:auto}
   .yj-glass,.yj-flow,.yj-scroll__dot{animation:none}
   [data-reveal]{transition:none}
+  .yj-preloader{display:none}
 }

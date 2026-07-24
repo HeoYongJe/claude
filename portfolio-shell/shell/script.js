@@ -75,5 +75,61 @@
       c.style.transform = "scale(1)";
     });
   }
-  setTimeout(runDraw, 350);
+  // ---- preloader: 0→100% 카운터 후 위로 걷힘 ----
+  // 히어로 연결선 draw는 로더가 걷힌 뒤에 시작한다(가려진 채로 재생되지 않게).
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const preloader = q("#yj-preloader");
+  const pctEl = q("#yj-preloader-count");
+  const fillEl = q("#yj-preloader-fill");
+
+  function startSite() {
+    document.body.classList.remove("yj-noscroll");
+    window.scrollTo(0, 0);
+    onScroll();
+    runDraw();
+  }
+
+  let cleared = false;
+  function clearPreloader() {
+    if (cleared) return;
+    cleared = true;
+    if (preloader) preloader.remove();
+    startSite();
+  }
+
+  if (!preloader || reduced) {
+    if (preloader) preloader.remove();
+    setTimeout(runDraw, 350);
+  } else {
+    document.body.classList.add("yj-noscroll");
+    window.scrollTo(0, 0);
+
+    const DURATION = 1300;
+    const start = performance.now();
+    const easeOutCubic = (p) => 1 - Math.pow(1 - p, 3);
+    let raf = 0;
+    let revealing = false;
+
+    function reveal() {
+      if (revealing || cleared) return;
+      revealing = true;
+      cancelAnimationFrame(raf);
+      preloader.classList.add("is-revealing");
+      preloader.addEventListener("transitionend", clearPreloader, { once: true });
+      setTimeout(clearPreloader, 1000); // transitionend가 누락돼도 반드시 걷히게
+    }
+
+    function tick(now) {
+      const p = Math.min((now - start) / DURATION, 1);
+      const v = Math.round(easeOutCubic(p) * 100);
+      if (pctEl) pctEl.textContent = v;
+      if (fillEl) fillEl.style.width = v + "%";
+      if (p < 1) raf = requestAnimationFrame(tick);
+      else setTimeout(reveal, 220);
+    }
+    raf = requestAnimationFrame(tick);
+
+    // 안전장치: 백그라운드 탭 등에서 rAF가 지연돼도 로더는 반드시 걷힌다.
+    setTimeout(reveal, 4000);
+  }
 })();

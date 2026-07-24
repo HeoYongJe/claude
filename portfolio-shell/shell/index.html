@@ -11,6 +11,18 @@
 </head>
 <body>
 
+  <!-- preloader (script.js가 인트로 종료 후 제거) -->
+  <div class="yj-preloader" id="yj-preloader" aria-hidden="true">
+    <div class="yj-preloader__logo">
+      <span class="yj-preloader__dot"></span>YUJIN
+    </div>
+    <div class="yj-preloader__count"><span id="yj-preloader-count">0</span><span class="yj-preloader__pct">%</span></div>
+    <div class="yj-preloader__track">
+      <div class="yj-preloader__fill" id="yj-preloader-fill"></div>
+    </div>
+    <div class="yj-preloader__label">LOADING</div>
+  </div>
+
   <!-- scroll progress -->
   <div class="yj-progress">
     <div class="yj-progress__fill" id="yj-bar"></div>
