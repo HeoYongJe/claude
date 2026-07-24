@@ -41,6 +41,10 @@
 - 반응형 breakpoint: `960px` 단일 (그 이하에서 모든 그리드 1열, 히어로 비주얼 숨김)
 
 ## 5. Motion
+- **부드러운 스크롤(중요)**: script.js가 휠 입력을 lerp(감쇠 0.09)로 보간하는 관성 스크롤을 구현.
+  네이티브 scrollY는 그대로 유지해서 패럴랙스·리빌·앵커가 정확히 동작한다. 앵커 클릭도 같은
+  로직으로 이동. 터치 기기(`pointer:coarse`)·`reduced-motion`에서는 네이티브 스크롤에 맡긴다.
+  감쇠값을 낮추면 더 부드럽고 길게, 높이면 즉각적으로 반응한다.
 - Reveal: `[data-reveal]` → opacity/translateY(40px), `cubic-bezier(.16,1,.3,1)` .8s, stagger `(i%3)*0.09s`
 - 히어로 패럴랙스: 타이틀 -0.05 / 비주얼 0.12, 아이브로우·본문 페이드아웃
 - 연결선 순차 점등(로드 시): path draw .55s stagger .16s → 노드 팝업(백이즈)

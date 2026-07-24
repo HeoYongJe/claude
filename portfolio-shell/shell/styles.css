@@ -26,12 +26,15 @@
 
   --gutter:clamp(20px,5vw,72px);
   --shell:1240px;
-  --section-y:clamp(80px,11vh,140px);
+  --section-y:clamp(112px,15vh,200px);
+  --head-gap:clamp(48px,6.5vh,76px);
 }
 
 /* ---- base ---- */
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+/* JS lerp 스크롤이 활성화되면 네이티브 smooth와 겹치지 않게 끈다 */
+html.yj-js-scroll{scroll-behavior:auto}
 body{margin:0;background:var(--bg);color:#fff;font-family:var(--font-pretendard);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 a:hover{color:var(--blue-light)}
@@ -55,8 +58,8 @@ p{margin:0}
 .yj-shell{max-width:var(--shell);margin:0 auto}
 
 /* 섹션 헤드: [번호 + 제목] ←→ [보조 텍스트/링크] */
-.yj-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:clamp(36px,5vh,56px)}
-.yj-head--wide{gap:24px;flex-wrap:wrap;margin-bottom:clamp(40px,6vh,64px)}
+.yj-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:var(--head-gap)}
+.yj-head--wide{gap:24px;flex-wrap:wrap;margin-bottom:var(--head-gap)}
 .yj-head__num{font-family:var(--font-mono);font-size:14px;letter-spacing:.06em;color:var(--blue-mid);margin-bottom:10px}
 .yj-head__title{font-family:var(--font-wanted-sans);font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.02em}
 .yj-head__note{max-width:320px;text-align:right;font-size:15px;line-height:1.7;color:rgba(255,255,255,.55)}
@@ -274,7 +277,7 @@ p{margin:0}
    ========================================================================== */
 .yj-principles{display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:stretch}
 .yj-principle{display:flex;gap:18px;align-items:flex-start;
-  padding:34px clamp(24px,3vw,48px) 8px;border-left:1px solid var(--line-strong)}
+  padding:44px clamp(24px,3vw,48px) 20px;border-left:1px solid var(--line-strong)}
 .yj-principles > .yj-principle:first-child{border-left:none;padding-left:0}
 .yj-principle__icon{flex:none;width:34px;height:34px;color:var(--blue-mid)}
 .yj-principle__title{font-family:var(--font-wanted-sans);font-weight:700;font-size:22px;margin-bottom:14px}
@@ -288,7 +291,7 @@ p{margin:0}
 .yj-about__lead{font-size:16px;line-height:1.8;color:rgba(255,255,255,.62)}
 .yj-about__photo{aspect-ratio:4/3;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:var(--bg-thumb)}
 
-.yj-skills{display:flex;flex-direction:column;gap:30px}
+.yj-skills{display:flex;flex-direction:column;gap:38px}
 .yj-skillgroup__head{display:flex;align-items:center;gap:9px;margin-bottom:16px}
 .yj-skillgroup__dot{width:7px;height:7px;border-radius:50%;background:var(--blue-mid);box-shadow:0 0 8px 1px rgba(74,124,255,.7)}
 .yj-skillgroup__dot--learning{background:none;border:1.5px solid rgba(255,255,255,.4);box-shadow:none}
@@ -325,7 +328,7 @@ p{margin:0}
 .yj-contact-card__value{font-size:13px;color:rgba(255,255,255,.55);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---- footer ---- */
-.yj-footer{margin-top:clamp(64px,10vh,110px);padding:28px 0;border-top:1px solid rgba(255,255,255,.1);
+.yj-footer{margin-top:clamp(88px,13vh,150px);padding:36px 0;border-top:1px solid rgba(255,255,255,.1);
   display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center}
 .yj-footer__logo{font-family:var(--font-wanted-sans);font-weight:800;font-size:16px}
 .yj-footer__copy{font-size:13px;color:rgba(255,255,255,.4)}

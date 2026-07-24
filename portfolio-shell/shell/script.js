@@ -3,6 +3,7 @@
 // 스크롤 값에 비례하는 값(진행률·패럴랙스)만 다룬다.
 (function () {
   const q = (s) => document.querySelector(s);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const bar = q("#yj-bar");
   const nav = q("#yj-nav");
   const eyebrow = q("#yj-eyebrow");
@@ -35,6 +36,61 @@
   }
   window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   onScroll();
+
+  // ---- smooth scroll (lerp) ----
+  // 네이티브 스크롤 위치는 그대로 두고(=scrollY 정확 → 패럴랙스/리빌/앵커 모두 정상),
+  // 휠 입력을 목표값에 누적한 뒤 매 프레임 현재값을 목표로 부드럽게 보간한다.
+  // 터치 기기·reduced-motion에서는 네이티브 스크롤에 맡긴다.
+  const canSmooth = !reducedMotion && !window.matchMedia("(pointer: coarse)").matches;
+  let smoothRAF = 0;
+  if (canSmooth) {
+    // 앵커 이동도 아래 lerp 로직으로 처리하므로 CSS smooth를 끈다.
+    document.documentElement.classList.add("yj-js-scroll");
+    const maxY = () => document.documentElement.scrollHeight - window.innerHeight;
+    let target = window.scrollY || 0;
+    let current = target;
+    let animating = false;
+
+    function loop() {
+      current += (target - current) * 0.09; // 0.09 = 감쇠(작을수록 더 부드럽고 길게)
+      if (Math.abs(target - current) < 0.4) {
+        current = target;
+        animating = false;
+      }
+      window.scrollTo(0, current);
+      if (animating) smoothRAF = requestAnimationFrame(loop);
+    }
+    function kick() {
+      if (!animating) { animating = true; smoothRAF = requestAnimationFrame(loop); }
+    }
+    function scrollTo(y) {
+      target = Math.max(0, Math.min(y, maxY()));
+      kick();
+    }
+
+    window.addEventListener("wheel", (e) => {
+      if (e.ctrlKey) return;            // 확대/축소 제스처는 통과
+      if (document.body.classList.contains("yj-noscroll")) return; // 프리로더 중엔 무시
+      e.preventDefault();
+      target = Math.max(0, Math.min(target + e.deltaY, maxY()));
+      kick();
+    }, { passive: false });
+
+    // 앵커 클릭 → 목표 위치로 부드럽게
+    document.querySelectorAll('a[href^="#"]').forEach((a) => {
+      a.addEventListener("click", (e) => {
+        const id = a.getAttribute("href").slice(1);
+        const el = id ? document.getElementById(id) : null;
+        if (!el) return;
+        e.preventDefault();
+        scrollTo(el.getBoundingClientRect().top + window.scrollY);
+      });
+    });
+
+    // 키보드/기타 경로로 실제 위치가 바뀌면 목표를 재동기화(끊김 방지)
+    window.addEventListener("scroll", () => { if (!animating) { target = current = window.scrollY; } }, { passive: true });
+    window.addEventListener("resize", () => { target = Math.min(target, maxY()); });
+  }
 
   // ---- reveal on scroll ----
   const io = new IntersectionObserver((entries) => {
@@ -77,7 +133,6 @@
   }
   // ---- preloader: 0→100% 카운터 후 위로 걷힘 ----
   // 히어로 연결선 draw는 로더가 걷힌 뒤에 시작한다(가려진 채로 재생되지 않게).
-  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const preloader = q("#yj-preloader");
   const pctEl = q("#yj-preloader-count");
   const fillEl = q("#yj-preloader-fill");
@@ -97,7 +152,7 @@
     startSite();
   }
 
-  if (!preloader || reduced) {
+  if (!preloader || reducedMotion) {
     if (preloader) preloader.remove();
     setTimeout(runDraw, 350);
   } else {
