@@ -298,15 +298,26 @@ p{margin:0}
   color:rgba(255,255,255,.28);font-size:13px;font-weight:600;text-align:center;padding:12px}
 
 /* ==========================================================================
-   design principles — 세로 그리드 라인 (의도된 컨셉, 제거 금지)
+   principles panel — DRIVEN BY + 3원칙 (DESIGN PROCESS 하단 서브)
+   4셀(DRIVEN BY + 원칙3) 그리드로 상단 4단계와 라인을 맞춘다.
+   세로 구분선은 의도된 그리드 라인 컨셉 — 제거 금지.
    ========================================================================== */
-.yj-principles{display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:stretch}
-.yj-principle{display:flex;gap:18px;align-items:flex-start;
-  padding:44px clamp(24px,3vw,48px) 20px;border-left:1px solid var(--line-strong)}
-.yj-principles > .yj-principle:first-child{border-left:none;padding-left:0}
-.yj-principle__icon{flex:none;width:34px;height:34px;color:var(--blue-mid)}
-.yj-principle__title{font-family:var(--font-wanted-sans);font-weight:700;font-size:22px;margin-bottom:14px}
-.yj-principle__desc{font-size:15px;line-height:1.75;color:rgba(255,255,255,.55)}
+.yj-principles-panel{margin-top:clamp(56px,8vh,96px);
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;align-items:stretch;
+  border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.015);
+  padding:clamp(30px,3.6vw,50px) clamp(4px,1vw,16px)}
+
+.yj-driven{padding:0 clamp(20px,2.4vw,40px)}
+.yj-driven__label{font-family:var(--font-mono);font-size:12px;letter-spacing:.2em;color:rgba(255,255,255,.4);margin-bottom:18px}
+.yj-driven__title{font-family:var(--font-wanted-sans);font-weight:700;font-size:clamp(17px,1.4vw,21px);line-height:1.5;letter-spacing:-.01em}
+
+.yj-principle{display:flex;gap:16px;align-items:flex-start;
+  padding:2px clamp(20px,2.4vw,40px);border-left:1px solid var(--line-strong)}
+.yj-principle__icon{flex:none;width:30px;height:30px;color:rgba(255,255,255,.55)}
+.yj-principle__icon .yj-ico-blue{fill:var(--blue-mid)}
+.yj-principle__icon .yj-ico-blue-stroke{stroke:var(--blue-mid)}
+.yj-principle__title{font-family:var(--font-wanted-sans);font-weight:700;font-size:19px;margin-bottom:12px}
+.yj-principle__desc{font-size:14px;line-height:1.7;color:rgba(255,255,255,.5)}
 
 /* ==========================================================================
    about
@@ -376,9 +387,9 @@ p{margin:0}
   .yj-steps{grid-template-columns:1fr 1fr;gap:36px 24px}
   .yj-step__arrow{display:none}
   .yj-works-grid{grid-template-columns:1fr}
-  .yj-principles{grid-template-columns:1fr}
-  .yj-principle{border-left:none;border-top:1px solid var(--line-strong);padding:28px 0 8px}
-  .yj-principles > .yj-principle:first-child{border-top:none}
+  .yj-principles-panel{grid-template-columns:1fr;gap:0}
+  .yj-driven{padding:0;margin-bottom:8px}
+  .yj-principle{border-left:none;border-top:1px solid var(--line-strong);padding:26px 0 4px}
   .yj-about-grid{grid-template-columns:1fr}
   .yj-contact-outer{grid-template-columns:1fr;gap:32px}
   .yj-contact-grid{grid-template-columns:1fr}
