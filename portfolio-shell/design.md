@@ -11,7 +11,8 @@
 - 한 문장: 웹 퍼블리셔 개인 포트폴리오 — 다크 + 블루 무드의 스크롤 인터랙티브 싱글 페이지
 - 무드: 딥네이비 다크 배경, 타이포 중심, primary blue 포인트. "회로/연결선" 모티프로
   구조적인 인상을 주되 모션은 절제(패럴랙스·리빌·플로팅 수준)
-- 구성: 히어로 → Selected Work → Design Principles → About → Contact
+- 구성: 히어로 → THINK(프로세스 4단계) → Selected Work → Design Principles → About → Contact
+  (섹션 번호 02~06, THINK가 02)
 
 ## 2. Colors
 | 용도 | 토큰 | 값 |
