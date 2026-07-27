@@ -29,7 +29,7 @@
     const mid = y + window.innerHeight * 0.4;
     let cur = "top";
     sections.forEach((sec) => { if (sec && sec.offsetTop <= mid) cur = sec.id; });
-    const map = { top: "top", process: "top", works: "works", about: "about", contact: "contact" };
+    const map = { top: "top", think: "top", works: "works", principles: "works", about: "about", contact: "contact" };
     const active = map[cur] || cur;
     navLinks.forEach((l) => l.classList.toggle("active", l.getAttribute("data-nav") === active));
     ticking = false;
