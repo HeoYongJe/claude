@@ -103,36 +103,10 @@
     io.observe(el);
   });
 
-  // ---- hero connectors: draw paths, then pop nodes ----
-  function runDraw() {
-    const bases = Array.from(document.querySelectorAll(".yj-base path"));
-    const nodes = Array.from(document.querySelectorAll(".yj-nodes circle"));
-    bases.forEach((p, i) => {
-      const len = p.getTotalLength();
-      p.style.transition = "none";
-      p.style.strokeDasharray = len;
-      p.style.strokeDashoffset = len;
-      p.getBoundingClientRect(); // reflow
-      p.style.transition = "stroke-dashoffset .55s ease";
-      p.style.transitionDelay = (i * 0.16) + "s";
-      p.style.strokeDashoffset = "0";
-    });
-    const total = bases.length * 0.16 + 0.55;
-    nodes.forEach((c, i) => {
-      c.style.transformBox = "fill-box";
-      c.style.transformOrigin = "center";
-      c.style.transition = "none";
-      c.style.opacity = "0";
-      c.style.transform = "scale(0)";
-      c.getBoundingClientRect();
-      c.style.transition = "opacity .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1)";
-      c.style.transitionDelay = (total * 0.5 + i * 0.08) + "s";
-      c.style.opacity = "1";
-      c.style.transform = "scale(1)";
-    });
-  }
+  // 히어로 회로/노드는 CSS 기본 상태로 처음부터 완성돼 보인다(순차 draw 없음).
+  // 잔잔한 빛 흐름만 .yj-flow CSS 애니메이션으로 유지.
+
   // ---- preloader: 0→100% 카운터 후 위로 걷힘 ----
-  // 히어로 연결선 draw는 로더가 걷힌 뒤에 시작한다(가려진 채로 재생되지 않게).
   const preloader = q("#yj-preloader");
   const pctEl = q("#yj-preloader-count");
   const fillEl = q("#yj-preloader-fill");
@@ -141,7 +115,6 @@
     document.body.classList.remove("yj-noscroll");
     window.scrollTo(0, 0);
     onScroll();
-    runDraw();
   }
 
   let cleared = false;
@@ -154,7 +127,6 @@
 
   if (!preloader || reducedMotion) {
     if (preloader) preloader.remove();
-    setTimeout(runDraw, 350);
   } else {
     document.body.classList.add("yj-noscroll");
     window.scrollTo(0, 0);
