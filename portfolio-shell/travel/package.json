@@ -1,0 +1,9 @@
+{
+  "name": "travel-fx-api",
+  "private": true,
+  "version": "1.0.0",
+  "description": "여행하기 좋은 나라 — 환율/물가 API (Vercel 서버리스 + 로컬 개발 서버)",
+  "scripts": {
+    "dev": "node server.js"
+  }
+}

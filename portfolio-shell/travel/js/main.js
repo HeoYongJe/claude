@@ -6,23 +6,26 @@
   const root = document.getElementById("twrap");
   if (!root) return;
 
-  // 동작 줄이기(reduced-motion)면 카운트업을 생략하고 즉시 최종값을 보여준다.
-  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
   // ---- 데이터 (샘플 — 추후 실제 환율/물가로 교체) ----
   // 랭킹·물가(국가별)·서울 기준가는 서버(/api/ranking)에서 실데이터로 받아온다.
   // 물가 탭 = 강세 랭킹 top3 나라 (키=국가코드). CITYDATA[code] = {name,label,bigmac,cola,water,fx,savePct}
+  let rankShown = false; // 랭킹 섹션이 화면에 들어왔는지 (스파크라인 그리기 트리거)
   let RANKDATA = { strong: [], weak: [] };
   let CITYDATA = {};
   let SEOULDATA = { bigmac: 5500, cola: 2000, water: 1000 };
 
   const state = { cur: null, rmode: "strong", curStep: -1, sm: 0 };
 
+  // API 호출 주소: 로컬(server.js)에선 같은 출처(/api/...), 닷홈 정적 배포에선
+  // Node를 못 돌리므로 별도 Vercel 프록시 도메인을 절대경로로 호출한다.
+  const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
+
   // ---- 요소 참조 ----
   const layers = [...root.querySelectorAll("[data-speed]")];
   const prog = root.querySelector(".t-progress");
   const hero = root.querySelector(".t-hero");
-  const heroInner = hero && hero.querySelector('div[style*="grid-template-columns"]');
+  const heroInner = hero && hero.querySelector(".hero__grid");
   const scrolly = root.querySelector(".t-scrolly");
   const panels = [...root.querySelectorAll(".t-spanel")];
   const idxs = [...root.querySelectorAll(".t-sidx")];
@@ -139,6 +142,25 @@
   const flagImg = (code, w, h) =>
     `<img src="https://flagcdn.com/${code}.svg" alt="" style="width:${w}px; height:${h}px; object-fit:cover; border-radius:4px; vertical-align:middle; margin-right:10px; box-shadow:0 0 0 1px rgba(15,23,42,.08);" onerror="this.style.display='none'">`;
 
+  // 스파크라인 그리기: 선을 대시로 감춰뒀다가 화면 진입/재렌더 시 채운다.
+  function prepSpark(line) {
+    const len = line.getTotalLength ? line.getTotalLength() : 260;
+    line.style.transition = "none";
+    line.style.strokeDasharray = len;
+    line.style.strokeDashoffset = len;
+    void line.getBoundingClientRect(); // 리플로우로 초기값 확정
+    line.style.transition = ""; // CSS(.rc-line)의 transition 사용
+    if (rankShown) requestAnimationFrame(() => (line.style.strokeDashoffset = 0));
+  }
+
+  function drawSparks() {
+    root.querySelectorAll(".t-rcard").forEach((c) => {
+      if (c.style.display === "none") return;
+      const line = c.querySelector(".rc-line");
+      if (line) line.style.strokeDashoffset = 0;
+    });
+  }
+
   // 약세국이 0개인 날 등 빈 상태 안내 (그리드 뒤에 1회 생성)
   function ensureEmptyNote() {
     let note = root.querySelector(".t-rank-empty");
@@ -156,18 +178,19 @@
   function renderRank(mode) {
     state.rmode = mode;
     const data = RANKDATA[mode] || [];
-    // 컬러 시스템: 유리(강세) = Red(포인트), 불리(약세) = Mid-Gray(탈강조).
-    // Gray는 흰 배경 대비 4.5:1(AA) 충족하는 #767676을 마지노선으로 사용.
-    const color = mode === "strong" ? "#EF4444" : "#767676";
-    const tint = mode === "strong" ? "#FEF2F2" : "#F2F4F6";
+    // 컬러 시스템(핸드오프 기준): 유리(강세) = Primary 파랑, 불리(약세) = Danger 빨강.
+    // "빨강=하락/불리" 통념과 일치하고, 포인트=Primary 파랑 디자인 시스템과 정합.
+    const color = mode === "strong" ? "#0E4AEB" : "#EF4444";
+    const tint = mode === "strong" ? "#EAF1FF" : "#FEF2F2";
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
       t.style.background = on ? "#fff" : "rgba(255,255,255,.14)";
-      t.style.color = on ? color : "#fff";
+      // 활성 탭 글자는 포인트컬러 대신 검정 (강세 빨강/약세 회색이 탭에선 어색해서)
+      t.style.color = on ? "#0F172A" : "#fff";
     });
-    // 카드 수에 따라 그리드를 꽉 채운다 (1개=100%, 2개=반반, 3개=3등분)
+    // 카드 수에 따라 그리드를 꽉 채운다 (CSS의 [data-count]로 처리 → 반응형과 충돌 없음)
     const grid = root.querySelector(".t-rankgrid");
-    if (grid) grid.style.gridTemplateColumns = `repeat(${Math.max(1, Math.min(data.length, 3))}, 1fr)`;
+    if (grid) grid.dataset.count = String(Math.max(1, Math.min(data.length, 3)));
     const emptyNote = ensureEmptyNote();
     if (data.length === 0) {
       emptyNote.style.display = "";
@@ -210,14 +233,14 @@
       const area = rcard.querySelector(".rc-area");
       area.setAttribute("points", "0,48 " + d.line + " 240,48");
       area.setAttribute("fill", color);
+      prepSpark(line); // 진입 시 선이 그려지도록 준비(또는 재렌더 시 재생)
       // "물가 보기 →": 강세 카드 중 물가 탭이 있는 나라만. pill 형태로 눈에 띄게.
       const link = rcard.querySelector(".rc-link");
       if (mode === "strong" && CITYDATA[d.code]) {
         link.style.display = "";
         link.textContent = "물가 보기 →";
-        // CTA는 Brand Blue 독점 (데이터=Red와 분리해 행동 유도)
-        link.style.color = "#0E4AEB";
-        link.style.background = "#F5F8FF";
+        link.style.color = "#111";
+        link.style.background = "#767676";
         link.style.padding = "6px 12px";
         link.style.borderRadius = "999px";
         rcard.dataset.city = d.code;
@@ -233,7 +256,7 @@
   // /api/ranking에서 실데이터를 받아 랭킹 + 히어로를 채운다.
   async function loadRanking() {
     try {
-      const res = await fetch("/api/ranking");
+      const res = await fetch(`${API_BASE}/api/ranking`);
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
@@ -265,12 +288,12 @@
     };
     const nameEl = root.querySelector(".t-hero-name");
     if (nameEl) nameEl.innerHTML = flagImg(top.code, 38, 28) + `<span style="vertical-align:middle;">${top.name}</span>`;
-    // 히어로는 항상 강세 1위 → 배지도 빨강(좋음)
+    // 히어로는 항상 강세 1위 → 배지도 파랑(유리)
     const badgeEl = root.querySelector(".t-hero-badge");
     if (badgeEl) {
       badgeEl.textContent = top.badge;
-      badgeEl.style.color = "#EF4444";
-      badgeEl.style.background = "#FEF2F2";
+      badgeEl.style.color = "#0E4AEB";
+      badgeEl.style.background = "#EAF1FF";
     }
     set(".t-hero-recv", top.recv);
     set(
@@ -316,7 +339,8 @@
       const on = t.dataset.city === state.cur;
       t.style.background = on ? "#0E4AEB" : "#fff";
       t.style.color = on ? "#fff" : "#64748B";
-      t.style.border = on ? "none" : "1px solid #E2E8F0";
+      // 항상 1px 테두리 유지(활성은 배경색과 동일) → 토글 시 크기 변화로 인한 떨림 방지
+      t.style.border = on ? "1px solid #0E4AEB" : "1px solid #E2E8F0";
     });
   }
 
@@ -341,10 +365,6 @@
 
   // ---- 물가 막대 + 카운트업 ----
   function count(el, target, fmt) {
-    if (prefersReducedMotion) {
-      el.textContent = fmt(target);
-      return;
-    }
     const start = performance.now();
     const dur = 900;
     const step = (now) => {
@@ -366,8 +386,11 @@
       const ratio = Math.round((c[it] / SEOULDATA[it]) * 100);
       const bar = item.querySelector(".t-bar");
       const num = item.querySelector(".t-num");
-      // 폭은 바로 설정 (CSS transition이 알아서 채워짐; rAF 미동작 환경에서도 안전)
-      bar.style.width = ratio + "%";
+      // 탭 전환 시 막대가 0에서 다시 차오르도록 rAF로 폭을 재설정 → transition 재생
+      bar.style.width = "0%";
+      requestAnimationFrame(() => {
+        bar.style.width = ratio + "%";
+      });
       count(num, c[it], (v) => Math.round(v).toLocaleString("ko-KR") + "원");
     });
     const save = c.savePct;
@@ -380,13 +403,12 @@
     root.querySelector(".t-save-fx").textContent = c.fx;
   }
 
-  // ---- 등장 애니메이션 ----
+  // ---- 등장 애니메이션 (CSS의 .is-revealed로 페이드업) ----
   const io = new IntersectionObserver(
     (ents) => {
       ents.forEach((en) => {
         if (en.isIntersecting) {
-          en.target.style.opacity = "1";
-          en.target.style.transform = "none";
+          en.target.classList.add("is-revealed");
           io.unobserve(en.target);
         }
       });
@@ -394,6 +416,22 @@
     { threshold: 0.15 }
   );
   root.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+
+  // ---- 랭킹 스파크라인: 화면 진입 시 선이 그려지는 애니메이션 ----
+  const rankIO = new IntersectionObserver(
+    (ents) => {
+      ents.forEach((en) => {
+        if (en.isIntersecting) {
+          rankShown = true;
+          drawSparks();
+          rankIO.unobserve(en.target);
+        }
+      });
+    },
+    { threshold: 0.25 }
+  );
+  const rankSec = document.getElementById("rank");
+  if (rankSec) rankIO.observe(rankSec);
 
   // ---- 물가 섹션 최초 진입 시 1회 자동 재생 ----
   const pio = new IntersectionObserver(

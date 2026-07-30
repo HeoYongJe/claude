@@ -6,6 +6,13 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5177", "--directory", "portfolio-shell/shell"],
       "port": 5177
+    },
+    {
+      "name": "travel",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "cwd": "portfolio-shell/travel",
+      "port": 4000
     }
   ]
 }
