@@ -32,9 +32,8 @@
       <a href="#" class="nav__brand">travel</a>
       <div class="nav__right">
         <ul class="nav__links">
-          <li><a href="#rank" class="nav__link">추천</a></li>
-          <li><a href="#price" class="nav__link">체감 물가</a></li>
-          <li><a href="#flow" class="nav__link">여행 정보</a></li>
+          <li><a href="#why" class="nav__link">소개</a></li>
+          <li><a href="#rank" class="nav__link">추천 랭킹</a></li>
         </ul>
         <button class="t-cta t-cta--nav" type="button">여행지 찾기</button>
       </div>
@@ -80,14 +79,48 @@
     <p class="hero__scroll">SCROLL ↓</p>
   </section>
 
+  <!-- ============ WHY (서비스 소개) ============ -->
+  <section id="why" class="why">
+    <div class="container">
+      <header class="why__head" data-reveal="">
+        <h2 class="section-title">왜 이 서비스가 필요할까요?</h2>
+        <p class="section-desc">환율만 보지 않고, 실제 체감하는 물가까지 함께 비교합니다.</p>
+      </header>
+      <div class="why__grid">
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6"></circle><circle cx="16" cy="12" r="5.5" stroke="var(--primary)" stroke-width="1.6"></circle></svg>
+          </span>
+          <h3 class="why-card__title">환율만 보면 손해!</h3>
+          <p class="why-card__desc">환율이 좋아도 물가가 비싸면 실제 여행 비용은 더 들 수 있어요.</p>
+        </article>
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V4M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="8" y="12" width="3" height="5" rx="1" fill="currentColor"></rect><rect x="13" y="8" width="3" height="9" rx="1" fill="var(--primary)"></rect><rect x="18" y="10" width="3" height="7" rx="1" fill="currentColor"></rect></svg>
+          </span>
+          <h3 class="why-card__title">체감 물가로 진짜 이득 확인</h3>
+          <p class="why-card__desc">빅맥, 콜라, 생수 등 일상 물가 기준으로 여행의 실제 비용을 계산해요.</p>
+        </article>
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <h3 class="why-card__title">매일 갱신되는 데이터</h3>
+          <p class="why-card__desc">전날 종가 환율과 물가 데이터를 기반으로 가장 정확한 추천을 제공해요.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ RANK ============ -->
   <section id="rank" class="rank">
    <div class="rank__inner">
+    <div class="t-rankview">
     <header class="rank__head" data-reveal="">
       <div class="rank__headL">
         <p class="kicker kicker--light">실시간 추천 랭킹</p>
         <h2 class="section-title section-title--light">전날 환율 기준, 지금 이득인 나라</h2>
-        <p class="section-desc section-desc--light">환율 상승폭과 현지 체감 물가를 함께 계산해 순위를 매겼어요. 숫자를 누르면 도시·먹거리·꿀팁으로 이어집니다.</p>
+        <p class="section-desc section-desc--light">환율 상승폭과 현지 체감 물가를 함께 계산해 순위를 매겼어요. 나라를 누르면 도시·먹거리·꿀팁으로 이어집니다.</p>
       </div>
       <div class="rank__headR">
         <p class="t-rank-basis">기준일 · 전날 종가</p>
@@ -130,121 +163,59 @@
       </div>
       <button class="t-cta t-cta--summary" type="button">전체 랭킹 보기 →</button>
     </aside>
+    </div><!-- /t-rankview -->
+
+    <!-- 나라 클릭 시 열리는 상세뷰 -->
+    <div class="t-detail" hidden aria-hidden="true">
+      <div class="detail__head">
+        <div class="detail__country">
+          <span class="detail__flag"></span>
+          <h3 class="detail__name"></h3>
+          <span class="detail__rank"></span>
+        </div>
+        <button class="t-detail-back" type="button">다른 나라 선택하기 <span aria-hidden="true">→</span></button>
+      </div>
+
+      <div class="detail__stats">
+        <div class="dstat">
+          <span class="dstat__label">전날 대비 환율</span>
+          <div class="dstat__main"><b class="d-rate"></b><span class="d-fx"></span></div>
+        </div>
+        <div class="dstat">
+          <span class="dstat__label">체감 물가 지수</span>
+          <div class="dstat__main"><b class="d-index"></b></div>
+          <span class="dstat__sub d-index-sub"></span>
+        </div>
+        <div class="dstat">
+          <span class="dstat__label">예상 절약 금액 (1인 기준)</span>
+          <div class="dstat__main"><b class="d-save"></b></div>
+          <span class="dstat__sub">7일 여행 기준</span>
+        </div>
+      </div>
+
+      <div class="detail__cols">
+        <div class="detail__block">
+          <h4 class="detail__h">주요 품목 체감 물가</h4>
+          <div class="d-items"></div>
+        </div>
+        <div class="detail__block">
+          <div class="detail__h-row"><h4 class="detail__h">추천 도시</h4><span class="detail__note d-cities-note"></span></div>
+          <div class="d-cities"></div>
+        </div>
+      </div>
+
+      <div class="detail__cols">
+        <div class="detail__block">
+          <h4 class="detail__h">대표 먹거리</h4>
+          <div class="d-foods"></div>
+        </div>
+        <div class="detail__block">
+          <h4 class="detail__h">여행 꿀팁</h4>
+          <div class="d-tips"></div>
+        </div>
+      </div>
+    </div>
    </div>
-  </section>
-
-  <!-- ============ PRICE INDEX ============ -->
-  <section id="price" class="price t-price">
-    <div class="container">
-      <header data-reveal="" style="max-width:620px">
-        <p class="kicker">체감 물가 · 빅맥/콜라/생수 지수</p>
-        <h2 class="section-title">환율만큼 중요한 건, 현지 물가</h2>
-        <p class="section-desc">랭킹에서 고른 나라를 서울과 비교했어요. 막대가 짧을수록 그 나라가 더 저렴합니다. 위 카드의 <span style="color:var(--primary);font-weight:700">물가 보기</span>를 누르면 이 비교가 해당 나라로 바뀝니다.</p>
-      </header>
-
-      <div class="citytabs" data-reveal="" role="tablist">
-        <button class="t-citytab" data-city="tokyo" type="button">도쿄 · 일본</button>
-        <button class="t-citytab" data-city="hanoi" type="button">하노이 · 베트남</button>
-        <button class="t-citytab" data-city="istanbul" type="button">이스탄불 · 튀르키예</button>
-      </div>
-
-      <div class="price__body" data-reveal="">
-        <div class="price-card">
-          <div class="t-item" data-item="bigmac">
-            <div class="item__title"><span>빅맥</span></div>
-            <div class="bar-row">
-              <span class="bar-label bar-label--seoul">서울</span>
-              <div class="bar-track"><div class="bar-fill bar-fill--seoul"></div></div>
-              <span class="bar-num bar-num--seoul">5,500원</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label t-city-label">도쿄</span>
-              <div class="bar-track"><div class="bar-fill t-bar"></div></div>
-              <span class="bar-num t-num">0원</span>
-            </div>
-          </div>
-          <div class="t-item" data-item="cola">
-            <div class="item__title"><span>코카콜라 500ml</span></div>
-            <div class="bar-row">
-              <span class="bar-label bar-label--seoul">서울</span>
-              <div class="bar-track"><div class="bar-fill bar-fill--seoul"></div></div>
-              <span class="bar-num bar-num--seoul">2,000원</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label t-city-label">도쿄</span>
-              <div class="bar-track"><div class="bar-fill t-bar"></div></div>
-              <span class="bar-num t-num">0원</span>
-            </div>
-          </div>
-          <div class="t-item" data-item="water">
-            <div class="item__title"><span>생수 500ml</span></div>
-            <div class="bar-row">
-              <span class="bar-label bar-label--seoul">서울</span>
-              <div class="bar-track"><div class="bar-fill bar-fill--seoul"></div></div>
-              <span class="bar-num bar-num--seoul">1,000원</span>
-            </div>
-            <div class="bar-row">
-              <span class="bar-label t-city-label">도쿄</span>
-              <div class="bar-track"><div class="bar-fill t-bar"></div></div>
-              <span class="bar-num t-num">0원</span>
-            </div>
-          </div>
-        </div>
-
-        <aside class="save-card">
-          <div class="save-card__label">서울 대비 체감 절약</div>
-          <div class="save-card__big"><span class="t-save">0</span><span class="save-card__pct">%</span></div>
-          <p class="t-save-desc">같은 세 가지를 도쿄에서 사면 서울보다 저렴해요.</p>
-          <div class="save-card__divider"></div>
-          <div class="save-card__fxlabel">환율 변동</div>
-          <div class="t-save-fx">▲ 6.2%</div>
-        </aside>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ FLOW (pinned scrollytelling) ============ -->
-  <section id="flow" class="t-scrolly">
-    <div class="flow__sticky">
-      <div class="flow__grid" data-reveal="">
-        <div>
-          <p class="kicker">나라를 고르면 이어지는 여정</p>
-          <h2 class="flow__title">스크롤 한 번으로<br>여정이 완성돼요</h2>
-          <ol class="sidx-list">
-            <li class="t-sidx" data-i="0"><span class="t-sidx-n">01</span><span class="t-sidx-t">나라</span></li>
-            <li class="t-sidx" data-i="1"><span class="t-sidx-n">02</span><span class="t-sidx-t">도시</span></li>
-            <li class="t-sidx" data-i="2"><span class="t-sidx-n">03</span><span class="t-sidx-t">먹거리</span></li>
-            <li class="t-sidx" data-i="3"><span class="t-sidx-n">04</span><span class="t-sidx-t">꿀팁</span></li>
-          </ol>
-        </div>
-        <div class="panels">
-          <article class="t-spanel" data-i="0">
-            <p class="panel__step">STEP 01 · 나라</p>
-            <h3 class="panel__title">일본</h3>
-            <p class="panel__desc">전날 환율 ▲6.2%, 빅맥·콜라·생수 체감 물가가 서울보다 낮아 지금 가장 이득인 나라예요.</p>
-            <div class="panel__tags"><span class="tag tag--up">환율 ▲6.2%</span><span class="tag tag--up">체감물가 -22%</span></div>
-          </article>
-          <article class="t-spanel" data-i="1">
-            <p class="panel__step">STEP 02 · 도시</p>
-            <h3 class="panel__title">오사카</h3>
-            <p class="panel__desc">먹거리와 물가 균형이 가장 좋은 도시. 도톤보리·우메다 중심으로 3박 4일이 알맞아요.</p>
-            <div class="panel__tags"><span class="tag tag--muted">가성비 최상</span><span class="tag tag--muted">공항 30분</span></div>
-          </article>
-          <article class="t-spanel" data-i="2">
-            <p class="panel__step">STEP 03 · 먹거리</p>
-            <h3 class="panel__title">타코야키 · 오코노미야키</h3>
-            <p class="panel__desc">현지 물가 기준 한 끼 8,000원 안팎. 지금 환율이면 서울보다 저렴하게 즐길 수 있어요.</p>
-            <div class="panel__tags"><span class="tag tag--muted">한 끼 ₩8,000</span><span class="tag tag--muted">현지 인기</span></div>
-          </article>
-          <article class="t-spanel" data-i="3">
-            <p class="panel__step">STEP 04 · 꿀팁</p>
-            <h3 class="panel__title">환전 · 교통 꿀팁</h3>
-            <p class="panel__desc">현금은 절반만, 나머지는 IC카드로. 간사이 스루패스로 시내 교통비를 크게 아낄 수 있어요.</p>
-            <div class="panel__tags"><span class="tag tag--muted">스루패스</span><span class="tag tag--muted">환전 팁</span></div>
-          </article>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ============ CTA ============ -->
@@ -264,6 +235,7 @@
 
 </div>
 
+<script src="js/countryDetail.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
