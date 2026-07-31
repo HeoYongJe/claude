@@ -259,8 +259,10 @@
     return dd.cities.map((ci) => {
       const cheaper = ci.index <= 0;
       const col = cheaper ? "#EF4444" : "#767676";
+      // ci.img가 있으면 이미지, 없으면(또는 로드 실패) 그라데이션 폴백.
+      const thumbImg = ci.img ? `<img src="${esc(ci.img)}" alt="" onerror="this.remove()">` : "";
       return `<div class="d-city">
-        <div class="d-city__thumb"></div>
+        <div class="d-city__thumb">${thumbImg}</div>
         <div class="d-city__body">
           <div class="d-city__name">${esc(ci.name)}</div>
           <div class="d-city__idx">물가 지수 <b style="color:${col}">${ci.index > 0 ? "+" + ci.index : ci.index}%</b></div>

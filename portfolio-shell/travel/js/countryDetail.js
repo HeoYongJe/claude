@@ -1,6 +1,8 @@
 // 나라 상세뷰용 큐레이션 데이터 (환율·물가는 실데이터, 도시·먹거리·꿀팁은 API로 못 받아 여기서 관리).
 // 나라 추가 = 아래 객체에 "국가코드(소문자)" 항목 하나만 붙이면 된다.
-//   cities: 추천 도시 3개 { name, index }  — index는 서울 대비 대표 물가지수(%), 음수=저렴 (실측 아닌 대표값)
+//   cities: 추천 도시 3개 { name, index, img? } — index는 서울 대비 대표 물가지수(%), 음수=저렴 (실측 아닌 대표값)
+//            img(선택): 도시 사진 경로. 예) img: "assets/cities/tokyo.jpg" (파일을 travel/assets/cities/에 올리면 표시,
+//            없거나 로드 실패 시 그라데이션 폴백). 외부 URL도 가능하나 끊길 수 있어 로컬 파일 권장.
 //   foods : 대표 먹거리 3개 { name, price, icon } — price는 대략 가격(원 근사), icon은 이모지(교체 가능)
 //   tips  : 여행 꿀팁 3개  { cat, title, text } — cat이 아이콘 매핑 키(main.js TIP_ICONS)
 const COUNTRY_DETAIL = {
