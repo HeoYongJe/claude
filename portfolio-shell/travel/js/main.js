@@ -140,7 +140,7 @@
     if (!note) {
       note = document.createElement("div");
       note.className = "t-rank-empty";
-      note.style.cssText = "display:none;color:#D6E2FF;font-size:16px;padding:40px 0;text-align:center;";
+      note.style.cssText = "display:none;color:#94A3B8;font-size:16px;padding:40px 0;text-align:center;";
       const grid = root.querySelector(".t-rankgrid");
       grid.parentNode.insertBefore(note, grid.nextSibling);
     }
@@ -156,8 +156,10 @@
     const tint = mode === "strong" ? "#FEF2F2" : "#F2F4F6";
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
-      t.style.background = on ? "#fff" : "rgba(255,255,255,.14)";
-      t.style.color = on ? "#0F172A" : "#fff";
+      // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
+      t.style.background = on ? "#fff" : "transparent";
+      t.style.color = on ? "#0F172A" : "#64748B";
+      t.style.boxShadow = on ? "0 1px 3px rgba(15,23,42,.10)" : "none";
     });
     const grid = root.querySelector(".t-rankgrid");
     if (grid) grid.dataset.count = String(Math.max(1, Math.min(data.length, 3)));
@@ -187,10 +189,12 @@
       rcard.querySelector(".rc-rate").textContent = d.rate;
       const cut = rcard.querySelector(".rc-cut");
       if (d.savePct != null) {
+        // 체감물가 색은 변동률 모드가 아니라 "저렴(−)=빨강 / 비쌈(+)=회색" 부호 기준.
+        const cheaper = d.savePct >= 0;
         cut.style.display = "";
         cut.textContent = `체감물가 ${pctText(d.savePct)}`;
-        cut.style.color = color;
-        cut.style.background = tint;
+        cut.style.color = cheaper ? "#EF4444" : "#767676";
+        cut.style.background = cheaper ? "#FEF2F2" : "#F2F4F6";
       } else {
         cut.style.display = "none";
       }
@@ -213,21 +217,31 @@
   const rankView = root.querySelector(".t-rankview");
   const detail = root.querySelector(".t-detail");
 
+  // 품목/꿀팁 아이콘(이모지). 이미지/SVG로 교체 가능한 자리.
+  const ITEM_ICONS = { bigmac: "🍔", cola: "🥤", water: "💧" };
+  const TIP_ICONS = {
+    환전: "💱", 카드: "💳", 결제: "💳", 교통: "🚃", 쇼핑: "🛍️", 흥정: "🏷️",
+    치안: "⚠️", 안전: "⚠️", 주의: "⚠️", 소매치기: "⚠️", 벌금: "⚠️",
+    문화: "🙏", 매너: "🙏", 인터넷: "📶", "VPN": "📶",
+    물가: "🍽️", 식비: "🍽️", 먹거리: "🍽️", 야시장: "🍜", 호커센터: "🍜", 차찬텡: "🍜",
+  };
+
   function itemsHtml(code) {
     const c = CITYDATA[code];
     if (!c) return `<p class="d-empty">이 나라는 품목별 물가 데이터가 아직 없어요.</p>`;
-    const items = [["빅맥", "bigmac"], ["코카콜라 500ml", "cola"], ["생수 500ml", "water"]];
+    const items = [["빅맥", "bigmac"], ["콜라 500ml", "cola"], ["생수 500ml", "water"]];
     return items.map(([label, key]) => {
       const price = c[key], seoul = SEOULDATA[key];
       if (price == null || !seoul) return "";
-      const ratio = Math.max(6, Math.min(100, Math.round((price / seoul) * 100)));
-      const pct = ((price / seoul - 1) * 100).toFixed(1);
-      const cheaper = pct <= 0;
-      const pcol = cheaper ? "#EF4444" : "#767676";
+      const ratio = Math.max(6, Math.min(160, Math.round((price / seoul) * 100)));
+      const pctNum = (price / seoul - 1) * 100;
+      const pct = pctNum.toFixed(1);
+      const pcol = pctNum <= 0 ? "#EF4444" : "#767676"; // 저렴(−)=빨강, 비쌈(+)=회색
       return `<div class="d-item">
+        <span class="d-item__icon">${ITEM_ICONS[key] || ""}</span>
         <span class="d-item__name">${label}</span>
-        <span class="d-item__track"><span class="d-item__fill" data-w="${ratio}"></span></span>
-        <span class="d-item__pct" style="color:${pcol}">${pct > 0 ? "+" + pct : pct}%</span>
+        <span class="d-item__track"><span class="d-item__fill" data-w="${Math.min(ratio, 100)}"></span></span>
+        <span class="d-item__pct" style="color:${pcol}">${pctNum > 0 ? "+" + pct : pct}%</span>
       </div>`;
     }).join("");
   }
@@ -252,7 +266,7 @@
     const dd = DETAIL[code];
     if (!dd || !dd.foods) return `<p class="d-empty">먹거리 정보 준비 중이에요.</p>`;
     return dd.foods.map((f) =>
-      `<div class="d-food"><div class="d-food__name">${esc(f.name)}</div><div class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</div></div>`
+      `<div class="d-food"><span class="d-food__icon">${f.icon || "🍽️"}</span><div><div class="d-food__name">${esc(f.name)}</div><div class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</div></div></div>`
     ).join("");
   }
 
@@ -260,7 +274,7 @@
     const dd = DETAIL[code];
     if (!dd || !dd.tips) return `<p class="d-empty">꿀팁 준비 중이에요.</p>`;
     return dd.tips.map((t) =>
-      `<div class="d-tip"><span class="d-tip__cat">${esc(t.cat)}</span><div><div class="d-tip__title">${esc(t.title)}</div><div class="d-tip__text">${esc(t.text)}</div></div></div>`
+      `<div class="d-tip"><span class="d-tip__icon">${TIP_ICONS[t.cat] || "📌"}</span><div><div class="d-tip__title">${esc(t.title)}</div><div class="d-tip__text">${esc(t.text)}</div></div></div>`
     ).join("");
   }
 
