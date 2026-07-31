@@ -74,7 +74,12 @@ ul, ol { list-style: none; padding: 0; }
 .nav__link { color: var(--muted); }
 
 /* ---- 히어로 ---- */
-.hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: radial-gradient(1200px 700px at 78% 12%, #F5F8FF 0%, #FFFFFF 60%); }
+.hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: linear-gradient(120deg, #EBF1FC 0%, #F4F8FF 52%, #FCFDFF 100%); }
+/* 우측 은은한 도트 '지도' 배경 */
+.hero__map { position: absolute; top: 0; right: 0; width: 64%; height: 100%; pointer-events: none; z-index: 0;
+  background-image: radial-gradient(rgba(14,74,235,.20) 1.3px, transparent 1.5px); background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(68% 58% at 60% 42%, #000 0%, rgba(0,0,0,.55) 52%, transparent 78%);
+  mask-image: radial-gradient(68% 58% at 60% 42%, #000 0%, rgba(0,0,0,.55) 52%, transparent 78%); }
 .hero__blob { position: absolute; border-radius: 999px; filter: blur(6px); }
 .hero__blob--1 { top: -120px; right: -80px; width: 560px; height: 560px; background: radial-gradient(circle at 30% 30%, rgba(14,74,235,.18), rgba(14,74,235,0) 70%); }
 .hero__blob--2 { bottom: -160px; left: -120px; width: 520px; height: 520px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,.16), rgba(6,182,212,0) 70%); }
@@ -228,61 +233,62 @@ ul, ol { list-style: none; padding: 0; }
 .t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
 .t-detail-back:hover { color: var(--primary-dark); }
 
-/* 공통 박스: 하나의 덩어리(면), 내부는 세로/가로 라인으로만 구분 */
-.dbox { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; margin-top: 20px; overflow: hidden; }
+/* 공통 카드: 흰 면 + 테두리 (Surface 틴트 제거). 유일한 컬러 면은 파란 절약 카드. */
+.dcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 26px 28px; margin-top: 20px; }
 .detail__h { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
-.detail__h--pad { padding: 22px 22px 0; }
 .detail__h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .detail__note { font-size: 12px; font-weight: 700; color: var(--muted2); }
+.detail__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.detail__cols .dcard { margin-top: 0; }
 
-/* Box A: 스탯 3분할(세로 라인) */
-.dbox--stats { display: grid; grid-template-columns: repeat(3,1fr); }
-.dstat { padding: 22px 24px; border-left: 1px solid var(--border-strong); }
-.dstat:first-child { border-left: none; }
-.dstat__label { font-size: 13px; font-weight: 700; color: var(--muted); }
-.dstat__main { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
-.dstat__main b { font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
-.d-fx { font-size: 14px; font-weight: 800; color: var(--up); }
-.d-index, .d-save { color: var(--up); }
-.dstat__sub { display: block; font-size: 13px; color: var(--muted2); margin-top: 6px; }
+/* 품목 물가(좌 흰 카드) + 절약(우 파란 카드) */
+.detail__price { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-top: 20px; }
+.detail__price .dcard { margin-top: 0; }
 
-/* Box B: 품목 | 도시 (가운데 세로 라인) */
-.dbox--split { display: grid; grid-template-columns: 1fr 1fr; }
-.dhalf { padding: 24px; border-left: 1px solid var(--border-strong); }
-.dhalf:first-child { border-left: none; }
-
-/* 품목 비교 막대 — 서울 vs 현지, 금액, 차오름 애니메이션 */
-.d-items { margin-top: 18px; }
-.d-item + .d-item { margin-top: 20px; }
-.d-item__name { font-size: 14px; font-weight: 800; margin-bottom: 9px; }
-.d-cmp__row { display: grid; grid-template-columns: 42px 1fr 76px; align-items: center; gap: 10px; }
+/* 품목: 아이콘 + 이름 + [서울/현지 두 막대+금액] + 큰 % */
+.d-items { margin-top: 22px; }
+.d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
+.d-item + .d-item { margin-top: 24px; }
+.d-item__icon { font-size: 22px; line-height: 1; text-align: center; }
+.d-item__name { font-size: 14px; font-weight: 800; }
+.d-cmp__row { display: grid; grid-template-columns: 34px 1fr 74px; align-items: center; gap: 10px; }
 .d-cmp__row + .d-cmp__row { margin-top: 8px; }
-.d-cmp__label { font-size: 12px; font-weight: 700; color: var(--muted); }
-.d-cmp__track { height: 12px; background: var(--border); border-radius: 999px; overflow: hidden; }
-.d-cmp__fill { display: block; height: 100%; border-radius: 999px; width: 0; background: var(--muted2); transition: width .9s cubic-bezier(.2,.7,.2,1); }
+.d-cmp__label { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-cmp__track { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.d-cmp__fill { display: block; height: 100%; border-radius: 999px; width: 0; background: var(--primary); transition: width .9s cubic-bezier(.2,.7,.2,1); }
 .d-cmp__fill--seoul { background: #CBD5E1; }
 .d-cmp__amt { text-align: right; font-size: 13px; font-weight: 700; }
 .d-cmp__amt--seoul { color: var(--muted); }
+.d-item__pct { text-align: right; font-size: 15px; font-weight: 800; }
 .d-empty { font-size: 14px; color: var(--muted); padding: 8px 0; }
 
-/* 추천 도시 — 박스 없이 가로 라인 리스트 */
-.d-cities { margin-top: 12px; display: flex; flex-direction: column; }
-.d-city { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
-.d-city:first-child { border-top: none; }
+/* 파란 절약 카드 (detail 유일 컬러 면) */
+.d-savecard { background: var(--primary); color: #fff; border-radius: 20px; padding: 28px 26px; }
+.d-savecard__label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.75); }
+.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 10px; }
+.d-savecard__big b { font-size: 48px; font-weight: 800; line-height: 1; }
+.d-savecard__pct { font-size: 24px; font-weight: 800; }
+.d-savecard__desc { font-size: 14px; line-height: 1.55; color: rgba(255,255,255,.82); margin-top: 14px; }
+.d-savecard__div { height: 1px; background: rgba(255,255,255,.22); margin: 22px 0; }
+.d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: rgba(255,255,255,.75); }
+.d-savecard__row + .d-savecard__row { margin-top: 10px; }
+.d-savecard__row b { font-size: 15px; font-weight: 800; color: #fff; }
+
+/* 추천 도시 / 대표 먹거리 — 세로 리스트(가로 라인) */
+.d-cities, .d-foods { margin-top: 14px; display: flex; flex-direction: column; }
+.d-city, .d-food { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--border); }
+.d-city:first-child, .d-food:first-child { border-top: none; padding-top: 4px; }
 .d-city__thumb { flex: none; width: 44px; height: 34px; border-radius: 8px; background: linear-gradient(135deg, #B8C4D6, #64748B); }
-.d-city__name { font-size: 15px; font-weight: 800; }
+.d-city__name, .d-food__name { font-size: 15px; font-weight: 800; }
 .d-city__idx { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 3px; }
 .d-city__idx b { color: var(--up); }
-
-/* 먹거리 / 꿀팁 — 박스 안에서 3분할(세로 라인). 두 박스의 라인이 나란히 정렬됨 */
-.d-foods, .d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
-.d-food, .d-tip { display: flex; align-items: flex-start; gap: 11px; padding: 8px 16px 22px; border-left: 1px solid var(--border-strong); }
-.d-food:first-child, .d-tip:first-child { border-left: none; }
-/* 먹거리: 아이콘 대신 깔끔한 번호 */
 .d-food__num { flex: none; width: 26px; height: 26px; border-radius: 8px; background: #fff; border: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: center; font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 12px; font-weight: 800; color: var(--muted); }
-.d-food__name { font-size: 15px; font-weight: 800; }
-.d-food__price { font-size: 13px; color: var(--muted); margin-top: 4px; }
-/* 꿀팁: 모던 라인 아이콘(SVG) */
+.d-food__price { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘 */
+.d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
+.d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border-strong); }
+.d-tip:first-child { border-left: none; padding-left: 0; }
 .d-tip__icon { flex: none; width: 26px; height: 26px; color: var(--ink); }
 .d-tip__icon svg { width: 24px; height: 24px; display: block; }
 .d-tip__title { font-size: 14px; font-weight: 800; }
@@ -291,12 +297,9 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 반응형 ---- */
 @media (max-width: 900px) {
   .why__grid { grid-template-columns: 1fr; }
-  .detail__cols { grid-template-columns: 1fr; }
-  .dbox--stats, .dbox--split, .d-foods, .d-tips { grid-template-columns: 1fr; }
-  .dstat, .dhalf { border-left: none; border-top: 1px solid var(--border-strong); }
-  .dstat:first-child, .dhalf:first-child { border-top: none; }
-  .d-food, .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 20px; }
-  .d-food:first-child, .d-tip:first-child { border-top: none; }
+  .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
+  .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
+  .d-tip:first-child { border-top: none; padding-left: 0; }
   .hero__grid { grid-template-columns: 1fr; gap: 40px; }
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }

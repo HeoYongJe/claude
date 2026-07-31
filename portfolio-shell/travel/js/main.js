@@ -8,7 +8,6 @@
 
   // 랭킹·물가(국가별)·서울 기준가는 서버(/api/ranking)에서 실데이터로 받아온다.
   // CITYDATA[code] = {name,bigmac,cola,water,fx,savePct} (강세 top3 등 물가 데이터 있는 나라)
-  let rankShown = false;
   let RANKDATA = { strong: [], weak: [] };
   let CITYDATA = {};
   let SEOULDATA = { bigmac: 5500, cola: 2000, water: 1000 };
@@ -117,21 +116,27 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pctText = (p) => `${p >= 0 ? "−" + p : "+" + -p}%`; // 체감물가: 절약(양수)을 −로 표기
 
-  // ---- 스파크라인 ----
+  // ---- 스파크라인: 카드가 화면에 들어오면 선이 서서히 그려진다 ----
+  // 선을 대시로 감춰두고(prepSpark), 카드가 뷰포트에 들어오면 dashoffset 0으로 애니메이션.
   function prepSpark(line) {
     const len = line.getTotalLength ? line.getTotalLength() : 260;
     line.style.transition = "none";
     line.style.strokeDasharray = len;
     line.style.strokeDashoffset = len;
     void line.getBoundingClientRect();
-    line.style.transition = "";
-    if (rankShown) requestAnimationFrame(() => (line.style.strokeDashoffset = 0));
+    line.style.transition = ""; // CSS(.rc-line)의 transition 사용
   }
-  function drawSparks() {
+  const sparkIO = new IntersectionObserver((ents) => {
+    ents.forEach((en) => {
+      if (!en.isIntersecting) return;
+      const line = en.target.querySelector(".rc-line");
+      if (line) requestAnimationFrame(() => { line.style.strokeDashoffset = "0"; });
+      sparkIO.unobserve(en.target);
+    });
+  }, { threshold: 0.35 });
+  function observeSparks() {
     root.querySelectorAll(".t-rcard").forEach((c) => {
-      if (c.style.display === "none") return;
-      const line = c.querySelector(".rc-line");
-      if (line) line.style.strokeDashoffset = 0;
+      if (c.style.display !== "none") sparkIO.observe(c);
     });
   }
 
@@ -210,6 +215,7 @@
       link.textContent = "상세 보기 →";
       rcard.style.cursor = "pointer";
     });
+    observeSparks(); // 렌더 후(토글 포함) 화면에 보이면 스파크라인 그리기
   }
 
   // ---- 나라 상세뷰 ----
@@ -218,33 +224,31 @@
   const detail = root.querySelector(".t-detail");
 
   const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
+  const ITEM_ICONS = { bigmac: "🍔", cola: "🥤", water: "💧" };
 
-  // 품목 체감 물가: 서울 vs 현지 금액 비교 막대(차오름 애니메이션).
-  function itemsHtml(code) {
+  // 품목 체감 물가: 아이콘 + 이름 + [서울/현지 두 막대·금액] + 큰 %.
+  function itemsHtml(code, countryName) {
     const c = CITYDATA[code];
     if (!c) return `<p class="d-empty">이 나라는 품목별 물가 데이터가 아직 없어요.</p>`;
-    const items = [["빅맥", "bigmac"], ["콜라 500ml", "cola"], ["생수 500ml", "water"]];
-    const local = "현지";
+    const items = [["빅맥", "bigmac"], ["코카콜라 500ml", "cola"], ["생수 500ml", "water"]];
+    const local = countryName || "현지";
     return items.map(([label, key]) => {
       const price = c[key], seoul = SEOULDATA[key];
       if (price == null || !seoul) return "";
       const max = Math.max(price, seoul);
       const wSeoul = Math.round((seoul / max) * 100);
       const wLocal = Math.round((price / max) * 100);
-      const cheaper = price <= seoul;
-      const lcol = cheaper ? "#EF4444" : "#767676"; // 저렴=빨강 / 비쌈=회색
+      const pctNum = (price / seoul - 1) * 100;
+      const pct = pctNum.toFixed(1);
+      const pcol = pctNum <= 0 ? "#EF4444" : "#767676"; // 저렴(−)=빨강 / 비쌈(+)=회색
       return `<div class="d-item">
-        <div class="d-item__name">${label}</div>
-        <div class="d-cmp__row">
-          <span class="d-cmp__label">서울</span>
-          <span class="d-cmp__track"><span class="d-cmp__fill d-cmp__fill--seoul" data-w="${wSeoul}"></span></span>
-          <span class="d-cmp__amt d-cmp__amt--seoul">${won(seoul)}</span>
+        <span class="d-item__icon">${ITEM_ICONS[key] || ""}</span>
+        <span class="d-item__name">${label}</span>
+        <div class="d-item__cmp">
+          <div class="d-cmp__row"><span class="d-cmp__label">서울</span><span class="d-cmp__track"><span class="d-cmp__fill d-cmp__fill--seoul" data-w="${wSeoul}"></span></span><span class="d-cmp__amt d-cmp__amt--seoul">${won(seoul)}</span></div>
+          <div class="d-cmp__row"><span class="d-cmp__label">${esc(local)}</span><span class="d-cmp__track"><span class="d-cmp__fill" data-w="${wLocal}"></span></span><span class="d-cmp__amt">${won(price)}</span></div>
         </div>
-        <div class="d-cmp__row">
-          <span class="d-cmp__label">${esc(local)}</span>
-          <span class="d-cmp__track"><span class="d-cmp__fill" data-w="${wLocal}" style="background:${lcol}"></span></span>
-          <span class="d-cmp__amt" style="color:${lcol}">${won(price)}</span>
-        </div>
+        <span class="d-item__pct" style="color:${pcol}">${pctNum > 0 ? "+" + pct : pct}%</span>
       </div>`;
     }).join("");
   }
@@ -314,37 +318,32 @@
     rankEl.style.color = strong ? "#EF4444" : "#767676";
     rankEl.style.background = strong ? "#FEF2F2" : "#F2F4F6";
 
+    // 파란 절약 카드 (텍스트 전부 흰색 — 부호 색 사용 안 함)
     detail.querySelector(".d-rate").textContent = d.rate;
-    const fx = detail.querySelector(".d-fx");
-    fx.textContent = d.badge;
-    fx.style.color = strong ? "#EF4444" : "#767676";
+    detail.querySelector(".d-fx").textContent = d.badge;
 
-    // 체감 물가 지수 (savePct 양수=저렴)
-    const idx = detail.querySelector(".d-index");
-    const sub = detail.querySelector(".d-index-sub");
+    const idx = detail.querySelector(".d-index");        // 큰 숫자(절약률)
+    const label = detail.querySelector(".d-save-label");
+    const desc = detail.querySelector(".d-save-desc");
+    const save = detail.querySelector(".d-save");         // 예상 절약 금액
     if (d.savePct != null) {
       const cheaper = d.savePct >= 0;
-      idx.textContent = pctText(d.savePct);
-      idx.style.color = cheaper ? "#EF4444" : "#767676";
-      sub.textContent = cheaper ? "서울 대비 저렴해요" : "서울보다 조금 비싸요";
+      idx.textContent = Math.abs(d.savePct);
+      label.textContent = cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담";
+      desc.textContent = cheaper
+        ? `같은 돈으로 ${d.name}에서 더 여유롭게 여행할 수 있어요.`
+        : `${d.name}은 서울보다 물가가 높은 편이에요.`;
+      const amt = Math.round((BASELINE_7D * d.savePct) / 100 / 1000) * 1000;
+      save.textContent = amt > 0 ? `약 ${amt.toLocaleString("ko-KR")}원`
+        : amt < 0 ? `약 ${(-amt).toLocaleString("ko-KR")}원 더` : "서울과 비슷";
     } else {
       idx.textContent = "—";
-      idx.style.color = "#767676";
-      sub.textContent = "물가 데이터 없음";
+      label.textContent = "서울 대비 체감 절약";
+      desc.textContent = "물가 데이터가 없어요.";
+      save.textContent = "—";
     }
 
-    // 예상 절약 금액
-    const save = detail.querySelector(".d-save");
-    if (d.savePct != null) {
-      const amt = Math.round((BASELINE_7D * d.savePct) / 100 / 1000) * 1000;
-      if (amt > 0) { save.textContent = `약 ${amt.toLocaleString("ko-KR")}원`; save.style.color = "#EF4444"; }
-      else if (amt < 0) { save.textContent = `약 ${(-amt).toLocaleString("ko-KR")}원 더`; save.style.color = "#767676"; }
-      else { save.textContent = "서울과 비슷"; save.style.color = "#767676"; }
-    } else {
-      save.textContent = "—"; save.style.color = "#767676";
-    }
-
-    detail.querySelector(".d-items").innerHTML = itemsHtml(d.code);
+    detail.querySelector(".d-items").innerHTML = itemsHtml(d.code, d.name);
     const cities = citiesHtml(d.code);
     detail.querySelector(".d-cities").innerHTML = cities || `<p class="d-empty">도시 정보 준비 중이에요.</p>`;
     detail.querySelector(".d-cities-note").textContent = cities ? "" : "준비 중";
@@ -459,11 +458,6 @@
     ents.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("is-revealed"); io.unobserve(en.target); } });
   }, { threshold: 0.15 });
   root.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
-
-  const rankIO = new IntersectionObserver((ents) => {
-    ents.forEach((en) => { if (en.isIntersecting) { rankShown = true; drawSparks(); rankIO.unobserve(en.target); } });
-  }, { threshold: 0.25 });
-  if (rankSec) rankIO.observe(rankSec);
 
   loadRanking();
 })();
