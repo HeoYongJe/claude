@@ -143,7 +143,8 @@
         <button class="t-detail-back" type="button">다른 나라 선택하기 <span aria-hidden="true">→</span></button>
       </div>
 
-      <div class="detail__stats">
+      <!-- 한 박스, 세로 라인으로 3분할 -->
+      <div class="dbox dbox--stats">
         <div class="dstat">
           <span class="dstat__label">전날 대비 환율</span>
           <div class="dstat__main"><b class="d-rate"></b><span class="d-fx"></span></div>
@@ -160,24 +161,26 @@
         </div>
       </div>
 
-      <div class="detail__cols">
-        <div class="detail__block">
+      <!-- 한 박스, 가운데 세로 라인: 품목 | 도시 -->
+      <div class="dbox dbox--split">
+        <div class="dhalf">
           <div class="detail__h-row"><h4 class="detail__h">주요 품목 체감 물가</h4><span class="detail__note">서울 대비</span></div>
           <div class="d-items"></div>
         </div>
-        <div class="detail__block">
+        <div class="dhalf">
           <div class="detail__h-row"><h4 class="detail__h">추천 도시</h4><span class="detail__note d-cities-note"></span></div>
           <div class="d-cities"></div>
         </div>
       </div>
 
+      <!-- 먹거리 / 꿀팁: 각 박스, 박스 안은 세로 라인으로 3분할 -->
       <div class="detail__cols">
-        <div class="detail__block">
-          <h4 class="detail__h">대표 먹거리</h4>
+        <div class="dbox">
+          <h4 class="detail__h detail__h--pad">대표 먹거리</h4>
           <div class="d-foods"></div>
         </div>
-        <div class="detail__block">
-          <h4 class="detail__h">여행 꿀팁</h4>
+        <div class="dbox">
+          <h4 class="detail__h detail__h--pad">여행 꿀팁</h4>
           <div class="d-tips"></div>
         </div>
       </div>

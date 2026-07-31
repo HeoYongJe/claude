@@ -217,31 +217,34 @@
   const rankView = root.querySelector(".t-rankview");
   const detail = root.querySelector(".t-detail");
 
-  // 품목/꿀팁 아이콘(이모지). 이미지/SVG로 교체 가능한 자리.
-  const ITEM_ICONS = { bigmac: "🍔", cola: "🥤", water: "💧" };
-  const TIP_ICONS = {
-    환전: "💱", 카드: "💳", 결제: "💳", 교통: "🚃", 쇼핑: "🛍️", 흥정: "🏷️",
-    치안: "⚠️", 안전: "⚠️", 주의: "⚠️", 소매치기: "⚠️", 벌금: "⚠️",
-    문화: "🙏", 매너: "🙏", 인터넷: "📶", "VPN": "📶",
-    물가: "🍽️", 식비: "🍽️", 먹거리: "🍽️", 야시장: "🍜", 호커센터: "🍜", 차찬텡: "🍜",
-  };
+  const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
 
+  // 품목 체감 물가: 서울 vs 현지 금액 비교 막대(차오름 애니메이션).
   function itemsHtml(code) {
     const c = CITYDATA[code];
     if (!c) return `<p class="d-empty">이 나라는 품목별 물가 데이터가 아직 없어요.</p>`;
     const items = [["빅맥", "bigmac"], ["콜라 500ml", "cola"], ["생수 500ml", "water"]];
+    const local = "현지";
     return items.map(([label, key]) => {
       const price = c[key], seoul = SEOULDATA[key];
       if (price == null || !seoul) return "";
-      const ratio = Math.max(6, Math.min(160, Math.round((price / seoul) * 100)));
-      const pctNum = (price / seoul - 1) * 100;
-      const pct = pctNum.toFixed(1);
-      const pcol = pctNum <= 0 ? "#EF4444" : "#767676"; // 저렴(−)=빨강, 비쌈(+)=회색
+      const max = Math.max(price, seoul);
+      const wSeoul = Math.round((seoul / max) * 100);
+      const wLocal = Math.round((price / max) * 100);
+      const cheaper = price <= seoul;
+      const lcol = cheaper ? "#EF4444" : "#767676"; // 저렴=빨강 / 비쌈=회색
       return `<div class="d-item">
-        <span class="d-item__icon">${ITEM_ICONS[key] || ""}</span>
-        <span class="d-item__name">${label}</span>
-        <span class="d-item__track"><span class="d-item__fill" data-w="${Math.min(ratio, 100)}"></span></span>
-        <span class="d-item__pct" style="color:${pcol}">${pctNum > 0 ? "+" + pct : pct}%</span>
+        <div class="d-item__name">${label}</div>
+        <div class="d-cmp__row">
+          <span class="d-cmp__label">서울</span>
+          <span class="d-cmp__track"><span class="d-cmp__fill d-cmp__fill--seoul" data-w="${wSeoul}"></span></span>
+          <span class="d-cmp__amt d-cmp__amt--seoul">${won(seoul)}</span>
+        </div>
+        <div class="d-cmp__row">
+          <span class="d-cmp__label">${esc(local)}</span>
+          <span class="d-cmp__track"><span class="d-cmp__fill" data-w="${wLocal}" style="background:${lcol}"></span></span>
+          <span class="d-cmp__amt" style="color:${lcol}">${won(price)}</span>
+        </div>
       </div>`;
     }).join("");
   }
@@ -256,26 +259,49 @@
         <div class="d-city__thumb"></div>
         <div class="d-city__body">
           <div class="d-city__name">${esc(ci.name)}</div>
-          <div class="d-city__idx">도시 물가 지수 <b style="color:${col}">${ci.index > 0 ? "+" + ci.index : ci.index}%</b></div>
+          <div class="d-city__idx">물가 지수 <b style="color:${col}">${ci.index > 0 ? "+" + ci.index : ci.index}%</b></div>
         </div>
       </div>`;
     }).join("");
   }
 
+  // 먹거리: 아이콘 대신 깔끔한 번호(01/02/03).
   function foodsHtml(code) {
     const dd = DETAIL[code];
     if (!dd || !dd.foods) return `<p class="d-empty">먹거리 정보 준비 중이에요.</p>`;
-    return dd.foods.map((f) =>
-      `<div class="d-food"><span class="d-food__icon">${f.icon || "🍽️"}</span><div><div class="d-food__name">${esc(f.name)}</div><div class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</div></div></div>`
+    return dd.foods.map((f, i) =>
+      `<div class="d-food"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><div><div class="d-food__name">${esc(f.name)}</div><div class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</div></div></div>`
     ).join("");
   }
+
+  // 꿀팁: 모던 라인 아이콘(SVG). cat → 아이콘 키 매핑.
+  const S = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const TIP_SVG = {
+    money: S('<path d="M4 8a8 3 0 1 0 16 0 8 3 0 1 0-16 0"/><path d="M4 8v8a8 3 0 0 0 16 0V8"/><path d="M4 12a8 3 0 0 0 16 0"/>'),
+    transit: S('<rect x="6" y="4" width="12" height="12" rx="3"/><path d="M6 11h12"/><path d="M8.5 20l-1.5 2M15.5 20l1.5 2"/><circle cx="9" cy="13.5" r=".6" fill="currentColor"/><circle cx="15" cy="13.5" r=".6" fill="currentColor"/>'),
+    bag: S('<path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>'),
+    shield: S('<path d="M12 3l7 3v5c0 4.2-2.9 7.4-7 8.5-4.1-1.1-7-4.3-7-8.5V6z"/>'),
+    globe: S('<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.4 2.5 14.1 0 17M12 3.5c-2.5 2.4-2.5 14.1 0 17"/>'),
+    card: S('<rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18"/><path d="M7 15h3"/>'),
+    wifi: S('<path d="M4 9a13 13 0 0 1 16 0M7 12.5a8 8 0 0 1 10 0M10 16a3 3 0 0 1 4 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/>'),
+    food: S('<path d="M6 3v7a2 2 0 0 0 4 0V3M8 10v11"/><path d="M16 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4v9"/>'),
+    tag: S('<path d="M20 12l-8 8-9-9V4h7z"/><circle cx="8" cy="8" r="1.3"/>'),
+    info: S('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".8" fill="currentColor"/>'),
+  };
+  const CAT_ICON = {
+    환전: "money", 교통: "transit", 쇼핑: "bag", 흥정: "tag",
+    치안: "shield", 안전: "shield", 주의: "shield", 소매치기: "shield", 벌금: "shield",
+    문화: "globe", 매너: "globe", 결제: "card", 카드: "card", "VPN": "wifi", 인터넷: "wifi",
+    물가: "food", 식비: "food", 먹거리: "food", 야시장: "food", 호커센터: "food", 차찬텡: "food",
+  };
 
   function tipsHtml(code) {
     const dd = DETAIL[code];
     if (!dd || !dd.tips) return `<p class="d-empty">꿀팁 준비 중이에요.</p>`;
-    return dd.tips.map((t) =>
-      `<div class="d-tip"><span class="d-tip__icon">${TIP_ICONS[t.cat] || "📌"}</span><div><div class="d-tip__title">${esc(t.title)}</div><div class="d-tip__text">${esc(t.text)}</div></div></div>`
-    ).join("");
+    return dd.tips.map((t) => {
+      const icon = TIP_SVG[CAT_ICON[t.cat] || "info"];
+      return `<div class="d-tip"><span class="d-tip__icon">${icon}</span><div><div class="d-tip__title">${esc(t.title)}</div><div class="d-tip__text">${esc(t.text)}</div></div></div>`;
+    }).join("");
   }
 
   function populateDetail(d) {
@@ -327,7 +353,7 @@
   }
 
   function animateDetailBars() {
-    detail.querySelectorAll(".d-item__fill").forEach((el) => {
+    detail.querySelectorAll(".d-cmp__fill").forEach((el) => {
       el.style.width = "0%";
       requestAnimationFrame(() => { el.style.width = el.dataset.w + "%"; });
     });
