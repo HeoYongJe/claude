@@ -277,13 +277,13 @@ ul, ol { list-style: none; padding: 0; }
 /* 추천 도시 / 대표 먹거리 — 3개 가로 정렬 */
 .d-cities, .d-foods { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 /* 추천 도시: 이미지 썸네일(위) + 이름 + 지수. img 없으면 그라데이션 폴백 */
-.d-city__thumb { width: 100%; height: 78px; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #B8C4D6, #64748B); }
+.d-city__thumb { width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background:#eee; }
 .d-city__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .d-city__name { font-size: 14px; font-weight: 800; margin-top: 9px; }
 .d-city__idx { font-size: 11.5px; font-weight: 700; color: var(--muted); margin-top: 2px; }
 .d-city__idx b { color: var(--up); }
 /* 대표 먹거리: 번호 + 이름 + 가격 세로 미니카드 */
-.d-food { border: 1px solid var(--border); border-radius: 12px; padding: 15px 16px; }
+.d-food {  border-radius: 12px; padding: 15px 16px; }
 .d-food__num { display: inline-flex; width: 24px; height: 24px; border-radius: 7px; background: #fff; border: 1px solid var(--border-strong); align-items: center; justify-content: center; font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 11px; font-weight: 800; color: var(--muted); }
 .d-food__name { font-size: 14px; font-weight: 800; margin-top: 10px; }
 .d-food__price { font-size: 12.5px; color: var(--muted); margin-top: 3px; }

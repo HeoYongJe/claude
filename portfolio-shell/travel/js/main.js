@@ -14,6 +14,8 @@
 
   // 도시·먹거리·꿀팁은 API에 없어 큐레이션(js/countryDetail.js)에서 가져온다.
   const DETAIL = (typeof COUNTRY_DETAIL !== "undefined") ? COUNTRY_DETAIL : {};
+  // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
+  const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
   // 예상 절약 금액 기준: 1인 7일 여행 기본 지출 가정 × 체감 절약률.
   const BASELINE_7D = 700000;
@@ -259,8 +261,9 @@
     return dd.cities.map((ci) => {
       const cheaper = ci.index <= 0;
       const col = cheaper ? "#EF4444" : "#767676";
-      // ci.img가 있으면 이미지, 없으면(또는 로드 실패) 그라데이션 폴백.
-      const thumbImg = ci.img ? `<img src="${esc(ci.img)}" alt="" onerror="this.remove()">` : "";
+      // 우선순위: 수동 지정 ci.img → 자동 수집 CITY_IMG[도시명] → (없으면) 그라데이션 폴백.
+      const imgSrc = ci.img || CITY_IMG[ci.name] || "";
+      const thumbImg = imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy" onerror="this.remove()">` : "";
       return `<div class="d-city">
         <div class="d-city__thumb">${thumbImg}</div>
         <div class="d-city__body">

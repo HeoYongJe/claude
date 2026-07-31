@@ -113,3 +113,6 @@
   `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 12개국: jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch).
   나라 추가 = 객체에 항목 하나 추가. 큐레이션 없는 나라 클릭 시 환율·물가는 실데이터로 보이고 도시/먹거리/꿀팁은 "준비 중".
   도시별 "물가 지수 %"는 실측이 아닌 **대표값**.
+- **도시 이미지(자동 수집):** `tools/fetch-city-images.js`가 위키백과 REST/pageimages API로 각 도시 대표 이미지를
+  자동 수집해 `js/cityImages.js`(도시명→위키미디어 URL) 생성(재실행 가능). 지도·국기·인물·SVG는 필터로 걸러 그라데이션 폴백.
+  우선순위: `cities[].img`(수동, 최우선) → `CITY_IMAGES[도시명]`(자동) → 그라데이션. (핫링크 — 안정성 원하면 로컬 다운로드로 전환)
