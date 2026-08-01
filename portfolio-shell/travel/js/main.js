@@ -35,6 +35,7 @@
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
   const planeWrap = root.querySelector(".t-planewrap");
+  const rankSecEl = document.getElementById("rank");
   const railLen = 784;
 
   if (railTrail) {
@@ -75,6 +76,13 @@
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
+    // 항로 레일: Hero~랭킹까지만 표시. 랭킹 섹션을 지나거나 상세뷰가 열리면 페이드아웃.
+    if (railEl && rankSecEl) {
+      const rb = rankSecEl.getBoundingClientRect();
+      const detailIsOpen = rankSecEl.classList.contains("is-detail");
+      const pastRank = rb.bottom < window.innerHeight * 0.55;
+      railEl.style.opacity = (detailIsOpen || pastRank) ? "0" : "1";
+    }
     requestAnimationFrame(render);
   };
   render();
@@ -124,6 +132,13 @@
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pctText = (p) => `${p >= 0 ? "−" + p : "+" + -p}%`; // 체감물가: 절약(양수)을 −로 표기
 
+  // ── 증감 수치 색: 방향(오름/내림)만 담당 (좋다/나쁘다 의미는 텍스트 라벨로) ──
+  // 화면에 보이는 부호 기준: 오름(+, ▲) = 빨강 / 내림(−, ▼) = 파랑. 예외 없이 모든 지표에 동일 적용.
+  const DIR_UP = "#EF4444", DIR_DOWN = "#0E4AEB";
+  const DIR_UP_TINT = "#FEF2F2", DIR_DOWN_TINT = "#EAF1FF";
+  const dirColor = (isUp) => (isUp ? DIR_UP : DIR_DOWN);
+  const dirTint = (isUp) => (isUp ? DIR_UP_TINT : DIR_DOWN_TINT);
+
   // ---- 스파크라인: 카드가 화면에 들어오면 선이 서서히 그려진다 ----
   // 선을 대시로 감춰두고(prepSpark), 카드가 뷰포트에 들어오면 dashoffset 0으로 애니메이션.
   function prepSpark(line) {
@@ -164,9 +179,8 @@
   function renderRank(mode) {
     state.rmode = mode;
     const data = RANKDATA[mode] || [];
-    // 강세(유리)=빨강 포인트, 약세(불리)=회색계열.
-    const color = mode === "strong" ? "#EF4444" : "#767676";
-    const tint = mode === "strong" ? "#FEF2F2" : "#F2F4F6";
+    // 환율 변동 방향 색: 강세(▲, 오름)=빨강 / 약세(▼, 내림)=파랑. (좋다/나쁨 의미는 탭 라벨로)
+    const color = dirColor(mode === "strong");
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
       // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
@@ -202,14 +216,27 @@
       rcard.querySelector(".rc-rate").textContent = d.rate;
       const cut = rcard.querySelector(".rc-cut");
       if (d.savePct != null) {
-        // 체감물가 색은 변동률 모드가 아니라 "저렴(−)=빨강 / 비쌈(+)=회색" 부호 기준.
-        const cheaper = d.savePct >= 0;
+        // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
+        const up = d.savePct < 0; // savePct<0 이면 화면엔 "+"(비쌈)로 표기 → 오름
         cut.style.display = "";
         cut.textContent = `체감물가 ${pctText(d.savePct)}`;
-        cut.style.color = cheaper ? "#EF4444" : "#767676";
-        cut.style.background = cheaper ? "#FEF2F2" : "#F2F4F6";
+        cut.style.color = dirColor(up);
+        cut.style.background = dirTint(up);
       } else {
         cut.style.display = "none";
+      }
+      // 물가가 오히려 비싼 나라 경고(추천에 포함돼도 숨기지 않음)
+      let warn = rcard.querySelector(".rc-warn");
+      if (!warn) {
+        warn = document.createElement("p");
+        warn.className = "rc-warn";
+        rcard.appendChild(warn);
+      }
+      if (d.savePct != null && d.savePct < 0) {
+        warn.hidden = false;
+        warn.textContent = "환율 유리 · 현지 물가 높음";
+      } else {
+        warn.hidden = true;
       }
       const line = rcard.querySelector(".rc-line");
       line.setAttribute("points", d.line);
@@ -248,7 +275,7 @@
       const wLocal = Math.round((price / max) * 100);
       const pctNum = (price / seoul - 1) * 100;
       const pct = pctNum.toFixed(1);
-      const pcol = pctNum <= 0 ? "#EF4444" : "#767676"; // 저렴(−)=빨강 / 비쌈(+)=회색
+      const pcol = dirColor(pctNum > 0); // 오름(+)=빨강 / 내림(−)=파랑
       return `<div class="d-item">
         <span class="d-item__icon">${ITEM_SVG[key] || ""}</span>
         <span class="d-item__name">${label}</span>
@@ -265,8 +292,7 @@
     const dd = DETAIL[code];
     if (!dd || !dd.cities) return "";
     return dd.cities.map((ci) => {
-      const cheaper = ci.index <= 0;
-      const col = cheaper ? "#EF4444" : "#767676";
+      const col = dirColor(ci.index > 0); // 물가지수 오름(+)=빨강 / 내림(−)=파랑
       // 우선순위: 수동 지정 ci.img → 자동 수집 CITY_IMG[도시명] → (없거나 로드 실패 시) 도시 아이콘 + '이미지 준비중'.
       const imgSrc = ci.img || CITY_IMG[ci.name] || "";
       const placeholder = `<div class="d-city__ph">${CITY_PH_SVG}<span>이미지 준비중</span></div>`;
@@ -387,18 +413,26 @@
       `<img src="https://flagcdn.com/${d.code}.svg" alt="" onerror="this.style.display='none'">`;
     detail.querySelector(".detail__name").textContent = d.name;
     const rankEl = detail.querySelector(".detail__rank");
-    rankEl.textContent = strong ? `오늘의 ${d.num}위` : `약세 ${d.num}위`;
-    rankEl.style.color = strong ? "#EF4444" : "#767676";
-    rankEl.style.background = strong ? "#FEF2F2" : "#F2F4F6";
+    rankEl.textContent = strong ? `환율 이득 ${d.num}위` : `약세 ${d.num}위`;
+    rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
+    rankEl.style.background = "#F1F5F9";
 
-    // 파란 절약 카드 (텍스트 전부 흰색 — 부호 색 사용 안 함)
+    // 상단 대표 숫자 = 전날 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑)
+    const fxVal = detail.querySelector(".detail__fx-val");
+    if (fxVal) {
+      fxVal.textContent = d.badge;
+      fxVal.style.color = dirColor((d.changePct == null ? 0 : d.changePct) >= 0);
+    }
+
+    // 파란 절약 카드 (텍스트 전부 흰색 — 카드 내부는 ±·▲▼ 기호로 방향 표현)
     detail.querySelector(".d-rate").textContent = d.rate;
     detail.querySelector(".d-fx").textContent = d.badge;
 
-    const idx = detail.querySelector(".d-index");        // 큰 숫자(절약률)
+    const idx = detail.querySelector(".d-index");        // 보조 지표(절약률)
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const save = detail.querySelector(".d-save");         // 예상 절약 금액
+    const warn = detail.querySelector(".d-savecard__warn");
     if (d.savePct != null) {
       const cheaper = d.savePct >= 0;
       idx.textContent = Math.abs(d.savePct);
@@ -409,11 +443,17 @@
       const amt = Math.round((BASELINE_7D * d.savePct) / 100 / 1000) * 1000;
       save.textContent = amt > 0 ? `약 ${amt.toLocaleString("ko-KR")}원`
         : amt < 0 ? `약 ${(-amt).toLocaleString("ko-KR")}원 더` : "서울과 비슷";
+      // 환율은 유리하나 현지 물가가 비싼 나라: 경고 라벨 노출(숨기지 않음)
+      if (warn) {
+        if (!cheaper) { warn.hidden = false; warn.textContent = "환율은 유리하나 현지 물가는 높은 편이에요."; }
+        else warn.hidden = true;
+      }
     } else {
       idx.textContent = "—";
       label.textContent = "서울 대비 체감 절약";
       desc.textContent = "물가 데이터가 없어요.";
       save.textContent = "—";
+      if (warn) warn.hidden = true;
     }
 
     detail.querySelector(".d-items").innerHTML = itemsHtml(d.code, d.name);
@@ -472,6 +512,18 @@
     }, 400);
   }
 
+  // ---- 기준일 표기: 한 곳(currentDate)에서 랭킹·푸터 등 모든 표기를 통일 ----
+  // 실데이터(currentDate) 있으면 실제 기준일 표시하고 '샘플' 문구는 쓰지 않는다.
+  function setBasis(currentDate) {
+    const fmt = currentDate && currentDate.length >= 8
+      ? `${currentDate.slice(0, 4)}.${currentDate.slice(4, 6)}.${currentDate.slice(6, 8)}`
+      : null;
+    const rankBasis = root.querySelector(".t-rank-basis");
+    const footBasis = document.querySelector(".foot-basis");
+    if (rankBasis) rankBasis.textContent = fmt ? `기준일 ${fmt} · 전날 종가` : "기준일 · 전날 종가";
+    if (footBasis) footBasis.textContent = fmt ? `환율·물가 데이터 · 기준일 ${fmt} (전날 종가)` : "환율·물가 데이터 · 전날 종가 기준";
+  }
+
   // ---- /api/ranking 로드 ----
   async function loadRanking() {
     try {
@@ -481,11 +533,7 @@
       RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
       CITYDATA = data.cities || {};
       if (data.seoul) SEOULDATA = data.seoul;
-      const basis = root.querySelector(".t-rank-basis");
-      if (basis && data.currentDate) {
-        const c = data.currentDate;
-        basis.textContent = `기준일 ${c.slice(0, 4)}.${c.slice(4, 6)}.${c.slice(6, 8)} · 전날 종가`;
-      }
+      setBasis(data.currentDate);
       renderRank(state.rmode);
       updateHero();
     } catch (e) {
@@ -503,9 +551,10 @@
     if (nameEl) nameEl.innerHTML = flagImg(top.code, 38, 28) + `<span style="vertical-align:middle;">${esc(top.name)}</span>`;
     const badgeEl = root.querySelector(".t-hero-badge");
     if (badgeEl) {
+      const up = (top.changePct == null ? 0 : top.changePct) >= 0;
       badgeEl.textContent = top.badge;
-      badgeEl.style.color = "#EF4444";
-      badgeEl.style.background = "#FEF2F2";
+      badgeEl.style.color = dirColor(up);
+      badgeEl.style.background = dirTint(up);
     }
     set(".t-hero-recv", top.recv);
     set(".t-hero-desc",
@@ -525,6 +574,35 @@
   });
   const backBtn = root.querySelector(".t-detail-back");
   if (backBtn) backBtn.addEventListener("click", closeDetail);
+
+  // ── 네비 / 히어로 액션 ──
+  // "추천 랭킹" 버튼: 상세뷰가 열려 있으면 목록으로 복귀, 아니면 랭킹 섹션으로 스크롤.
+  const goRank = () => { if (detailOpen) closeDetail(); else scrollToRank(); };
+  const navRankBtn = document.querySelector(".t-nav-rank");
+  if (navRankBtn) navRankBtn.addEventListener("click", goRank);
+  const heroRankBtn = root.querySelector(".t-hero-rank");
+  if (heroRankBtn) heroRankBtn.addEventListener("click", goRank);
+  // 로고: 맨 위로 스크롤(상세뷰 열려 있으면 먼저 닫음).
+  const navBrand = document.querySelector(".t-nav-brand");
+  if (navBrand) navBrand.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (detailOpen) closeDetail();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  // 히어로 '오늘의 추천' 카드 클릭 → 해당(강세 1위) 나라 상세뷰.
+  const heroCardEl = root.querySelector(".t-hero-card");
+  const openHeroTop = () => {
+    const top = RANKDATA.strong[0];
+    if (!top) return;
+    if (state.rmode !== "strong") renderRank("strong");
+    openDetail(top);
+  };
+  if (heroCardEl) {
+    heroCardEl.addEventListener("click", openHeroTop);
+    heroCardEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openHeroTop(); }
+    });
+  }
 
   // ---- 등장 애니메이션 ----
   const io = new IntersectionObserver((ents) => {

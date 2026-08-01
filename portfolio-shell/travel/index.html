@@ -29,14 +29,8 @@
   <!-- ============ NAV ============ -->
   <nav class="nav">
     <div class="nav__inner">
-      <a href="#" class="nav__brand">travel</a>
-      <div class="nav__right">
-        <ul class="nav__links">
-          <li><a href="#why" class="nav__link">소개</a></li>
-          <li><a href="#rank" class="nav__link">추천 랭킹</a></li>
-        </ul>
-        <button class="t-cta t-cta--nav" type="button">여행지 찾기</button>
-      </div>
+      <a href="#" class="nav__brand t-nav-brand">travel</a>
+      <button class="t-cta t-cta--nav t-nav-rank" type="button">추천 랭킹</button>
     </div>
   </nav>
 
@@ -61,13 +55,12 @@
         <h1 class="hero__title">지금 원화로<br>가장 <em>이득인</em> 여행지</h1>
         <p class="hero__desc">환율과 현지 물가를 함께 계산해, 지금 떠나면 가장 이득인 나라를 알려드려요. 나라를 고르면 도시·먹거리·꿀팁까지.</p>
         <div class="hero__actions">
-          <button class="t-cta t-cta--hero" type="button">내 여행지 찾기</button>
-          <a href="#rank" class="btn-ghost">추천 랭킹 보기</a>
+          <button class="t-cta t-cta--hero t-hero-rank" type="button">추천 랭킹 보기</button>
         </div>
       </div>
 
       <div class="hero__cardwrap">
-        <article class="t-fxcard">
+        <article class="t-fxcard t-hero-card" role="button" tabindex="0" aria-label="오늘의 추천 나라 상세 보기">
           <div class="fxcard__top">
             <span class="fxcard__label">오늘의 추천</span>
             <span class="t-hero-badge">▲ 6.2%</span>
@@ -79,11 +72,45 @@
             <div><div class="fxcard__cap">받는 금액</div><div class="fxcard__amt t-hero-recv">¥106</div></div>
           </div>
           <p class="t-hero-desc">최근 3개월 환율 중 가장 유리하고, 현지 체감 물가도 서울보다 낮아요.</p>
+          <span class="t-hero-cardhint">클릭해서 상세 보기 <span aria-hidden="true">→</span></span>
         </article>
       </div>
     </div>
 
     <p class="hero__scroll">SCROLL ↓</p>
+  </section>
+
+  <!-- ============ WHY (서비스 소개) — Hero 다음, 랭킹 앞 ============ -->
+  <section id="why" class="why">
+    <div class="container">
+      <header class="why__head" data-reveal="">
+        <h2 class="section-title">왜 이 서비스가 필요할까요?</h2>
+        <p class="section-desc">환율만 보지 않고, 실제 체감하는 물가까지 함께 비교합니다.</p>
+      </header>
+      <div class="why__grid">
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6"></circle><circle cx="16" cy="12" r="5.5" stroke="var(--primary)" stroke-width="1.6"></circle></svg>
+          </span>
+          <h3 class="why-card__title">환율만 보면 손해!</h3>
+          <p class="why-card__desc">환율이 좋아도 물가가 비싸면 실제 여행 비용은 더 들 수 있어요.</p>
+        </article>
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V4M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="8" y="12" width="3" height="5" rx="1" fill="currentColor"></rect><rect x="13" y="8" width="3" height="9" rx="1" fill="var(--primary)"></rect><rect x="18" y="10" width="3" height="7" rx="1" fill="currentColor"></rect></svg>
+          </span>
+          <h3 class="why-card__title">체감 물가로 진짜 이득 확인</h3>
+          <p class="why-card__desc">빅맥, 콜라, 생수 등 일상 물가 기준으로 여행의 실제 비용을 계산해요.</p>
+        </article>
+        <article class="why-card" data-reveal="">
+          <span class="why-card__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </span>
+          <h3 class="why-card__title">매일 갱신되는 데이터</h3>
+          <p class="why-card__desc">전날 종가 환율과 물가 데이터를 기반으로 가장 정확한 추천을 제공해요.</p>
+        </article>
+      </div>
+    </div>
   </section>
 
   <!-- ============ RANK ============ -->
@@ -132,8 +159,8 @@
     <aside class="t-summary" data-reveal="">
       <div class="summary__stats">
         <div><div class="stat__label">추적 중인 통화</div><div class="stat__val">22개국</div></div>
-        <div><div class="stat__label">이번 주 원화 강세</div><div class="stat__val stat__val--up">18개국</div></div>
-        <div><div class="stat__label">평균 체감물가 절감</div><div class="stat__val stat__val--up">−28%</div></div>
+        <div><div class="stat__label">이번 주 원화 강세</div><div class="stat__val">18개국</div></div>
+        <div><div class="stat__label">평균 체감물가 절감</div><div class="stat__val stat__val--down">−28%</div></div>
       </div>
       <button class="t-cta t-cta--summary" type="button">전체 랭킹 보기 →</button>
     </aside>
@@ -146,6 +173,10 @@
           <span class="detail__flag"></span>
           <h3 class="detail__name"></h3>
           <span class="detail__rank"></span>
+        </div>
+        <div class="detail__fx">
+          <span class="detail__fx-label">전날 대비 환율</span>
+          <b class="detail__fx-val"></b>
         </div>
         <button class="t-detail-back" type="button">다른 나라 선택하기 <span aria-hidden="true">→</span></button>
       </div>
@@ -160,8 +191,9 @@
           <div class="d-savecard__label d-save-label">서울 대비 체감 절약</div>
           <div class="d-savecard__big"><b class="d-index">0</b><span class="d-savecard__pct">%</span></div>
           <p class="d-savecard__desc d-save-desc"></p>
+          <div class="d-savecard__warn" hidden></div>
           <div class="d-savecard__div"></div>
-          <div class="d-savecard__row"><span>전날 대비 환율</span><b class="d-rate"></b></div>
+          <div class="d-savecard__row"><span>1,000원 환산</span><b class="d-rate"></b></div>
           <div class="d-savecard__row"><span>환율 변동</span><b class="d-fx"></b></div>
           <div class="d-savecard__row"><span>예상 절약(추정)</span><b class="d-save"></b></div>
         </aside>
@@ -188,44 +220,11 @@
    </div>
   </section>
 
-  <!-- ============ WHY (서비스 소개, 맨 밑) ============ -->
-  <section id="why" class="why">
-    <div class="container">
-      <header class="why__head" data-reveal="">
-        <h2 class="section-title">왜 이 서비스가 필요할까요?</h2>
-        <p class="section-desc">환율만 보지 않고, 실제 체감하는 물가까지 함께 비교합니다.</p>
-      </header>
-      <div class="why__grid">
-        <article class="why-card" data-reveal="">
-          <span class="why-card__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="5.5" stroke="currentColor" stroke-width="1.6"></circle><circle cx="16" cy="12" r="5.5" stroke="var(--primary)" stroke-width="1.6"></circle></svg>
-          </span>
-          <h3 class="why-card__title">환율만 보면 손해!</h3>
-          <p class="why-card__desc">환율이 좋아도 물가가 비싸면 실제 여행 비용은 더 들 수 있어요.</p>
-        </article>
-        <article class="why-card" data-reveal="">
-          <span class="why-card__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V4M4 20h16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path><rect x="8" y="12" width="3" height="5" rx="1" fill="currentColor"></rect><rect x="13" y="8" width="3" height="9" rx="1" fill="var(--primary)"></rect><rect x="18" y="10" width="3" height="7" rx="1" fill="currentColor"></rect></svg>
-          </span>
-          <h3 class="why-card__title">체감 물가로 진짜 이득 확인</h3>
-          <p class="why-card__desc">빅맥, 콜라, 생수 등 일상 물가 기준으로 여행의 실제 비용을 계산해요.</p>
-        </article>
-        <article class="why-card" data-reveal="">
-          <span class="why-card__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </span>
-          <h3 class="why-card__title">매일 갱신되는 데이터</h3>
-          <p class="why-card__desc">전날 종가 환율과 물가 데이터를 기반으로 가장 정확한 추천을 제공해요.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
   </main>
 
   <footer class="footer">
     <span>travel</span>
-    <span>환율·물가 데이터는 전날 기준 · 샘플</span>
+    <span class="foot-basis">환율·물가 데이터 · 전날 종가 기준</span>
   </footer>
 
 </div>

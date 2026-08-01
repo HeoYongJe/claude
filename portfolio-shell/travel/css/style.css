@@ -58,7 +58,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-progress { height: 100%; width: 0%; background: var(--primary); }
 
 /* ---- 항로 레일 ---- */
-.t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; }
+.t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
 .t-rail svg { width: 100%; height: 100%; overflow: visible; }
 .t-rail-path { animation: t-dashflow 1.4s linear infinite; }
 .t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: top; }
@@ -109,9 +109,14 @@ ul, ol { list-style: none; padding: 0; }
 .fxcard__arrow { font-size: 20px; color: var(--primary); }
 .t-hero-recv { font-size: 22px; font-weight: 800; color: var(--primary); }
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+/* 히어로 '오늘의 추천' 카드: 클릭 가능 */
+.t-hero-card { cursor: pointer; }
+.t-hero-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.t-hero-cardhint { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--primary); }
 
 /* ---- 랭킹 섹션 ---- */
-.rank { position: relative; overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 104px 24px 64px; background: transparent; }
+/* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
+.rank { position: relative; overflow: hidden; padding: 96px 24px 88px; background: transparent; }
 .rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
@@ -136,12 +141,16 @@ ul, ol { list-style: none; padding: 0; }
 .rcard__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
 .rc-cut { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--surface); padding: 6px 12px; border-radius: 999px; }
 .rc-link { font-size: 14px; font-weight: 700; color: var(--muted); }
+/* 환율 유리·물가 비쌈 경고(랭킹 카드) */
+.rc-warn { margin-top: 12px; font-size: 12px; font-weight: 700; line-height: 1.4; color: #B45309; background: #FEF3C7; border: 1px solid #FDE68A; padding: 8px 11px; border-radius: 10px; }
+.rc-warn[hidden] { display: none; }
 
 .t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
 .summary__stats { display: flex; gap: 48px; flex-wrap: wrap; }
 .stat__label { font-size: 13px; font-weight: 700; color: var(--muted); }
 .stat__val { font-size: 24px; font-weight: 800; margin-top: 4px; }
 .stat__val--up { color: var(--up); }
+.stat__val--down { color: #0E4AEB; } /* 내림(−) = 파랑 (방향 색 규칙) */
 
 /* ---- 물가 섹션 ---- */
 .price { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
@@ -230,10 +239,14 @@ ul, ol { list-style: none; padding: 0; }
 .t-detail.is-in { opacity: 1; transform: none; }
 
 .detail__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.detail__country { display: flex; align-items: center; gap: 12px; }
+.detail__country { display: flex; align-items: center; gap: 12px; margin-right: auto; }
 .detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); display: block; }
 .detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
-.detail__rank { font-size: 13px; font-weight: 700; color: var(--up); background: var(--up-tint); padding: 6px 12px; border-radius: 999px; }
+.detail__rank { font-size: 13px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
+/* 상단 대표 숫자 = 전날 대비 환율 변동 (방향 색은 JS에서) */
+.detail__fx { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.detail__fx-label { font-size: 12px; font-weight: 700; color: var(--muted2); }
+.detail__fx-val { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
 .t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
 .t-detail-back:hover { color: var(--primary-dark); }
 
@@ -270,10 +283,13 @@ ul, ol { list-style: none; padding: 0; }
 /* 파란 절약 카드 (detail 유일 컬러 면) */
 .d-savecard { background: var(--primary); color: #fff; border-radius: 20px; padding: 28px 26px; }
 .d-savecard__label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.75); }
-.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 10px; }
-.d-savecard__big b { font-size: 48px; font-weight: 800; line-height: 1; }
-.d-savecard__pct { font-size: 24px; font-weight: 800; }
-.d-savecard__desc { font-size: 14px; line-height: 1.55; color: rgba(255,255,255,.82); margin-top: 14px; }
+.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 8px; }
+.d-savecard__big b { font-size: 34px; font-weight: 800; line-height: 1; }
+.d-savecard__pct { font-size: 18px; font-weight: 800; }
+.d-savecard__desc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,.82); margin-top: 12px; }
+/* 환율 유리·물가 비쌈 경고 라벨(파란 카드 안, 흰 톤 유지) */
+.d-savecard__warn { margin-top: 14px; font-size: 12.5px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
+.d-savecard__warn[hidden] { display: none; }
 .d-savecard__div { height: 1px; background: rgba(255,255,255,.22); margin: 22px 0; }
 .d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: rgba(255,255,255,.75); }
 .d-savecard__row + .d-savecard__row { margin-top: 10px; }
