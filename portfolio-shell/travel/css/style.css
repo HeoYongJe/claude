@@ -20,7 +20,8 @@
 
 * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 html { scroll-behavior: smooth; }
-body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink); background: #fff; }
+/* 히어로(구름 영상) 아래 섹션들이 흰색으로 뚝 끊기지 않도록 아주 연한 블루 그라데이션 배경 */
+body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink); background: linear-gradient(180deg, #FFFFFF 0%, #F1F6FF 34%, #EAF1FF 60%, #F4F8FF 100%); }
 a { color: var(--primary); text-decoration: none; }
 a:hover { color: var(--primary-dark); }
 button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; line-height: 1.2; }
@@ -66,7 +67,9 @@ ul, ol { list-style: none; padding: 0; }
 .t-plane svg { display: block; }
 
 /* ---- 네비 ---- */
-.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: rgba(255,255,255,.82); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+/* 최상단(히어로 위)에서는 배경 없음, 스크롤하면 반투명 배경이 생김 (.is-scrolled는 main.js에서 토글) */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease, backdrop-filter .3s ease; }
+.nav.is-scrolled { background: rgba(255,255,255,.72); backdrop-filter: blur(14px); border-bottom-color: var(--border); }
 .nav__inner { max-width: 1080px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
 .nav__brand { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -.01em; }
 .nav__right { display: flex; align-items: center; gap: 28px; }
@@ -81,15 +84,9 @@ ul, ol { list-style: none; padding: 0; }
 .hero__video-grad { position: absolute; inset: 0; pointer-events: none; }
 .hero__video-grad--v { background: linear-gradient(180deg, rgba(255,255,255,.40) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.70) 100%); }
 .hero__video-grad--h { background: linear-gradient(90deg, rgba(255,255,255,.60) 0%, rgba(255,255,255,0) 60%); }
-/* 우측 은은한 도트 '지도' 배경 */
-.hero__map { position: absolute; top: 0; right: 0; width: 64%; height: 100%; pointer-events: none; z-index: 0;
-  background-image: radial-gradient(rgba(14,74,235,.20) 1.3px, transparent 1.5px); background-size: 22px 22px;
-  -webkit-mask-image: radial-gradient(68% 58% at 60% 42%, #000 0%, rgba(0,0,0,.55) 52%, transparent 78%);
-  mask-image: radial-gradient(68% 58% at 60% 42%, #000 0%, rgba(0,0,0,.55) 52%, transparent 78%); }
 .hero__blob { position: absolute; border-radius: 999px; filter: blur(6px); }
 .hero__blob--1 { top: -120px; right: -80px; width: 560px; height: 560px; background: radial-gradient(circle at 30% 30%, rgba(14,74,235,.18), rgba(14,74,235,0) 70%); }
 .hero__blob--2 { bottom: -160px; left: -120px; width: 520px; height: 520px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,.16), rgba(6,182,212,0) 70%); }
-.hero__dots { position: absolute; inset: 0; background-image: radial-gradient(var(--primary) 1px, transparent 1px); background-size: 38px 38px; opacity: .05; }
 .hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 96px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 /* 밝은 하늘 영상 배경 위 어두운 텍스트 (hero 전용) */
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--primary); background: rgba(255,255,255,.7); border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(6px); }
@@ -114,7 +111,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 
 /* ---- 랭킹 섹션 ---- */
-.rank { position: relative; overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 104px 24px 64px; background: #fff; }
+.rank { position: relative; overflow: hidden; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 104px 24px 64px; background: transparent; }
 .rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
@@ -215,7 +212,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-summary { transition-delay: .25s; }
 
 /* ---- WHY (서비스 소개) ---- */
-.why { padding: 96px 0; background: #fff; }
+.why { padding: 96px 0; background: transparent; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 .why-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
@@ -256,7 +253,8 @@ ul, ol { list-style: none; padding: 0; }
 .d-items { margin-top: 22px; }
 .d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
 .d-item + .d-item { margin-top: 24px; }
-.d-item__icon { font-size: 22px; line-height: 1; text-align: center; }
+.d-item__icon { display: flex; align-items: center; justify-content: center; color: var(--primary); }
+.d-item__icon svg { width: 24px; height: 24px; display: block; }
 .d-item__name { font-size: 14px; font-weight: 800; }
 .d-cmp__row { display: grid; grid-template-columns: 34px 1fr 74px; align-items: center; gap: 10px; }
 .d-cmp__row + .d-cmp__row { margin-top: 8px; }

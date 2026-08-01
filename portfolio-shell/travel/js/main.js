@@ -30,6 +30,8 @@
   const prog = root.querySelector(".t-progress");
   const hero = root.querySelector(".t-hero");
   const heroInner = hero && hero.querySelector(".hero__grid");
+  const heroScrollEl = hero && hero.querySelector(".hero__scroll");
+  const navEl = document.querySelector(".nav");
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
   const planeWrap = root.querySelector(".t-planewrap");
@@ -68,7 +70,11 @@
       const t = Math.min(1, sy / window.innerHeight);
       heroInner.style.opacity = (1 - t * 0.9).toFixed(3);
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
+      // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
+      if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
     }
+    // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
+    if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
     requestAnimationFrame(render);
   };
   render();
@@ -226,7 +232,7 @@
   const detail = root.querySelector(".t-detail");
 
   const won = (n) => Math.round(n).toLocaleString("ko-KR") + "원";
-  const ITEM_ICONS = { bigmac: "🍔", cola: "🥤", water: "💧" };
+  // 품목 라인 아이콘(빅맥/콜라/생수)은 S() 정의 이후에 ITEM_SVG로 선언 — itemsHtml은 렌더 시점에 참조.
 
   // 품목 체감 물가: 아이콘 + 이름 + [서울/현지 두 막대·금액] + 큰 %.
   function itemsHtml(code, countryName) {
@@ -244,7 +250,7 @@
       const pct = pctNum.toFixed(1);
       const pcol = pctNum <= 0 ? "#EF4444" : "#767676"; // 저렴(−)=빨강 / 비쌈(+)=회색
       return `<div class="d-item">
-        <span class="d-item__icon">${ITEM_ICONS[key] || ""}</span>
+        <span class="d-item__icon">${ITEM_SVG[key] || ""}</span>
         <span class="d-item__name">${label}</span>
         <div class="d-item__cmp">
           <div class="d-cmp__row"><span class="d-cmp__label">서울</span><span class="d-cmp__track"><span class="d-cmp__fill d-cmp__fill--seoul" data-w="${wSeoul}"></span></span><span class="d-cmp__amt d-cmp__amt--seoul">${won(seoul)}</span></div>
@@ -314,22 +320,41 @@
     물가: "food", 식비: "food", 먹거리: "food", 야시장: "food", 호커센터: "food", 차찬텡: "food",
   };
 
-  // 먹거리 카테고리 라인 아이콘 — lucide 실제 경로 데이터(원본 디자인의 lucide-react와 동일한 모양).
-  // 순서대로: Utensils(기본) / Soup / Flame / Fish / Cake / Coffee. 색은 Primary(S()가 stroke 처리).
+  // 먹거리 카테고리 라인 아이콘 — 전부 lucide 실제 경로 데이터. 색은 Primary(S()가 stroke 처리).
+  // 15종: 기본(포크) 외 국물/전골/구이/생선/소고기/닭·오리/샌드위치/피자/크루아상/아이스크림/케이크/커피/음료/샐러드.
   const FOOD_SVG = {
-    fork:   S('<path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>'),
-    soup:   S('<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/>'),
-    flame:  S('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
-    fish:   S('<path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"/><path d="M16.01 17.93l.23 1.4A2 2 0 0 1 14.26 21H8.5"/>'),
-    cake:   S('<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/>'),
-    coffee: S('<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/>'),
+    fork:      S('<path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>'),
+    soup:      S('<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M7 21h10"/><path d="M19.5 12 22 6"/><path d="M16.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.73 1.62"/><path d="M11.25 3c.27.1.8.53.74 1.36-.05.83-.93 1.2-.98 2.02-.06.78.33 1.24.72 1.62"/><path d="M6.25 3c.27.1.8.53.75 1.36-.06.83-.93 1.2-1 2.02-.05.78.34 1.24.74 1.62"/>'),
+    pot:       S('<path d="M2 12h20"/><path d="M20 12v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"/><path d="m4 8 16-4"/><path d="m8.86 6.78-.45-1.81a2 2 0 0 1 1.45-2.43l1.94-.48a2 2 0 0 1 2.43 1.46l.45 1.8"/>'),
+    flame:     S('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
+    fish:      S('<path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/><path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4"/><path d="M16.01 17.93l.23 1.4A2 2 0 0 1 14.26 21H8.5"/>'),
+    beef:      S('<path d="M16.4 13.7A6.5 6.5 0 1 0 6.28 6.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3"/><path d="m18.5 6 2.19 4.5a6.48 6.48 0 0 1-2.29 7.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5"/><circle cx="12.5" cy="8.5" r="2.5"/>'),
+    drumstick: S('<path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"/><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"/>'),
+    sandwich:  S('<path d="m2.37 11.223 8.372-6.777a2 2 0 0 1 2.516 0l8.371 6.777"/><path d="M21 15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-5.25"/><path d="M3 15a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h9"/><path d="m6.67 15 6.13 4.6a2 2 0 0 0 2.8-.4l3.15-4.2"/><rect width="20" height="4" x="2" y="11" rx="1"/>'),
+    pizza:     S('<path d="m12 14-1 1"/><path d="m13.75 18.25-1.25 1.42"/><path d="M17.775 5.654a15.68 15.68 0 0 0-12.121 12.12"/><path d="M18.8 9.3a1 1 0 0 0 2.1 7.7"/><path d="M21.964 20.732a1 1 0 0 1-1.232 1.232l-18-5a1 1 0 0 1-.695-1.232A19.68 19.68 0 0 1 15.732 2.037a1 1 0 0 1 1.232.695z"/>'),
+    croissant: S('<path d="M10.2 18H4.774a1.5 1.5 0 0 1-1.352-.97 11 11 0 0 1 .132-6.487"/><path d="M18 10.2V4.774a1.5 1.5 0 0 0-.97-1.352 11 11 0 0 0-6.486.132"/><path d="M18 5a4 3 0 0 1 4 3 2 2 0 0 1-2 2 10 10 0 0 0-5.139 1.42"/><path d="M5 18a3 4 0 0 0 3 4 2 2 0 0 0 2-2 10 10 0 0 1 1.42-5.14"/><path d="M8.709 2.554a10 10 0 0 0-6.155 6.155 1.5 1.5 0 0 0 .676 1.626l9.807 5.42a2 2 0 0 0 2.718-2.718l-5.42-9.807a1.5 1.5 0 0 0-1.626-.676"/>'),
+    icecream:  S('<path d="m7 11 4.08 10.35a1 1 0 0 0 1.84 0L17 11"/><path d="M17 7A5 5 0 0 0 7 7"/><path d="M17 7a2 2 0 0 1 0 4H7a2 2 0 0 1 0-4"/>'),
+    cake:      S('<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3M12 8v3M17 8v3"/><path d="M7 4h.01M12 4h.01M17 4h.01"/>'),
+    coffee:    S('<path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2M10 2v2M14 2v2"/>'),
+    drink:     S('<path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"/><path d="M5 8h14"/><path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/><path d="m12 8 1-6h2"/>'),
+    salad:     S('<path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-2.77 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1"/><path d="m13 12 4-4"/><path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2"/>'),
   };
+  // 위에서부터 먼저 매칭되는 규칙이 이김. 음식명 키워드 기반이라 순서가 중요.
   const FOOD_RULES = [
-    { icon: "flame",  keys: ["구이", "꼬치", "바베큐", "사테", "케밥", "레촌", "덕", "sate", "grill", "kebab", "bbq"] },
-    { icon: "soup",   keys: ["탕", "찌개", "쌀국수", "국수", "면", "라멘", "수프", "똠얌", "훠궈", "soup", "pho", "ramen", "noodle"] },
-    { icon: "fish",   keys: ["회", "생선", "해산물", "스시", "초밥", "크랩", "고등어", "새우", "sushi", "seafood", "crab"] },
-    { icon: "cake",   keys: ["디저트", "케이크", "타르트", "바클라바", "할로할로", "dessert", "cake", "tart"] },
-    { icon: "coffee", keys: ["커피", "버블티", "밀크티", "음료", "coffee", "tea", "latte"] },
+    { icon: "fish",      keys: ["회", "생선", "해산물", "스시", "초밥", "크랩", "고등어", "새우", "연어", "그라브락스", "바라문디", "피시앤칩스", "sushi", "seafood", "crab", "salmon"] },
+    { icon: "pot",       keys: ["전골", "샤브", "훠궈", "퐁뒤", "라클렛", "핫팟", "hotpot", "fondue"] },
+    { icon: "soup",      keys: ["탕", "찌개", "쌀국수", "국수", "면", "라멘", "수프", "똠얌", "파스타", "락사", "pho", "ramen", "noodle", "soup", "pasta"] },
+    { icon: "drumstick", keys: ["치킨", "닭", "윙", "chicken", "drumstick"] },
+    { icon: "flame",     keys: ["구이", "꼬치", "바베큐", "사테", "케밥", "레촌", "덕", "분짜", "grill", "kebab", "bbq", "satay"] },
+    { icon: "sandwich",  keys: ["샌드위치", "버거", "반미", "타코", "부리토", "랩", "스뫼레브뢰드", "핫도그", "burger", "sandwich", "taco", "burrito", "hotdog"] },
+    { icon: "beef",      keys: ["미트볼", "미트", "스테이크", "규카츠", "프리카델러", "beef", "steak", "meatball"] },
+    { icon: "pizza",     keys: ["피자", "pizza"] },
+    { icon: "croissant", keys: ["크루아상", "크로와상", "데니시", "번", "페이스트리", "croissant"] },
+    { icon: "icecream",  keys: ["아이스크림", "젤라또", "빙수", "파블로바", "할로할로", "gelato"] },
+    { icon: "cake",      keys: ["케이크", "타르트", "바클라바", "스콘", "셈라", "팬케이크", "망고", "디저트", "빵", "cake", "tart", "scone"] },
+    { icon: "coffee",    keys: ["커피", "플랫화이트", "라떼", "coffee", "latte"] },
+    { icon: "drink",     keys: ["버블티", "밀크티", "음료", "콜라", "소다", "juice", "soda", "tea"] },
+    { icon: "salad",     keys: ["샐러드", "과카몰레", "salad"] },
   ];
   function pickFoodIcon(name) {
     const n = String(name).toLowerCase();
@@ -339,6 +364,13 @@
 
   // 도시 썸네일 폴백 아이콘(lucide building-2). 이미지 없거나 로드 실패 시 '이미지 준비중'과 함께 표시.
   const CITY_PH_SVG = S('<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/>');
+
+  // 주요 품목 체감 물가 라인 아이콘(lucide hamburger / cup-soda / droplet). 색은 Primary.
+  const ITEM_SVG = {
+    bigmac: S('<path d="M12 16H4a2 2 0 1 1 0-4h16a2 2 0 1 1 0 4h-4.25"/><path d="M5 12a2 2 0 0 1-2-2 9 7 0 0 1 18 0 2 2 0 0 1-2 2"/><path d="M5 16a2 2 0 0 0-2 2 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 2 2 0 0 0-2-2"/><path d="m6.67 12 6.13 4.6a2 2 0 0 0 2.8-.4l3.15-4.2"/>'),
+    cola:   S('<path d="m6 8 1.75 12.28a2 2 0 0 0 2 1.72h4.54a2 2 0 0 0 2-1.72L18 8"/><path d="M5 8h14"/><path d="M7 15a6.47 6.47 0 0 1 5 0 6.47 6.47 0 0 0 5 0"/><path d="m12 8 1-6h2"/>'),
+    water:  S('<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>'),
+  };
 
   function tipsHtml(code) {
     const dd = DETAIL[code];

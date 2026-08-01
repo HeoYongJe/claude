@@ -115,6 +115,96 @@ const COUNTRY_DETAIL = {
       { cat: "카드", title: "카드", text: "대부분 카드 결제, 소액 현금만 준비." },
     ],
   },
+  us: {
+    cities: [{ name: "뉴욕", index: 34 }, { name: "로스앤젤레스", index: 24 }, { name: "라스베이거스", index: 18 }],
+    foods: [{ name: "수제버거", desc: "두툼한 패티 · 미국 대표 한 끼", price: 15000 }, { name: "뉴욕 피자", desc: "큼직한 한 조각 · 길거리 대표", price: 6000 }, { name: "핫도그", desc: "노점 소시지 번 · 간편 한 끼", price: 4000 }],
+    tips: [
+      { cat: "문화", title: "팁", text: "식당·택시 팁 15~20% 별도, 계산서 확인." },
+      { cat: "결제", title: "카드", text: "어디서나 카드·모바일 결제, 현금 거의 불필요." },
+      { cat: "교통", title: "교통", text: "도시 간은 국내선·우버, 대중교통은 도시별 상이." },
+    ],
+  },
+  eu: {
+    cities: [{ name: "파리", index: 28 }, { name: "로마", index: 18 }, { name: "바르셀로나", index: 14 }],
+    foods: [{ name: "크루아상", desc: "버터 페이스트리 · 아침 대표", price: 4000 }, { name: "파스타", desc: "이탈리아 대표 면요리", price: 14000 }, { name: "젤라또", desc: "이탈리아 아이스크림 · 디저트", price: 5000 }],
+    tips: [
+      { cat: "소매치기", title: "소매치기", text: "관광지·지하철 소매치기 주의, 가방은 앞으로." },
+      { cat: "결제", title: "결제", text: "유로 소액 현금 + 카드 병행, 팁은 소액." },
+      { cat: "교통", title: "교통", text: "도시 간 고속열차로 이동이 편리해요." },
+    ],
+  },
+  gb: {
+    cities: [{ name: "런던", index: 34 }, { name: "에든버러", index: 24 }, { name: "맨체스터", index: 20 }],
+    foods: [{ name: "피시앤칩스", desc: "대구튀김 + 감자 · 국민 음식", price: 13000 }, { name: "잉글리시 브렉퍼스트", desc: "푸짐한 아침 정식", price: 15000 }, { name: "스콘", desc: "애프터눈 티 · 디저트", price: 5000 }],
+    tips: [
+      { cat: "교통", title: "교통", text: "오이스터 카드로 튜브·버스 통합, 좌측통행." },
+      { cat: "결제", title: "카드", text: "컨택리스 카드 결제 보편, 현금 거의 불필요." },
+      { cat: "문화", title: "매너", text: "줄서기 문화 철저, 펍은 카운터에서 주문." },
+    ],
+  },
+  ca: {
+    cities: [{ name: "밴쿠버", index: 24 }, { name: "토론토", index: 22 }, { name: "몬트리올", index: 18 }],
+    foods: [{ name: "푸틴", desc: "감자튀김 + 그레이비·치즈 · 대표", price: 9000 }, { name: "메이플 팬케이크", desc: "메이플 시럽 · 아침 대표", price: 12000 }, { name: "스모크미트 샌드위치", desc: "몬트리올 명물", price: 13000 }],
+    tips: [
+      { cat: "문화", title: "팁", text: "식당 팁 15% 내외, 표시가에 세금 별도." },
+      { cat: "교통", title: "교통", text: "도시 내 대중교통·우버, 도시 간 국내선." },
+      { cat: "안전", title: "날씨", text: "겨울 혹한 대비 방한 필수, 실내외 온도차 큼." },
+    ],
+  },
+  au: {
+    cities: [{ name: "시드니", index: 30 }, { name: "멜버른", index: 26 }, { name: "골드코스트", index: 20 }],
+    foods: [{ name: "미트파이", desc: "고기 파이 · 대표 간식", price: 7000 }, { name: "플랫화이트", desc: "호주식 커피", price: 5000 }, { name: "바라문디", desc: "생선 그릴 · 대표 해산물", price: 22000 }],
+    tips: [
+      { cat: "결제", title: "카드", text: "탭 결제 보편, 팁 문화는 거의 없음." },
+      { cat: "교통", title: "교통", text: "오팔(Opal) 카드로 시드니 교통 통합." },
+      { cat: "안전", title: "자외선", text: "자외선 강함 — 선크림·모자 필수." },
+    ],
+  },
+  nz: {
+    cities: [{ name: "오클랜드", index: 28 }, { name: "퀸스타운", index: 30 }, { name: "웰링턴", index: 24 }],
+    foods: [{ name: "미트파이", desc: "고기 파이 · 국민 간식", price: 7000 }, { name: "피시앤칩스", desc: "해변 대표 한 끼", price: 12000 }, { name: "파블로바", desc: "머랭 디저트 · 국민 디저트", price: 6000 }],
+    tips: [
+      { cat: "안전", title: "자연", text: "트레킹·자연 관광 — 날씨 급변 대비 겉옷." },
+      { cat: "교통", title: "교통", text: "렌터카 여행 보편, 좌측통행 주의." },
+      { cat: "결제", title: "카드", text: "카드 결제 보편, 소액 현금만 준비." },
+    ],
+  },
+  se: {
+    cities: [{ name: "스톡홀름", index: 32 }, { name: "예테보리", index: 26 }, { name: "말뫼", index: 24 }],
+    foods: [{ name: "스웨디시 미트볼", desc: "링곤베리 소스 · 대표 요리", price: 14000 }, { name: "그라브락스", desc: "절인 연어 · 대표 해산물", price: 16000 }, { name: "셈라", desc: "크림 카다멈 빵 · 디저트", price: 6000 }],
+    tips: [
+      { cat: "물가", title: "식비", text: "외식 비싸 — 마트·피카(카페)로 절약." },
+      { cat: "결제", title: "카드", text: "거의 현금 없는 사회, 카드·스위시 필수." },
+      { cat: "교통", title: "교통", text: "SL 카드로 스톡홀름 지하철·버스·페리." },
+    ],
+  },
+  no: {
+    cities: [{ name: "오슬로", index: 40 }, { name: "베르겐", index: 36 }, { name: "트롬쇠", index: 34 }],
+    foods: [{ name: "연어 요리", desc: "노르웨이 연어 · 대표 해산물", price: 25000 }, { name: "시나몬 번", desc: "스칸디 디저트 빵", price: 6000 }, { name: "브루노스트", desc: "갈색 치즈 · 특산 먹거리", price: 8000 }],
+    tips: [
+      { cat: "물가", title: "물가", text: "세계 최고 물가 — 마트 조리·도시락 절약." },
+      { cat: "안전", title: "자연", text: "피오르·오로라 — 방한·우천 대비 철저." },
+      { cat: "결제", title: "카드", text: "카드 결제 보편, 현금 거의 불필요." },
+    ],
+  },
+  dk: {
+    cities: [{ name: "코펜하겐", index: 34 }, { name: "오르후스", index: 28 }, { name: "오덴세", index: 26 }],
+    foods: [{ name: "스뫼레브뢰드", desc: "오픈 샌드위치 · 대표 한 끼", price: 14000 }, { name: "데니시 페이스트리", desc: "덴마크 빵 · 디저트", price: 5000 }, { name: "프리카델러", desc: "덴마크식 미트볼", price: 13000 }],
+    tips: [
+      { cat: "교통", title: "교통", text: "자전거 천국 — 자전거 대여로 도심 이동." },
+      { cat: "결제", title: "카드", text: "카드·모바일 결제 보편, 팁 불필요." },
+      { cat: "물가", title: "식비", text: "외식비 높음 — 마트·베이커리 활용." },
+    ],
+  },
+  mx: {
+    cities: [{ name: "칸쿤", index: -12 }, { name: "멕시코시티", index: -25 }, { name: "과달라하라", index: -30 }],
+    foods: [{ name: "타코", desc: "또띠아 + 고기 · 대표 길거리", price: 3000 }, { name: "부리토", desc: "또띠아 랩 · 든든한 한 끼", price: 5000 }, { name: "과카몰레", desc: "아보카도 딥 · 대표 사이드", price: 4000 }],
+    tips: [
+      { cat: "소매치기", title: "치안", text: "야간 이동 자제, 우버 이용 권장." },
+      { cat: "환전", title: "환전", text: "달러 가져가 현지 환전이 유리." },
+      { cat: "먹거리", title: "길거리", text: "길거리 음식 저렴 — 마실 물은 생수만." },
+    ],
+  },
 };
 
 if (typeof module !== "undefined" && module.exports) module.exports = COUNTRY_DETAIL;

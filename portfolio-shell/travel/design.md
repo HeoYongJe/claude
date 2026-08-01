@@ -60,7 +60,8 @@
 
 ## 6. Fixed Elements (고정 요소)
 1. **상단 진행 바** — `fixed; top:0; height:3px`, Primary 바가 스크롤 진행률 0→100%.
-2. **네비** — `fixed; top:0`, 반투명 흰 배경 + `backdrop-filter:blur(14px)` + 하단 1px 경계.
+2. **네비** — `fixed; top:0`. **최상단(히어로 위)에서는 배경 없음(투명)**, 스크롤하면(`y>30`, main.js가 `.is-scrolled` 토글)
+   반투명 흰 배경 `rgba(255,255,255,.72)` + `backdrop-filter:blur(14px)` + 하단 1px 경계가 `.3s`로 나타남.
    좌: 브랜드 "travel"(22/800/Primary). 우: 링크(소개/추천 랭킹, 15/600/Muted) + Primary 버튼.
 3. **우측 항로 레일** — `fixed; right:40px; top:92px`, 세로 점선(흐르는 dash) + 진행에 따라 채워지는 Primary 실선
    + 하강하는 비행기(글로우 + bob). z-index 45(네비 아래).
@@ -73,7 +74,10 @@
   **밝은 영상이라 히어로 텍스트는 어두운색**: 제목 `#0F172A`(+흰 halo text-shadow), 강조어·eyebrow는 Primary,
   설명 `#334155`, SCROLL `--muted`, eyebrow는 반투명 흰 pill. nav·버튼은 원래 어두운 톤(흰 nav+어두운 글자 / primary·흰 버튼) 유지.
   환율 카드: 흰 배경, radius 24, 상시 그림자, "오늘의 추천" + 변동률 뱃지 + 국가명(국기) + 1,000원 환산 + 설명. 부유 + 마우스 틸트.
-  (영상 파일은 `deploy-tools/deploy-travel.js` FILES에 포함해 닷홈 `/travel/assets/hero/`로 업로드. 구 blob/map/dots 장식은 DOM 잔존.)
+  (영상 파일은 `deploy-tools/deploy-travel.js` FILES에 포함해 닷홈 `/travel/assets/hero/`로 업로드. **도트 지도/도트 배경(`.hero__map`·`.hero__dots`)은
+  구름 영상과 안 어울려 제거**, blob 글로우만 잔존. 하단 SCROLL 텍스트는 스크롤 시작하면 `heroScrollEl`이 opacity로 스르륵 사라짐.)
+  · **히어로 아래 섹션 배경:** 구름 히어로에서 흰색으로 뚝 끊기지 않게 `body`에 아주 연한 블루 세로 그라데이션
+    (`#FFFFFF→#F1F6FF→#EAF1FF→#F4F8FF`). rank·why 섹션 배경은 `transparent`로 두어 흰 카드가 그 위로 떠 보이게 함.
 - **랭킹(흰 배경):** 흰 카드 **3개 균등 그리드**(gap 24, radius 20, 보더 `--border`). 세그먼트 토글(강세·유리 / 약세·불리,
   Surface 컨테이너·활성=흰 pill+그림자). 카드 = 순위 + 변동률 뱃지 + 국가명 26/800(국기) + 환산 문구 + 미니 스파크라인
   + "체감물가 ±xx%" pill(부호 색) + "상세 보기 →". **카드 클릭 → 상세뷰로 슬라이드 전환**.
@@ -83,7 +87,8 @@
 - **나라 상세뷰(`.t-detail`, 랭킹 안에서 전환):** **detail은 흰 면만** — Surface(#f5f8ff) 틴트 전부 제거,
   카드는 `.dcard`(흰 배경+보더). **유일한 컬러 면 = 파란 절약 카드**.
   · 상단: 국기 + 국가명 + 순위 뱃지 + "다른 나라 선택하기 →".
-  · **Row1 `1fr 300px`**: 좌 "주요 품목 체감 물가"(흰 카드 — 아이콘🍔🥤💧 + 이름 + [서울 회색막대/현지 파란막대 + 금액] + 큰 % 부호색)
+  · **Row1 `1fr 300px`**: 좌 "주요 품목 체감 물가"(흰 카드 — 라인아이콘(빅맥=hamburger·콜라=cup-soda·생수=droplet, `ITEM_SVG`, Primary)
+    + 이름 + [서울 회색막대/현지 파란막대 + 금액] + 큰 % 부호색)
     / 우 **파란 절약 카드**(서울 대비 체감 절약 큰 % + 설명 + 전날환율·환율변동·예상절약(추정)).
   · **Row2 `1fr 1fr`**: 추천 도시(라인 리스트) | 대표 먹거리(세로 리스트 행 — 카테고리 라인아이콘 + 번호 01/02/03
     + 이름 + 한 줄 설명 + 가격). 아이콘은 음식명 키워드로 자동 선택(`main.js` `pickFoodIcon`/`FOOD_RULES`+`FOOD_SVG`),
@@ -117,8 +122,11 @@
 - **실데이터:** 전날 환율(수출입은행 API) + 물가(KOTRA API, 국가 단위 빅맥/콜라/생수)를 서버가 계산해 캐시.
   로직은 `lib/ranking.js`(로컬 `server.js` / Vercel `api/ranking.js` 공용). 닷홈은 정적이라 API는 Vercel 서버리스로 분리.
 - **큐레이션 데이터:** 상세뷰의 **추천 도시·대표 먹거리·꿀팁은 API로 못 받는다**(KOTRA는 도시 단위 없음).
-  `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 12개국: jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch).
-  먹거리 항목은 `{ name, desc, price }` — 아이콘은 이름 키워드로 자동 매핑되므로 지정 불필요. 카테고리 확장은 `FOOD_RULES`에 키워드 추가.
+  `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 **22개국** = `currencyCountryMap.js`의 환율·물가 연동국 전체:
+  jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch/us/eu/gb/ca/au/nz/se/no/dk/mx).
+  먹거리 항목은 `{ name, desc, price }` — 아이콘은 이름 키워드로 **15종**(fork·soup·pot·flame·fish·beef·drumstick·sandwich·pizza·
+  croissant·icecream·cake·coffee·drink·salad, 전부 lucide 경로) 중 자동 매핑(`FOOD_RULES`, 위→아래 우선). 카테고리 확장은 규칙에 키워드 추가.
+  (참고: "추적 중인 통화" 스탯도 실제 연동 수 **22개국**으로 표기. 랭킹은 이 중 물가데이터 있는 나라만 계산.)
   나라 추가 = 객체에 항목 하나 추가. 큐레이션 없는 나라 클릭 시 환율·물가는 실데이터로 보이고 도시/먹거리/꿀팁은 "준비 중".
   도시별 "물가 지수 %"는 실측이 아닌 **대표값**.
 - **도시 이미지(자동 수집):** `tools/fetch-city-images.js`가 위키백과 REST/pageimages API로 각 도시 대표 이미지를
