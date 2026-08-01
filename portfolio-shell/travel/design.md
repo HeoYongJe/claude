@@ -66,13 +66,14 @@
    + 하강하는 비행기(글로우 + bob). z-index 45(네비 아래).
 
 ## 7. Components (섹션별)
-- **히어로:** 배경 = **루프 배경 영상**(`.hero__video` — `#0A0F1E` 위 `object-fit:cover` 영상 + 세로·가로 가독성
-  그라디언트 오버레이). `.hero`는 `relative`+`overflow:hidden`, 콘텐츠(`.hero__grid`)는 `z-index:10`으로 영상 위에.
-  루프 경계 하드컷 방지용 진입/종료 **페이드**는 `main.js` `heroVideo()`가 `currentTime` 기준 rAF로 opacity 제어(FADE 0.5s).
-  **다크 배경이라 히어로 텍스트는 밝은색**: 제목 흰색(+text-shadow), 강조어 `#7FA8FF`, 설명/SCROLL 흰색 계열, eyebrow는
-  반투명 흰 pill. (기존 밝은 그라디언트 배경·도트지도에서 교체 — nav·문구·버튼 구조/카피는 유지, 색만 조정)
+- **히어로:** 배경 = **루프 배경 영상**(`.hero__video` — 밝은 하늘 영상 `assets/hero/sky.mp4`, `object-fit:cover` +
+  세로·가로 **흰색** 가독성 그라디언트 오버레이). `.hero`는 `relative`+`overflow:hidden`(배경 `#EBF1FC` 로드 폴백),
+  콘텐츠(`.hero__grid`)는 `z-index:10`으로 영상 위에. 루프 경계 하드컷 방지용 진입/종료 **페이드**는 `main.js`
+  `heroVideo()`가 `currentTime` 기준 rAF로 opacity 제어(FADE 0.5s).
+  **밝은 영상이라 히어로 텍스트는 어두운색**: 제목 `#0F172A`(+흰 halo text-shadow), 강조어·eyebrow는 Primary,
+  설명 `#334155`, SCROLL `--muted`, eyebrow는 반투명 흰 pill. nav·버튼은 원래 어두운 톤(흰 nav+어두운 글자 / primary·흰 버튼) 유지.
   환율 카드: 흰 배경, radius 24, 상시 그림자, "오늘의 추천" + 변동률 뱃지 + 국가명(국기) + 1,000원 환산 + 설명. 부유 + 마우스 틸트.
-  (구 `.hero__blob/.hero__map/.hero__dots` 장식 레이어는 DOM에 남아 영상 위 은은한 글로우로만 보임 — 영상 aria-hidden.)
+  (영상 파일은 `deploy-tools/deploy-travel.js` FILES에 포함해 닷홈 `/travel/assets/hero/`로 업로드. 구 blob/map/dots 장식은 DOM 잔존.)
 - **랭킹(흰 배경):** 흰 카드 **3개 균등 그리드**(gap 24, radius 20, 보더 `--border`). 세그먼트 토글(강세·유리 / 약세·불리,
   Surface 컨테이너·활성=흰 pill+그림자). 카드 = 순위 + 변동률 뱃지 + 국가명 26/800(국기) + 환산 문구 + 미니 스파크라인
   + "체감물가 ±xx%" pill(부호 색) + "상세 보기 →". **카드 클릭 → 상세뷰로 슬라이드 전환**.
