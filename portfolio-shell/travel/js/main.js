@@ -274,12 +274,20 @@
     }).join("");
   }
 
-  // 먹거리: 아이콘 대신 깔끔한 번호(01/02/03).
+  // 먹거리: 음식명 키워드로 카테고리 라인아이콘 자동 선택 + 번호 + 이름 + 한 줄 설명 + 가격.
+  // 도시마다 이미지 준비 없이 { name, desc, price }만 채우면 됨. 아이콘 확장은 FOOD_RULES에 키워드 추가.
   function foodsHtml(code) {
     const dd = DETAIL[code];
     if (!dd || !dd.foods) return `<p class="d-empty">먹거리 정보 준비 중이에요.</p>`;
     return dd.foods.map((f, i) =>
-      `<div class="d-food"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><div><div class="d-food__name">${esc(f.name)}</div><div class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</div></div></div>`
+      `<div class="d-food">
+         <span class="d-food__icon">${pickFoodIcon(f.name)}</span>
+         <div class="d-food__body">
+           <div class="d-food__head"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><span class="d-food__name">${esc(f.name)}</span></div>
+           ${f.desc ? `<div class="d-food__desc">${esc(f.desc)}</div>` : ""}
+         </div>
+         <span class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</span>
+       </div>`
     ).join("");
   }
 
@@ -303,6 +311,28 @@
     문화: "globe", 매너: "globe", 결제: "card", 카드: "card", "VPN": "wifi", 인터넷: "wifi",
     물가: "food", 식비: "food", 먹거리: "food", 야시장: "food", 호커센터: "food", 차찬텡: "food",
   };
+
+  // 먹거리 카테고리 라인 아이콘(라인 SVG, 색은 Primary). 음식명 키워드로 자동 선택.
+  const FOOD_SVG = {
+    fork:   S('<path d="M3 2v7a2 2 0 0 0 2 2 2 2 0 0 0 2-2V2"/><path d="M5 11v11"/><path d="M19 2c-1.7 0-3 1.8-3 4v5a2 2 0 0 0 2 2h1"/><path d="M19 8v14"/>'),
+    soup:   S('<path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M6.5 12a5.5 5.5 0 0 1 11 0"/><path d="M8 6c0-1 .6-1.5.6-2.2M12 5c0-1 .6-1.5.6-2.2M16 6c0-1 .6-1.5.6-2.2"/>'),
+    flame:  S('<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>'),
+    fish:   S('<path d="M17 12c0 3-3.5 5-8 5-3.5 0-6-2-6-5s2.5-5 6-5c4.5 0 8 2 8 5z"/><path d="M17 12l4-3v6z"/><circle cx="7" cy="11" r=".7" fill="currentColor" stroke="none"/>'),
+    cake:   S('<path d="M4 21v-8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8"/><path d="M4 16s.6-1 2-1 2.4 2 4 2 2.6-2 4-2 2.4 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M8 8v3M12 8v3M16 8v3"/><path d="M8 4v.5M12 4v.5M16 4v.5"/>'),
+    coffee: S('<path d="M17 8h1a3.5 3.5 0 0 1 0 7h-1"/><path d="M3 8h14v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v2.5M10 2v2.5M14 2v2.5"/>'),
+  };
+  const FOOD_RULES = [
+    { icon: "flame",  keys: ["구이", "꼬치", "바베큐", "사테", "케밥", "레촌", "덕", "sate", "grill", "kebab", "bbq"] },
+    { icon: "soup",   keys: ["탕", "찌개", "쌀국수", "국수", "면", "라멘", "수프", "똠얌", "훠궈", "soup", "pho", "ramen", "noodle"] },
+    { icon: "fish",   keys: ["회", "생선", "해산물", "스시", "초밥", "크랩", "고등어", "새우", "sushi", "seafood", "crab"] },
+    { icon: "cake",   keys: ["디저트", "케이크", "타르트", "바클라바", "할로할로", "dessert", "cake", "tart"] },
+    { icon: "coffee", keys: ["커피", "버블티", "밀크티", "음료", "coffee", "tea", "latte"] },
+  ];
+  function pickFoodIcon(name) {
+    const n = String(name).toLowerCase();
+    for (const r of FOOD_RULES) if (r.keys.some((k) => n.includes(k.toLowerCase()))) return FOOD_SVG[r.icon];
+    return FOOD_SVG.fork; // 기본 (밥/볶음 등)
+  }
 
   function tipsHtml(code) {
     const dd = DETAIL[code];
