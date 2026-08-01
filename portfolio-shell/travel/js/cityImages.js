@@ -25,8 +25,31 @@ const CITY_IMAGES = {
   "홍콩섬": "https://images.unsplash.com/photo-1678110721308-a08ed05a7938?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8SG9uZyUyMEtvbmd8ZW58MXwwfHx8MTc4NTU3MjE3NHww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
   "구룡": "https://images.unsplash.com/photo-1507941097613-9f2157b69235?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8S293bG9vbiUyMEhvbmclMjBLb25nfGVufDF8MHx8fDE3ODU1NzIxNzV8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
   "마카오": "https://images.unsplash.com/photo-1708580175277-6c171e822f94?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8TWFjYXV8ZW58MXwwfHx8MTc4NTU3MjE3Nnww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
-  "상하이": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8U2hhbmdoYWl8ZW58MXwwfHx8MTc4NTU3MjE3Nnww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg"
+  "상하이": "https://images.unsplash.com/photo-1538428494232-9c0d8a3ab403?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8U2hhbmdoYWl8ZW58MXwwfHx8MTc4NTU3MjE3Nnww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "베이징": "https://images.unsplash.com/photo-1584872589930-e99fe5bf4408?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8QmVpamluZ3xlbnwxfDB8fHwxNzg1NTc2MzAxfDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "청두": "https://images.unsplash.com/photo-1693858325816-b7a7c1066838?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8Q2hlbmdkdXxlbnwxfDB8fHwxNzg1NTc2MzAyfDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "쿠알라룸푸르": "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8S3VhbGElMjBMdW1wdXJ8ZW58MXwwfHx8MTc4NTU3NjMwM3ww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "코타키나발루": "https://images.unsplash.com/flagged/photo-1554998383-0aad9e0ec470?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8S290YSUyMEtpbmFiYWx1fGVufDF8MHx8fDE3ODU1NzYzMDN8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "페낭": "https://images.unsplash.com/photo-1620488212381-dea91f7dd69a?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8UGVuYW5nfGVufDF8MHx8fDE3ODU1NzYzMDR8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "이스탄불": "https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8SXN0YW5idWx8ZW58MXwwfHx8MTc4NTU3NjMwNXww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "카파도키아": "https://images.unsplash.com/photo-1604156789095-3348604c0f43?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8Q2FwcGFkb2NpYXxlbnwxfDB8fHwxNzg1NTc2MzA1fDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "안탈리아": "https://images.unsplash.com/photo-1593238739364-18cfde30e522?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8QW50YWx5YXxlbnwxfDB8fHwxNzg1NTc2MzA2fDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "취리히": "https://images.unsplash.com/photo-1620563092215-0fbc6b55cfc5?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8WnVyaWNofGVufDF8MHx8fDE3ODU1NzYzMDd8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "인터라켄": "https://images.unsplash.com/photo-1605825856823-cabe105ab0af?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8SW50ZXJsYWtlbnxlbnwxfDB8fHwxNzg1NTc2MzA3fDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "루체른": "https://images.unsplash.com/photo-1565182242096-16033e7f1260?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8THVjZXJuZXxlbnwxfDB8fHwxNzg1NTc2MzA4fDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg"
 };
 // 사진 크레딧(Unsplash 작가) — 필요 시 표기용.
-const CITY_IMAGE_CREDIT = {};
+const CITY_IMAGE_CREDIT = {
+  "베이징": "Victor He",
+  "청두": "Xingchen Yan",
+  "쿠알라룸푸르": "Esmonde Yong",
+  "코타키나발루": "Andy Wang",
+  "페낭": "ONG WEI",
+  "이스탄불": "Anna Berdnik",
+  "카파도키아": "Timur Garifov",
+  "안탈리아": "Atıf Zafrak",
+  "취리히": "Henrique Ferreira",
+  "인터라켄": "Tucker Monticelli",
+  "루체른": "Geertje Caliguire"
+};
 if (typeof module !== "undefined" && module.exports) module.exports = CITY_IMAGES;
