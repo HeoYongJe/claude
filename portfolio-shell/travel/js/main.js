@@ -261,11 +261,13 @@
     return dd.cities.map((ci) => {
       const cheaper = ci.index <= 0;
       const col = cheaper ? "#EF4444" : "#767676";
-      // 우선순위: 수동 지정 ci.img → 자동 수집 CITY_IMG[도시명] → (없으면) 그라데이션 폴백.
+      // 우선순위: 수동 지정 ci.img → 자동 수집 CITY_IMG[도시명] → (없거나 로드 실패 시) 도시 아이콘 + '이미지 준비중'.
       const imgSrc = ci.img || CITY_IMG[ci.name] || "";
+      const placeholder = `<div class="d-city__ph">${CITY_PH_SVG}<span>이미지 준비중</span></div>`;
+      // img가 뜨면 플레이스홀더를 덮고, onerror로 img 제거 시 밑의 플레이스홀더가 드러난다.
       const thumbImg = imgSrc ? `<img src="${esc(imgSrc)}" alt="" loading="lazy" onerror="this.remove()">` : "";
       return `<div class="d-city">
-        <div class="d-city__thumb">${thumbImg}</div>
+        <div class="d-city__thumb">${placeholder}${thumbImg}</div>
         <div class="d-city__body">
           <div class="d-city__name">${esc(ci.name)}</div>
           <div class="d-city__idx">물가 지수 <b style="color:${col}">${ci.index > 0 ? "+" + ci.index : ci.index}%</b></div>
@@ -334,6 +336,9 @@
     for (const r of FOOD_RULES) if (r.keys.some((k) => n.includes(k.toLowerCase()))) return FOOD_SVG[r.icon];
     return FOOD_SVG.fork; // 기본 (밥/볶음 등)
   }
+
+  // 도시 썸네일 폴백 아이콘(lucide building-2). 이미지 없거나 로드 실패 시 '이미지 준비중'과 함께 표시.
+  const CITY_PH_SVG = S('<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4M10 10h4M10 14h4M10 18h4"/>');
 
   function tipsHtml(code) {
     const dd = DETAIL[code];
@@ -494,6 +499,26 @@
     ents.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("is-revealed"); io.unobserve(en.target); } });
   }, { threshold: 0.15 });
   root.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
+
+  // ---- 히어로 배경 영상: 루프 진입/종료 구간 페이드(하드컷 방지) ----
+  (function heroVideo() {
+    const v = document.querySelector(".hero__video-el");
+    if (!v) return;
+    const FADE = 0.5; // 초
+    v.play().catch(() => {});
+    const tick = () => {
+      const d = v.duration;
+      if (d && !isNaN(d)) {
+        const t = v.currentTime;
+        let o = 1;
+        if (t < FADE) o = t / FADE;
+        else if (t > d - FADE) o = Math.max(0, (d - t) / FADE);
+        v.style.opacity = o.toFixed(3);
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  })();
 
   loadRanking();
 })();
