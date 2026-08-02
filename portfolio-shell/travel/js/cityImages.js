@@ -86,8 +86,17 @@ const CITY_IMAGES = {
   "데브레첸": "https://images.unsplash.com/photo-1705697356051-57e3943d932a?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8RGVicmVjZW58ZW58MXwwfHx8MTc4NTY3Mjc0MXww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
   "세게드": "https://images.unsplash.com/photo-1588175834375-ef11cdcb7276?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8U3plZ2VkfGVufDF8MHx8fDE3ODU2NzI3NDF8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
   "예루살렘": "https://images.unsplash.com/photo-1614517453351-6c1522fc7a56?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8SmVydXNhbGVtfGVufDF8MHx8fDE3ODU2NzI3NDJ8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
-  "텔아비브": "https://images.unsplash.com/photo-1500990702037-7620ccb6a60a?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8VGVsJTIwQXZpdnxlbnwxfDB8fHwxNzg1NjcyNzQzfDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg"
+  "텔아비브": "https://images.unsplash.com/photo-1500990702037-7620ccb6a60a?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8VGVsJTIwQXZpdnxlbnwxfDB8fHwxNzg1NjcyNzQzfDA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "하이파": "https://images.unsplash.com/photo-1618415112966-7470b0828f2f?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8SGFpZmElMjBJc3JhZWx8ZW58MXwwfHx8MTc4NTY5MDcxOXww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "부쿠레슈티": "https://images.unsplash.com/photo-1654529046084-a38c42b6920f?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8QnVjaGFyZXN0fGVufDF8MHx8fDE3ODU2OTA3MTl8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "브라쇼브": "https://images.unsplash.com/photo-1560235043-5ca64ce84fdf?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8QnJhc292fGVufDF8MHx8fDE3ODU2OTA3MjB8MA&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg",
+  "시비우": "https://images.unsplash.com/photo-1456491882918-2bc1929963f6?ixid=M3wxMDEzNDM3fDB8MXxzZWFyY2h8MXx8U2liaXV8ZW58MXwwfHx8MTc4NTY5MDcyMXww&ixlib=rb-4.1.0&w=500&h=340&fit=crop&crop=entropy&q=80&fm=jpg"
 };
 // 사진 크레딧(Unsplash 작가) — 필요 시 표기용.
-const CITY_IMAGE_CREDIT = {};
+const CITY_IMAGE_CREDIT = {
+  "하이파": "Piotr Musioł",
+  "부쿠레슈티": "at",
+  "브라쇼브": "Maria Teneva",
+  "시비우": "Alisa Anton"
+};
 if (typeof module !== "undefined" && module.exports) module.exports = CITY_IMAGES;

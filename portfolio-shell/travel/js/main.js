@@ -209,7 +209,16 @@
       badge.style.color = color;
       rcard.querySelector(".rc-name").innerHTML =
         flagImg(d.code, 30, 22) + `<span style="vertical-align:middle;">${esc(d.name)}</span>`;
-      rcard.querySelector(".rc-rate").textContent = d.rate;
+      const rateEl = rcard.querySelector(".rc-rate");
+      rateEl.textContent = d.rate;
+      // 익숙한 시세 표기("100엔 = 917.60원")를 rc-rate 아래 작은 줄로.
+      let rate2 = rcard.querySelector(".rc-rate2");
+      if (!rate2) {
+        rate2 = document.createElement("p");
+        rate2.className = "rc-rate2";
+        rateEl.parentNode.insertBefore(rate2, rateEl.nextSibling);
+      }
+      rate2.textContent = d.krwPer || "";
       const cut = rcard.querySelector(".rc-cut");
       if (d.savePct != null) {
         // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
@@ -424,6 +433,8 @@
     // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
     // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.
     detail.querySelector(".d-rate").textContent = d.rate;
+    const krwPerEl = detail.querySelector(".d-krwper");
+    if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
     const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
     const label = detail.querySelector(".d-save-label");

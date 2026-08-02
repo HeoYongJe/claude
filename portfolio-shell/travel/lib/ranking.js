@@ -184,12 +184,14 @@ function seriesMetrics(series, currentDate, meta, unitMult) {
       return `${x},${y}`;
     })
     .join(" ");
-  const foreignPer1000 = (1000 * (unitMult || 1)) / current;
+  const mult = unitMult || 1;
+  const foreignPer1000 = (1000 * mult) / current;
   const recv =
     foreignPer1000 >= 100
       ? `${Math.round(foreignPer1000).toLocaleString("ko-KR")}${meta.unit}`
       : `${foreignPer1000.toFixed(1)}${meta.unit}`;
-  return { code: meta.code, name: meta.country, changePct, current, is3moLow, line, rate: `1,000원 = ${recv}`, recv };
+  const krwPer = `${mult}${meta.unit} = ${current.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원`;
+  return { code: meta.code, name: meta.country, changePct, current, is3moLow, line, rate: `1,000원 = ${recv}`, recv, krwPer };
 }
 
 // ---------- 랭킹 계산 ----------
@@ -262,6 +264,8 @@ async function buildRanking() {
       foreignPer1000 >= 100
         ? `${Math.round(foreignPer1000).toLocaleString("ko-KR")}${meta.unit}`
         : `${foreignPer1000.toFixed(1)}${meta.unit}`;
+    // 익숙한 시세 표기: "100엔 = 917.60원" / "1달러 = 1,350.5원" (current = multiplier단위당 원화)
+    const krwPer = `${multiplier}${meta.unit} = ${current.toLocaleString("ko-KR", { maximumFractionDigits: 2 })}원`;
 
     results.push({
       code: meta.code,
@@ -272,6 +276,7 @@ async function buildRanking() {
       line,
       rate: `1,000원 = ${recv}`,
       recv,
+      krwPer,
     });
   }
 
@@ -330,6 +335,7 @@ async function buildRanking() {
       code: r.code,
       rate: r.rate,
       recv: r.recv,
+      krwPer: r.krwPer,
       is3moLow: r.is3moLow,
       changePct: Number(r.changePct.toFixed(1)),
       line: r.line,

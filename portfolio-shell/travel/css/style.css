@@ -137,6 +137,7 @@ ul, ol { list-style: none; padding: 0; }
 .rc-name { font-size: 26px; font-weight: 800; margin-top: 22px; display: flex; align-items: center; gap: 10px; }
 .rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
 .rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
+.rc-rate2 { font-size: 14px; color: var(--muted2); margin-top: 3px; }
 .rc-spark { width: 100%; height: 44px; margin-top: 18px; display: block; }
 /* 스파크라인 그리기 애니메이션: 초기엔 감춰두고 화면 진입 시 채운다 */
 .rc-line { transition: stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1); }
@@ -389,4 +390,33 @@ ul, ol { list-style: none; padding: 0; }
   .hero__title { font-size: 44px; }
   .section-title { font-size: 30px; }
   .cta__title { font-size: 32px; }
+}
+
+/* ---- 모바일(폰) 세부: 380px 기준 ---- */
+@media (max-width: 560px) {
+  /* 주요 품목 물가: [아이콘·이름·%] 한 줄 + 비교 막대는 아래 풀너비(고정폭 그리드 넘침 방지) */
+  .d-item { grid-template-columns: 28px 1fr auto; grid-template-areas: "icon name pct" "cmp cmp cmp"; column-gap: 10px; row-gap: 10px; }
+  .d-item__icon { grid-area: icon; }
+  .d-item__name { grid-area: name; }
+  .d-item__pct { grid-area: pct; }
+  .d-item__cmp { grid-area: cmp; }
+  .d-item + .d-item { margin-top: 18px; }
+  /* 상세 헤더: 대표 환율숫자 조금 축소, 카드 패딩 축소 */
+  .detail__name { font-size: 26px; }
+  .detail__fx-val { font-size: 24px; }
+  .dcard { padding: 20px 18px; }
+  .d-savecard { padding: 22px 20px; }
+  .detail__price { gap: 16px; }
+  .detail__cols { gap: 16px; }
+  /* 추천 도시 3열은 유지하되 간격 축소 */
+  .d-cities { gap: 8px; }
+  .d-city__thumb { height: 88px; }
+  /* 히어로 타이틀 폰 크기 */
+  .hero__title { font-size: 38px; }
+  .section-title { font-size: 26px; }
+  .nav__inner { padding: 14px 18px; }
+  .hero__grid { padding: 88px 18px 40px; }
+  .rank { padding: 72px 0 64px; }
+  .rank__inner { padding: 0 18px; }
+  .why { padding: 72px 0; }
 }
