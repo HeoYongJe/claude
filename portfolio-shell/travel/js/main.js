@@ -304,9 +304,8 @@
     }).join("");
   }
 
-  // 먹거리: 음식명 키워드로 카테고리 라인아이콘 자동 선택 + 번호 + 이름 + 한 줄 설명 + 가격.
+  // 먹거리: 음식명 키워드로 카테고리 라인아이콘 자동 선택 + 이름 + 한 줄 설명 + 가격.
   // 도시마다 이미지 준비 없이 { name, desc, price }만 채우면 됨. 아이콘 확장은 FOOD_RULES에 키워드 추가.
-  // <div class="d-food__head"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><span class="d-food__name">${esc(f.name)}</span></div> 대표먹거리 숫자
   function foodsHtml(code) {
     const dd = DETAIL[code];
     if (!dd || !dd.foods) return `<p class="d-empty">먹거리 정보 준비 중이에요.</p>`;
@@ -314,6 +313,7 @@
       `<div class="d-food">
          <span class="d-food__icon">${pickFoodIcon(f.name)}</span>
          <div class="d-food__body">
+           <div class="d-food__name">${esc(f.name)}</div>
            ${f.desc ? `<div class="d-food__desc">${esc(f.desc)}</div>` : ""}
          </div>
          <span class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</span>
