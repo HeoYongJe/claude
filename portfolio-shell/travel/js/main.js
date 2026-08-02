@@ -365,18 +365,18 @@
   const FOOD_RULES = [
     { icon: "fish",      keys: ["회", "생선", "해산물", "스시", "초밥", "크랩", "고등어", "새우", "연어", "그라브락스", "바라문디", "피시앤칩스", "sushi", "seafood", "crab", "salmon"] },
     { icon: "pot",       keys: ["전골", "샤브", "훠궈", "퐁뒤", "라클렛", "핫팟", "hotpot", "fondue"] },
-    { icon: "soup",      keys: ["탕", "찌개", "쌀국수", "국수", "면", "라멘", "수프", "똠얌", "파스타", "락사", "pho", "ramen", "noodle", "soup", "pasta"] },
+    { icon: "soup",      keys: ["탕", "찌개", "쌀국수", "국수", "면", "라멘", "수프", "똠얌", "파스타", "락사", "굴라시", "비고스", "페이조아다", "pho", "ramen", "noodle", "soup", "pasta"] },
     { icon: "drumstick", keys: ["치킨", "닭", "윙", "chicken", "drumstick"] },
-    { icon: "flame",     keys: ["구이", "꼬치", "바베큐", "사테", "케밥", "레촌", "덕", "분짜", "grill", "kebab", "bbq", "satay"] },
+    { icon: "flame",     keys: ["구이", "꼬치", "바베큐", "사테", "케밥", "레촌", "덕", "분짜", "슈하스코", "브라이", "미티테이", "grill", "kebab", "bbq", "satay"] },
     { icon: "sandwich",  keys: ["샌드위치", "버거", "반미", "타코", "부리토", "랩", "스뫼레브뢰드", "핫도그", "burger", "sandwich", "taco", "burrito", "hotdog"] },
-    { icon: "beef",      keys: ["미트볼", "미트", "스테이크", "규카츠", "프리카델러", "beef", "steak", "meatball"] },
+    { icon: "beef",      keys: ["미트볼", "미트", "스테이크", "규카츠", "프리카델러", "보보티", "빌통", "스비치코바", "beef", "steak", "meatball"] },
     { icon: "pizza",     keys: ["피자", "pizza"] },
     { icon: "croissant", keys: ["크루아상", "크로와상", "데니시", "번", "페이스트리", "croissant"] },
     { icon: "icecream",  keys: ["아이스크림", "젤라또", "빙수", "파블로바", "할로할로", "gelato"] },
-    { icon: "cake",      keys: ["케이크", "타르트", "바클라바", "스콘", "셈라", "팬케이크", "망고", "디저트", "빵", "cake", "tart", "scone"] },
+    { icon: "cake",      keys: ["케이크", "타르트", "바클라바", "스콘", "셈라", "팬케이크", "망고", "디저트", "빵", "브리가데이루", "폰치키", "트르델니크", "도보스", "파파나시", "cake", "tart", "scone"] },
     { icon: "coffee",    keys: ["커피", "플랫화이트", "라떼", "coffee", "latte"] },
     { icon: "drink",     keys: ["버블티", "밀크티", "음료", "콜라", "소다", "juice", "soda", "tea"] },
-    { icon: "salad",     keys: ["샐러드", "과카몰레", "salad"] },
+    { icon: "salad",     keys: ["샐러드", "과카몰레", "후무스", "salad"] },
   ];
   function pickFoodIcon(name) {
     const n = String(name).toLowerCase();

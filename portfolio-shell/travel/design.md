@@ -157,8 +157,8 @@
   ⚠️ **베트남·대만(VND·TWD)은 ECB에도 없고 무료 과거데이터 소스가 없어 여전히 제외** — 큐레이션 전용. (넣으려면 유료/타 환율 API 필요.)
   ⚠️ **API(lib/api) 변경 시 Vercel 재배포 필요**: `cd portfolio-shell/travel && npx vercel --prod`(CLI 로그인·프로젝트 링크 상태, 인증키는 Vercel 환경변수).
 - **큐레이션 데이터:** 상세뷰의 **추천 도시·대표 먹거리·꿀팁은 API로 못 받는다**(KOTRA는 도시 단위 없음).
-  `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 **22개국** = `currencyCountryMap.js`의 환율·물가 연동국 전체:
-  jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch/us/eu/gb/ca/au/nz/se/no/dk/mx).
+  `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 **30개국**:
+  jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch/us/eu/gb/ca/au/nz/se/no/dk/mx + 2026-08-02 ECB 추가분 in/br/za/pl/cz/hu/il/ro).
   먹거리 항목은 `{ name, desc, price }` — 아이콘은 이름 키워드로 **15종**(fork·soup·pot·flame·fish·beef·drumstick·sandwich·pizza·
   croissant·icecream·cake·coffee·drink·salad, 전부 lucide 경로) 중 자동 매핑(`FOOD_RULES`, 위→아래 우선). 카테고리 확장은 규칙에 키워드 추가.
   (참고: "추적 중인 통화" 스탯도 실제 연동 수 **22개국**으로 표기. 랭킹은 이 중 물가데이터 있는 나라만 계산.)

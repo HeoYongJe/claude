@@ -205,6 +205,78 @@ const COUNTRY_DETAIL = {
       { cat: "먹거리", title: "길거리", text: "길거리 음식 저렴 — 마실 물은 생수만." },
     ],
   },
+  in: {
+    cities: [{ name: "델리", index: -35 }, { name: "뭄바이", index: -28 }, { name: "자이푸르", index: -45 }],
+    foods: [{ name: "버터치킨", desc: "부드러운 커리 · 대표 요리", price: 8000 }, { name: "사모사", desc: "감자 튀김 만두 · 길거리 간식", price: 1500 }, { name: "마살라 도사", desc: "쌀 크레페 · 남인도 대표", price: 4000 }],
+    tips: [
+      { cat: "환전", title: "환전", text: "공항보다 시내 환전소가 환율 유리." },
+      { cat: "교통", title: "교통", text: "우버·올라 앱으로, 오토릭샤는 흥정 필수." },
+      { cat: "안전", title: "위생", text: "생수만 마시고 길거리 음식은 익힌 것 위주로." },
+    ],
+  },
+  br: {
+    cities: [{ name: "리우데자네이루", index: -8 }, { name: "상파울루", index: -5 }, { name: "살바도르", index: -18 }],
+    foods: [{ name: "슈하스코", desc: "숯불 바비큐 고기 · 대표", price: 20000 }, { name: "페이조아다", desc: "콩·돼지고기 스튜 · 국민 음식", price: 12000 }, { name: "브리가데이루", desc: "초콜릿 트러플 · 디저트", price: 3000 }],
+    tips: [
+      { cat: "소매치기", title: "치안", text: "야간·해변가 소지품 주의, 고가품 노출 자제." },
+      { cat: "환전", title: "환전", text: "달러 가져가 현지 환전, 카드 병행." },
+      { cat: "교통", title: "교통", text: "우버가 택시보다 안전·저렴." },
+    ],
+  },
+  za: {
+    cities: [{ name: "케이프타운", index: -20 }, { name: "요하네스버그", index: -25 }, { name: "더반", index: -28 }],
+    foods: [{ name: "브라이", desc: "남아공식 숯불 바비큐 · 대표", price: 18000 }, { name: "보보티", desc: "다진고기 커스터드 구이 · 가정식", price: 13000 }, { name: "빌통", desc: "말린 소고기 육포 · 간식", price: 6000 }],
+    tips: [
+      { cat: "안전", title: "치안", text: "야간 도보 이동 자제, 렌터카·투어 위주로." },
+      { cat: "교통", title: "교통", text: "렌터카 여행 보편, 좌측통행 주의." },
+      { cat: "문화", title: "사파리", text: "사파리는 예약 필수, 이른 아침이 명당." },
+    ],
+  },
+  pl: {
+    cities: [{ name: "바르샤바", index: -18 }, { name: "크라쿠프", index: -25 }, { name: "그단스크", index: -22 }],
+    foods: [{ name: "피에로기", desc: "속 채운 만두 · 국민 음식", price: 7000 }, { name: "비고스", desc: "양배추·고기 스튜", price: 9000 }, { name: "폰치키", desc: "잼 도넛 · 디저트", price: 2500 }],
+    tips: [
+      { cat: "환전", title: "환전", text: "칸토르(환전소)가 공항보다 환율 유리." },
+      { cat: "교통", title: "교통", text: "트램·버스 편리, 도시 간 열차도 저렴." },
+      { cat: "카드", title: "결제", text: "카드 결제 보편, 소액 즈워티만 현금." },
+    ],
+  },
+  cz: {
+    cities: [{ name: "프라하", index: -12 }, { name: "체스키크룸로프", index: -20 }, { name: "브르노", index: -18 }],
+    foods: [{ name: "굴라시", desc: "고기 스튜 · 대표(빵과 함께)", price: 11000 }, { name: "스비치코바", desc: "소고기 크림소스 · 가정식", price: 13000 }, { name: "트르델니크", desc: "구운 도넛 페이스트리 · 디저트", price: 4000 }],
+    tips: [
+      { cat: "환전", title: "환전", text: "길거리 환전 사기 주의 — 공식 환전소 이용." },
+      { cat: "물가", title: "식비", text: "맥주가 물보다 싼 편, 로컬 식당 가성비 좋음." },
+      { cat: "교통", title: "교통", text: "프라하는 도보·트램으로 충분." },
+    ],
+  },
+  hu: {
+    cities: [{ name: "부다페스트", index: -15 }, { name: "데브레첸", index: -25 }, { name: "세게드", index: -22 }],
+    foods: [{ name: "굴라시", desc: "파프리카 소고기 수프 · 국민 음식", price: 10000 }, { name: "랑고스", desc: "튀긴 감자빵 · 길거리 대표", price: 4000 }, { name: "도보스토르테", desc: "캐러멜 층 케이크 · 디저트", price: 5000 }],
+    tips: [
+      { cat: "문화", title: "온천", text: "세체니 등 온천 목욕은 부다페스트 명물." },
+      { cat: "환전", title: "환전", text: "시내 환전소가 유리, 유로보다 포린트 현금." },
+      { cat: "교통", title: "교통", text: "지하철·트램 편리, 도나우 유람선도 인기." },
+    ],
+  },
+  il: {
+    cities: [{ name: "예루살렘", index: 25 }, { name: "텔아비브", index: 35 }, { name: "하이파", index: 20 }],
+    foods: [{ name: "후무스", desc: "병아리콩 딥 · 대표", price: 8000 }, { name: "팔라펠", desc: "병아리콩 튀김 · 길거리 대표", price: 6000 }, { name: "샥슈카", desc: "토마토 소스 달걀 · 아침 대표", price: 10000 }],
+    tips: [
+      { cat: "안전", title: "보안", text: "공항·명소 보안검색 엄격 — 시간 여유 두기." },
+      { cat: "문화", title: "안식일", text: "금요일 저녁~토요일 상점·교통 상당수 중단." },
+      { cat: "문화", title: "복장", text: "종교 유적 방문 시 노출 적은 복장." },
+    ],
+  },
+  ro: {
+    cities: [{ name: "부쿠레슈티", index: -30 }, { name: "브라쇼브", index: -35 }, { name: "시비우", index: -32 }],
+    foods: [{ name: "미티테이", desc: "숯불 다진고기 소시지 · 대표", price: 7000 }, { name: "사르말레", desc: "양배추 고기말이 · 명절 음식", price: 9000 }, { name: "파파나시", desc: "치즈 도넛 · 디저트", price: 4000 }],
+    tips: [
+      { cat: "환전", title: "환전", text: "시내 환전소(casa de schimb) 이용, 레우 현금." },
+      { cat: "교통", title: "교통", text: "도시 간 열차·버스, 트란실바니아는 렌터카 편리." },
+      { cat: "문화", title: "관광", text: "브란성(드라큘라성)은 브라쇼브 근교." },
+    ],
+  },
 };
 
 if (typeof module !== "undefined" && module.exports) module.exports = COUNTRY_DETAIL;
