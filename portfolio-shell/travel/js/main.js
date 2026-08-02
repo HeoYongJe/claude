@@ -298,6 +298,7 @@
 
   // 먹거리: 음식명 키워드로 카테고리 라인아이콘 자동 선택 + 번호 + 이름 + 한 줄 설명 + 가격.
   // 도시마다 이미지 준비 없이 { name, desc, price }만 채우면 됨. 아이콘 확장은 FOOD_RULES에 키워드 추가.
+  // <div class="d-food__head"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><span class="d-food__name">${esc(f.name)}</span></div> 대표먹거리 숫자
   function foodsHtml(code) {
     const dd = DETAIL[code];
     if (!dd || !dd.foods) return `<p class="d-empty">먹거리 정보 준비 중이에요.</p>`;
@@ -305,7 +306,6 @@
       `<div class="d-food">
          <span class="d-food__icon">${pickFoodIcon(f.name)}</span>
          <div class="d-food__body">
-           <div class="d-food__head"><span class="d-food__num">${String(i + 1).padStart(2, "0")}</span><span class="d-food__name">${esc(f.name)}</span></div>
            ${f.desc ? `<div class="d-food__desc">${esc(f.desc)}</div>` : ""}
          </div>
          <span class="d-food__price">약 ${f.price.toLocaleString("ko-KR")}원</span>
@@ -412,21 +412,19 @@
       fxVal.style.color = dirColor((d.changePct == null ? 0 : d.changePct) >= 0);
     }
 
-    // 파란 카드 (텍스트 전부 흰색 — 방향은 ▲▼·± 기호로 표현)
-    // 대표(대형) 숫자 = 환율 이득(변동), 서울 대비 체감 절약%는 그 아래 보조 텍스트.
-    const fxbig = detail.querySelector(".d-fxbig");
-    if (fxbig) fxbig.textContent = d.badge;
+    // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
+    // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.
     detail.querySelector(".d-rate").textContent = d.rate;
 
-    const sub = detail.querySelector(".d-savesub");        // 보조: 서울 대비 체감 절약/부담
+    const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
+    const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const save = detail.querySelector(".d-save");           // 예상 절약 금액
     const warn = detail.querySelector(".d-savecard__warn");
     if (d.savePct != null) {
       const cheaper = d.savePct >= 0;
-      if (sub) sub.textContent = cheaper
-        ? `서울 대비 체감 절약 ${Math.abs(d.savePct)}%`
-        : `서울 대비 물가 부담 ${Math.abs(d.savePct)}%`;
+      idx.textContent = Math.abs(d.savePct);
+      label.textContent = cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담";
       desc.textContent = cheaper
         ? `같은 돈으로 ${d.name}에서 더 여유롭게 여행할 수 있어요.`
         : `${d.name}은 서울보다 물가가 높은 편이에요.`;
@@ -439,7 +437,8 @@
         else warn.hidden = true;
       }
     } else {
-      if (sub) sub.textContent = "체감 물가 데이터 없음";
+      idx.textContent = "—";
+      label.textContent = "서울 대비 체감 절약";
       desc.textContent = "물가 데이터가 없어요.";
       save.textContent = "—";
       if (warn) warn.hidden = true;
