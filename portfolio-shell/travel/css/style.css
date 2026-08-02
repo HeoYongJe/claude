@@ -350,14 +350,18 @@ ul, ol { list-style: none; padding: 0; }
 .t-modal__close { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 15px; font-weight: 700; }
 .t-modal__close:hover { background: #E9EFFB; color: var(--ink); }
 .t-modal__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.t-mcountry { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.t-mcountry { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
 .t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
-.t-mcountry__name { font-size: 14px; font-weight: 800; color: var(--ink); flex: 1; min-width: 0; }
-.t-mcountry__badge { font-size: 12px; font-weight: 800; flex: none; }
-.t-mcountry__flag-off { font-size: 11px; font-weight: 700; color: var(--muted2); flex: none; }
+.t-mcountry__rank { flex: none; width: 20px; font-size: 12px; font-weight: 800; color: var(--muted2); text-align: center; }
+.t-mcountry__main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.t-mcountry__name { font-size: 14px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-mcountry__rate { font-size: 11.5px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-mcountry__metrics { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.t-mcountry__badge { font-size: 13px; font-weight: 800; }
+.t-mcountry__cut { font-size: 11px; font-weight: 700; }
+.t-mcountry__cut--none { color: var(--muted2); }
 .t-mcountry.is-rank { cursor: pointer; }
 .t-mcountry.is-rank:hover { border-color: var(--primary); box-shadow: 0 10px 24px -14px rgba(15,23,42,.3); transform: translateY(-2px); }
-.t-mcountry.is-off { opacity: .7; cursor: default; }
 
 /* ---- 반응형 ---- */
 @media (max-width: 900px) {

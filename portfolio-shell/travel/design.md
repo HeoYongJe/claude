@@ -120,8 +120,9 @@
 - **서비스 소개(why, 히어로 바로 다음·랭킹 앞):** "왜 이 서비스가 필요할까요?" + 3카드(환율만 보면 손해 / 체감 물가로 진짜 이득 /
   매일 갱신). Surface 카드 + 라인 아이콘. (2026-08-02 랭킹 뒤 → 랭킹 앞으로 이동.)
 - **전체 랭킹 팝업(`.t-modal`):** "전체 랭킹 보기 →"(요약 띠)·"다른 나라 선택하기"(상세 head) 둘 다 이 팝업을 연다.
-  **추적 통화 22개국**을 그리드로 표시(`js/currencyCountryMap.js`의 `CURRENCY_COUNTRY_MAP` → 브라우저에도 로드). 순위권 나라(강세+약세)는
-  환율변동 뱃지(방향색)와 함께 **클릭 시 해당 상세로 전환**, 나머지는 "순위권 밖"으로 표시(비활성). 오버레이·✕·Esc로 닫기.
+  **전체 국가를 환율 이득 순으로** 나열(API `all`) — 각 행 = 순위 + 국기 + 이름 + 1,000원 환산 + 환율변동 뱃지(방향색) + 체감물가.
+  **모든 나라 클릭 → 해당 상세로 전환**(상세가 열려 있어도 `openDetail`이 내용만 교체). 오버레이·✕·Esc로 닫기.
+  (API `all`/`counts` 없으면 강세+약세 top으로 폴백.)
 - **기준일 표기(공통):** `main.js` `setBasis(currentDate)` 한 곳에서 랭킹 basis(`.t-rank-basis`)·푸터(`.foot-basis`)를 동시에 채움.
   실데이터(currentDate) 있으면 실제 기준일 표시, **"샘플" 문구는 사용 안 함**.
 
@@ -148,6 +149,10 @@
 - 그 외 아이콘: 인라인 라인 SVG. 색은 라인(블랙) 또는 Primary만.
 - **실데이터:** 전날 환율(수출입은행 API) + 물가(KOTRA API, 국가 단위 빅맥/콜라/생수)를 서버가 계산해 캐시.
   로직은 `lib/ranking.js`(로컬 `server.js` / Vercel `api/ranking.js` 공용). 닷홈은 정적이라 API는 Vercel 서버리스로 분리.
+  **API 응답:** `strong`/`weak`(top3) + **`all`(전체 국가 랭킹, 환율이득 내림차순)** + **`counts`{tracked,strong,weak,avgSave}**
+  + `cities`(**전체 국가** 물가데이터 — 어느 나라 상세든 품목 막대·절약률 표시) + `seoul`. 요약 스탯은 `counts`/`all`로 실시간 채움(하드코딩 제거).
+  ⚠️ 수출입은행 AP01은 일부 통화(VND·TWD·PHP·TRY·MXN)를 안 줘서 **환율 시계열이 있는 나라만 랭킹에 포함**(현재 ~17개국). currencyCountryMap 22개국과 다를 수 있음.
+  ⚠️ **API(lib/api) 변경 시 Vercel 재배포 필요**: `cd portfolio-shell/travel && npx vercel --prod`(CLI 로그인·프로젝트 링크 상태, 인증키는 Vercel 환경변수).
 - **큐레이션 데이터:** 상세뷰의 **추천 도시·대표 먹거리·꿀팁은 API로 못 받는다**(KOTRA는 도시 단위 없음).
   `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 **22개국** = `currencyCountryMap.js`의 환율·물가 연동국 전체:
   jp/vn/th/tw/ph/id/sg/hk/cn/my/tr/ch/us/eu/gb/ca/au/nz/se/no/dk/mx).

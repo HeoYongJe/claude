@@ -240,12 +240,16 @@ async function buildRanking() {
 
   const strong = results.filter((r) => r.changePct > 0).sort((a, b) => b.changePct - a.changePct);
   const weak = results.filter((r) => r.changePct < 0).sort((a, b) => a.changePct - b.changePct);
+  // 전체 랭킹: 환율 이득(강세율) 내림차순 — 강세 상위 → 약세 하위 순.
+  const allSorted = results.slice().sort((a, b) => b.changePct - a.changePct);
 
-  // 물가 섹션 탭 = 강세 top3 중 물가 데이터가 있는 나라
+  // 물가 데이터: 전체 나라(데이터 있는) 모두 담는다 → 전체 국가 상세뷰 품목 막대·절약률용.
   const cities = {};
-  for (const r of strong.slice(0, 3)) {
+  const saveVals = [];
+  for (const r of results) {
     const p = priceInfo(r.code);
     if (!p) continue;
+    saveVals.push(p.savePct);
     cities[r.code] = {
       name: r.name,
       label: r.name,
@@ -256,11 +260,14 @@ async function buildRanking() {
       savePct: p.savePct,
     };
   }
+  const avgSave = saveVals.length ? Math.round(saveVals.reduce((a, b) => a + b, 0) / saveVals.length) : null;
 
   return {
     currentDate,
     strong: strong.slice(0, 3).map(toCard),
     weak: weak.slice(0, 3).map(toCard),
+    all: allSorted.map(toCard), // 전체 국가 랭킹(순위=배열 순서)
+    counts: { tracked: results.length, strong: strong.length, weak: weak.length, avgSave },
     cities,
     seoul: SEOUL_PRICE,
   };

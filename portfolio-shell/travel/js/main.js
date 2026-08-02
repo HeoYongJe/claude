@@ -9,6 +9,8 @@
   // 랭킹·물가(국가별)·서울 기준가는 서버(/api/ranking)에서 실데이터로 받아온다.
   // CITYDATA[code] = {name,bigmac,cola,water,fx,savePct} (강세 top3 등 물가 데이터 있는 나라)
   let RANKDATA = { strong: [], weak: [] };
+  let ALLDATA = [];               // 전체 국가 랭킹(환율 이득 내림차순)
+  let COUNTS = null;              // { tracked, strong, weak, avgSave }
   let CITYDATA = {};
   let SEOULDATA = { bigmac: 5500, cola: 2000, water: 1000 };
 
@@ -402,12 +404,13 @@
   }
 
   function populateDetail(d) {
-    const strong = state.rmode === "strong";
+    // 순위 라벨은 그 나라의 환율 방향으로(강세=환율 이득 / 약세=원화 약세). state.rmode 아님.
+    const strong = (d.changePct == null ? 0 : d.changePct) >= 0;
     detail.querySelector(".detail__flag").innerHTML =
       `<img src="https://flagcdn.com/${d.code}.svg" alt="" onerror="this.style.display='none'">`;
     detail.querySelector(".detail__name").textContent = d.name;
     const rankEl = detail.querySelector(".detail__rank");
-    rankEl.textContent = strong ? `환율 이득 ${d.num}위` : `약세 ${d.num}위`;
+    rankEl.textContent = strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`;
     rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
     rankEl.style.background = "#F1F5F9";
 
@@ -530,6 +533,36 @@
     if (footBasis) footBasis.textContent = fmt ? `환율·물가 데이터 · 기준일 ${fmt} (전날 종가)` : "환율·물가 데이터 · 전날 종가 기준";
   }
 
+  // ---- 요약 통계: 실제 카운트로 채움(하드코딩 제거) ----
+  function updateSummary() {
+    if (!COUNTS) return;
+    const vals = root.querySelectorAll(".summary__stats .stat__val");
+    const labels = root.querySelectorAll(".summary__stats .stat__label");
+    if (vals[0]) vals[0].textContent = `${COUNTS.tracked}개국`;
+    // 강세/약세 개수
+    if (COUNTS.weak > 0) {
+      if (labels[1]) labels[1].textContent = "원화 강세 · 약세";
+      if (vals[1]) { vals[1].textContent = `강세 ${COUNTS.strong} · 약세 ${COUNTS.weak}`; vals[1].style.color = ""; }
+    } else {
+      if (labels[1]) labels[1].textContent = "이번 주 원화 강세";
+      if (vals[1]) vals[1].textContent = `${COUNTS.strong}개국`;
+    }
+    // 3번째 = 체감물가 최대 절약(가장 유리한 나라 기준) — 데이터 있는 나라 중 최댓값.
+    const saves = (ALLDATA || []).map((d) => d.savePct).filter((v) => v != null);
+    if (vals[2] && saves.length) {
+      const maxSave = Math.max(...saves);
+      if (maxSave >= 0) {
+        if (labels[2]) labels[2].textContent = "체감물가 최대 절약";
+        vals[2].textContent = `−${maxSave}%`;
+        vals[2].style.color = DIR_DOWN;
+      } else {
+        if (labels[2]) labels[2].textContent = "체감물가 최소 부담";
+        vals[2].textContent = `+${-maxSave}%`;
+        vals[2].style.color = DIR_UP;
+      }
+    }
+  }
+
   // ---- /api/ranking 로드 ----
   async function loadRanking() {
     try {
@@ -537,9 +570,12 @@
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
       RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
+      ALLDATA = data.all || [];
+      COUNTS = data.counts || null;
       CITYDATA = data.cities || {};
       if (data.seoul) SEOULDATA = data.seoul;
       setBasis(data.currentDate);
+      updateSummary();
       renderRank(state.rmode);
       updateHero();
     } catch (e) {
@@ -583,39 +619,41 @@
   const modalGrid = modal && modal.querySelector(".t-modal__grid");
   const modalCount = modal && modal.querySelector(".t-modal__count");
   const CCMAP = (typeof CURRENCY_COUNTRY_MAP !== "undefined") ? CURRENCY_COUNTRY_MAP : {};
-  const trackedCountries = Object.values(CCMAP); // [{country, code, unit}, ...]
 
-  function rankedByCode() {
-    // 현재 랭킹에 있는 나라(강세+약세)를 code로 찾을 수 있게 매핑
-    const m = {};
-    [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])].forEach((d) => { m[d.code] = d; });
-    return m;
+  // 전체 랭킹(ALLDATA)이 있으면 그걸로, 없으면(구 API) 강세+약세 top으로 폴백.
+  function modalList() {
+    if (ALLDATA && ALLDATA.length) return ALLDATA;
+    return [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])];
   }
 
   function renderModal() {
     if (!modalGrid) return;
-    if (modalCount) modalCount.textContent = `${trackedCountries.length}개국`;
-    const ranked = rankedByCode();
-    modalGrid.innerHTML = trackedCountries.map((c) => {
-      const d = ranked[c.code];
-      if (d) {
-        const up = (d.changePct == null ? 0 : d.changePct) >= 0;
-        return `<button class="t-mcountry is-rank" data-code="${esc(c.code)}" type="button">
-          ${flagImg(c.code, 26, 19)}
-          <span class="t-mcountry__name">${esc(c.country)}</span>
-          <span class="t-mcountry__badge" style="color:${dirColor(up)}">${esc(d.badge)}</span>
-        </button>`;
-      }
-      return `<div class="t-mcountry is-off">
-        ${flagImg(c.code, 26, 19)}
-        <span class="t-mcountry__name">${esc(c.country)}</span>
-        <span class="t-mcountry__flag-off">순위권 밖</span>
-      </div>`;
+    const list = modalList();
+    if (modalCount) modalCount.textContent = `${list.length}개국`;
+    modalGrid.innerHTML = list.map((d, i) => {
+      const up = (d.changePct == null ? 0 : d.changePct) >= 0;
+      const cutHtml = d.savePct != null
+        ? `<span class="t-mcountry__cut" style="color:${dirColor(d.savePct < 0)}">체감 ${pctText(d.savePct)}</span>`
+        : `<span class="t-mcountry__cut t-mcountry__cut--none">체감 —</span>`;
+      return `<button class="t-mcountry is-rank" data-code="${esc(d.code)}" type="button">
+        <span class="t-mcountry__rank">${i + 1}</span>
+        ${flagImg(d.code, 26, 19)}
+        <span class="t-mcountry__main">
+          <span class="t-mcountry__name">${esc(d.name)}</span>
+          <span class="t-mcountry__rate">${esc(d.rate || "")}</span>
+        </span>
+        <span class="t-mcountry__metrics">
+          <span class="t-mcountry__badge" style="color:${dirColor(up)}">${esc(d.badge || "")}</span>
+          ${cutHtml}
+        </span>
+      </button>`;
     }).join("");
-    // 순위권 나라 클릭 → 해당 상세뷰(열려 있으면 전환)
+    // 나라 클릭 → 해당 상세뷰(열려 있으면 전환)
+    const byCode = {};
+    list.forEach((d) => { byCode[d.code] = d; });
     modalGrid.querySelectorAll(".t-mcountry.is-rank").forEach((el) => {
       el.addEventListener("click", () => {
-        const d = rankedByCode()[el.dataset.code];
+        const d = byCode[el.dataset.code];
         if (!d) return;
         closeModal();
         openDetail(d);
