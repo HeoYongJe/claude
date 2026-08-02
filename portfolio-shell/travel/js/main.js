@@ -567,12 +567,20 @@
     }
   }
 
-  // ---- /api/ranking 로드 ----
-  async function loadRanking() {
+  // ---- /api/ranking 로드 (타임아웃 + 재시도로 콜드스타트/지연에 견고) ----
+  // 한 번 fetch(신호로 timeoutMs 넘으면 중단). Vercel 콜드스타트가 느려도 UI가 멈추지 않게 한다.
+  function fetchRankingOnce(timeoutMs) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    return fetch(`${API_BASE}/api/ranking`, { signal: ctrl.signal, cache: "no-store" })
+      .then((res) => { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+      .finally(() => clearTimeout(t));
+  }
+
+  async function loadRanking(attempt = 0) {
+    const setCard0 = (txt) => { const el = root.querySelector('.t-rcard[data-slot="0"] .rc-name'); if (el) el.textContent = txt; };
     try {
-      const res = await fetch(`${API_BASE}/api/ranking`);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
+      const data = await fetchRankingOnce(20000);
       RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
       ALLDATA = data.all || [];
       COUNTS = data.counts || null;
@@ -583,9 +591,14 @@
       renderRank(state.rmode);
       updateHero();
     } catch (e) {
-      console.error("랭킹 로드 실패", e);
-      const nameEl = root.querySelector('.t-rcard[data-slot="0"] .rc-name');
-      if (nameEl) nameEl.textContent = "불러오지 못했어요";
+      console.error("랭킹 로드 실패", e, "시도", attempt + 1);
+      if (attempt < 3) {
+        // 콜드스타트로 첫 요청이 느리면, 잠시 후 재시도(그때는 서버 캐시가 데워져 빠르게 온다).
+        setCard0("불러오는 중… 재시도");
+        setTimeout(() => loadRanking(attempt + 1), 1800 * (attempt + 1));
+      } else {
+        setCard0("불러오지 못했어요 — 새로고침해 주세요");
+      }
     }
   }
 

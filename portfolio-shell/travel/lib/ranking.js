@@ -39,28 +39,27 @@ function parseYmd(ymd) {
 function fetchRatesForDate(dateStr, attempt = 0) {
   return new Promise((resolve) => {
     const url = `${EXIM_API_URL}?authkey=${EXIM_AUTH_KEY}&searchdate=${dateStr}&data=AP01`;
-    https
-      .get(url, (r) => {
-        if (r.statusCode !== 200) {
-          r.resume();
-          return attempt < 2 ? resolve(fetchRatesForDate(dateStr, attempt + 1)) : resolve([]);
+    const retry = () => (attempt < 2 ? resolve(fetchRatesForDate(dateStr, attempt + 1)) : resolve([]));
+    const req = https.get(url, (r) => {
+      if (r.statusCode !== 200) {
+        r.resume();
+        return retry();
+      }
+      let body = "";
+      r.on("data", (c) => (body += c));
+      r.on("end", () => {
+        let arr = [];
+        try {
+          const j = JSON.parse(body);
+          if (Array.isArray(j)) arr = j.filter((x) => x.result === 1);
+        } catch (e) {
+          /* 파싱 실패는 빈 배열 취급 */
         }
-        let body = "";
-        r.on("data", (c) => (body += c));
-        r.on("end", () => {
-          let arr = [];
-          try {
-            const j = JSON.parse(body);
-            if (Array.isArray(j)) arr = j.filter((x) => x.result === 1);
-          } catch (e) {
-            /* 파싱 실패는 빈 배열 취급 */
-          }
-          resolve(arr);
-        });
-      })
-      .on("error", () => {
-        attempt < 2 ? resolve(fetchRatesForDate(dateStr, attempt + 1)) : resolve([]);
+        resolve(arr);
       });
+    });
+    req.on("error", retry);
+    req.setTimeout(7000, () => req.destroy(new Error("timeout"))); // 행 방지: 7s 넘으면 끊고 재시도
   });
 }
 
@@ -93,30 +92,29 @@ function fetchKotraPrices(seq, attempt = 0) {
     const url = `${KOTRA_API_URL}?serviceKey=${encodeURIComponent(
       KOTRA_SERVICE_KEY
     )}&type=json&numOfRows=100&pageNo=1&prcsCritSeq=${seq}`;
-    https
-      .get(url, (r) => {
-        let body = "";
-        r.on("data", (c) => (body += c));
-        r.on("end", () => {
-          const map = {};
-          try {
-            const items = JSON.parse(body).response.body.itemList.item || [];
-            for (const it of items) {
-              const v = Number(it.cmdltAmt);
-              if (Number.isFinite(v)) map[it.isoWd2NatCd] = v;
-            }
-          } catch (e) {
-            /* 실패 시 빈 맵 → 아래에서 재시도 */
+    const retry = () => (attempt < 2 ? resolve(fetchKotraPrices(seq, attempt + 1)) : resolve({}));
+    const req = https.get(url, (r) => {
+      let body = "";
+      r.on("data", (c) => (body += c));
+      r.on("end", () => {
+        const map = {};
+        try {
+          const items = JSON.parse(body).response.body.itemList.item || [];
+          for (const it of items) {
+            const v = Number(it.cmdltAmt);
+            if (Number.isFinite(v)) map[it.isoWd2NatCd] = v;
           }
-          if (Object.keys(map).length === 0 && attempt < 2) {
-            return resolve(fetchKotraPrices(seq, attempt + 1));
-          }
-          resolve(map);
-        });
-      })
-      .on("error", () => {
-        attempt < 2 ? resolve(fetchKotraPrices(seq, attempt + 1)) : resolve({});
+        } catch (e) {
+          /* 실패 시 빈 맵 → 아래에서 재시도 */
+        }
+        if (Object.keys(map).length === 0 && attempt < 2) {
+          return resolve(fetchKotraPrices(seq, attempt + 1));
+        }
+        resolve(map);
       });
+    });
+    req.on("error", retry);
+    req.setTimeout(8000, () => req.destroy(new Error("timeout"))); // 행 방지
   });
 }
 
@@ -141,26 +139,25 @@ const ECB_COUNTRIES = {
 function fetchEcbRange(startD, endD, symbols, attempt = 0) {
   return new Promise((resolve) => {
     const url = `https://api.frankfurter.dev/v1/${startD}..${endD}?base=KRW&symbols=${symbols}`;
-    https
-      .get(url, (r) => {
-        if (r.statusCode !== 200) {
-          r.resume();
-          return attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({});
+    const retry = () => (attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({}));
+    const req = https.get(url, (r) => {
+      if (r.statusCode !== 200) {
+        r.resume();
+        return retry();
+      }
+      let body = "";
+      r.on("data", (c) => (body += c));
+      r.on("end", () => {
+        try {
+          const j = JSON.parse(body);
+          resolve(j && j.rates ? j.rates : {});
+        } catch (e) {
+          resolve({});
         }
-        let body = "";
-        r.on("data", (c) => (body += c));
-        r.on("end", () => {
-          try {
-            const j = JSON.parse(body);
-            resolve(j && j.rates ? j.rates : {});
-          } catch (e) {
-            resolve({});
-          }
-        });
-      })
-      .on("error", () => {
-        attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({});
       });
+    });
+    req.on("error", retry);
+    req.setTimeout(7000, () => req.destroy(new Error("timeout"))); // 행 방지
   });
 }
 
