@@ -40,10 +40,7 @@
   const rankSecEl = document.getElementById("rank");
   const railLen = 784;
 
-  if (railTrail) {
-    railTrail.style.strokeDasharray = railLen;
-    railTrail.style.strokeDashoffset = railLen;
-  }
+  // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
 
   // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
   const render = () => {
@@ -64,8 +61,10 @@
     if (prog) prog.style.width = gp * 100 + "%";
 
     if (railTrail && planeWrap) {
-      railTrail.style.strokeDashoffset = railLen * (1 - gp);
-      const topPx = ((8 + gp * 784) / 800) * railEl.clientHeight;
+      // 아래(792)에서 위로 채워지는 점선 + 채워진 선의 끝을 따라 위로 올라가는 비행기(스크롤 역방향)
+      const y2 = 792 - gp * 784;
+      railTrail.setAttribute("y2", y2.toFixed(1));
+      const topPx = (y2 / 800) * railEl.clientHeight;
       planeWrap.style.top = topPx.toFixed(1) + "px";
     }
 

@@ -57,12 +57,17 @@ ul, ol { list-style: none; padding: 0; }
 .t-progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
 .t-progress { height: 100%; width: 0%; background: var(--primary); }
 
-/* ---- 항로 레일: 은은한 푸른 점선(솔리드 채움·비행기 제거로 튀지 않게) ---- */
+/* ---- 항로 레일: 평소 거의 안보이는 항로 + 비행기, 스크롤 시 은은한 푸른 점선이 아래→위로 채워짐 ---- */
 .t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
 .t-rail svg { width: 100%; height: 100%; overflow: visible; }
-.t-rail-path { stroke: rgba(14,74,235,.28); animation: t-dashflow 2.6s linear infinite; }
-.t-rail-trail { display: none; }   /* 솔리드 파란 채움선 제거 */
-.t-planewrap { display: none; }    /* 비행기 제거(너무 튐) */
+.t-rail-path { stroke: rgba(14,74,235,.12); animation: t-dashflow 2.6s linear infinite; }          /* 스크롤 전 거의 안보이는 항로 */
+.t-rail-trail { stroke: rgba(14,74,235,.5); stroke-width: 2.5; stroke-dasharray: 1.5 8; stroke-linecap: round; }  /* 채워지는 은은한 푸른 점선 */
+.t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: top; }
+.t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(14,74,235,.14), rgba(14,74,235,0) 70%); }
+.t-plane { position: relative; width: 28px; height: 28px; color: var(--primary); filter: drop-shadow(0 6px 10px rgba(14,74,235,.28)); animation: t-planebob 3s ease-in-out infinite; }
+.t-plane svg { display: block; }
+/* 1080px 이하(태블릿·모바일)에서는 항로 레일 숨김(콘텐츠 방해) */
+@media (max-width: 1080px) { .t-rail { display: none; } }
 
 /* ---- 네비 ---- */
 /* 최상단(히어로 위)에서는 배경 없음, 스크롤하면 반투명 배경이 생김 (.is-scrolled는 main.js에서 토글) */
