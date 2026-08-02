@@ -169,14 +169,16 @@
     <!-- 나라 클릭 시 열리는 상세뷰 -->
     <div class="t-detail" hidden aria-hidden="true">
       <div class="detail__head">
-        <div class="detail__country">
-          <span class="detail__flag"></span>
-          <h3 class="detail__name"></h3>
-          <span class="detail__rank"></span>
-        </div>
-        <div class="detail__fx">
-          <span class="detail__fx-label">전날 대비 환율</span>
-          <b class="detail__fx-val"></b>
+        <div class="detail__headL">
+          <div class="detail__country">
+            <span class="detail__flag"></span>
+            <h3 class="detail__name"></h3>
+            <span class="detail__rank"></span>
+          </div>
+          <div class="detail__fx">
+            <span class="detail__fx-label">전날 대비 환율</span>
+            <b class="detail__fx-val"></b>
+          </div>
         </div>
         <button class="t-detail-back" type="button">다른 나라 선택하기 <span aria-hidden="true">→</span></button>
       </div>
@@ -188,13 +190,13 @@
           <div class="d-items"></div>
         </div>
         <aside class="d-savecard">
-          <div class="d-savecard__label d-save-label">서울 대비 체감 절약</div>
-          <div class="d-savecard__big"><b class="d-index">0</b><span class="d-savecard__pct">%</span></div>
+          <div class="d-savecard__label">전날 대비 환율 이득</div>
+          <div class="d-savecard__big"><b class="d-fxbig"></b></div>
+          <p class="d-savecard__sub d-savesub"></p>
           <p class="d-savecard__desc d-save-desc"></p>
           <div class="d-savecard__warn" hidden></div>
           <div class="d-savecard__div"></div>
           <div class="d-savecard__row"><span>1,000원 환산</span><b class="d-rate"></b></div>
-          <div class="d-savecard__row"><span>환율 변동</span><b class="d-fx"></b></div>
           <div class="d-savecard__row"><span>예상 절약(추정)</span><b class="d-save"></b></div>
         </aside>
       </div>

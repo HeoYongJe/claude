@@ -87,19 +87,7 @@
   };
   render();
 
-  // ---- 히어로 마우스 틸트 ----
-  const heroCard = root.querySelector(".t-fxcard");
-  if (hero && heroCard) {
-    hero.addEventListener("mousemove", (e) => {
-      const r = hero.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      heroCard.style.transform = `rotateY(${(px * 10).toFixed(2)}deg) rotateX(${(-py * 10).toFixed(2)}deg)`;
-    });
-    hero.addEventListener("mouseleave", () => {
-      heroCard.style.transform = "rotateY(0deg) rotateX(0deg)";
-    });
-  }
+  // (히어로 카드 마우스 틸트 효과 제거 — 뒤틀림 없이 정적으로 둔다)
 
   // ---- 카드/버튼 호버 ----
   root.querySelectorAll(".t-rcard").forEach((el) => {
@@ -281,7 +269,7 @@
         <span class="d-item__name">${label}</span>
         <div class="d-item__cmp">
           <div class="d-cmp__row"><span class="d-cmp__label">서울</span><span class="d-cmp__track"><span class="d-cmp__fill d-cmp__fill--seoul" data-w="${wSeoul}"></span></span><span class="d-cmp__amt d-cmp__amt--seoul">${won(seoul)}</span></div>
-          <div class="d-cmp__row"><span class="d-cmp__label">${esc(local)}</span><span class="d-cmp__track"><span class="d-cmp__fill" data-w="${wLocal}"></span></span><span class="d-cmp__amt">${won(price)}</span></div>
+          <div class="d-cmp__row"><span class="d-cmp__label">${esc(local)}</span><span class="d-cmp__track"><span class="d-cmp__fill" data-w="${wLocal}" style="background:${dirColor(pctNum > 0)}"></span></span><span class="d-cmp__amt">${won(price)}</span></div>
         </div>
         <span class="d-item__pct" style="color:${pcol}">${pctNum > 0 ? "+" + pct : pct}%</span>
       </div>`;
@@ -424,19 +412,21 @@
       fxVal.style.color = dirColor((d.changePct == null ? 0 : d.changePct) >= 0);
     }
 
-    // 파란 절약 카드 (텍스트 전부 흰색 — 카드 내부는 ±·▲▼ 기호로 방향 표현)
+    // 파란 카드 (텍스트 전부 흰색 — 방향은 ▲▼·± 기호로 표현)
+    // 대표(대형) 숫자 = 환율 이득(변동), 서울 대비 체감 절약%는 그 아래 보조 텍스트.
+    const fxbig = detail.querySelector(".d-fxbig");
+    if (fxbig) fxbig.textContent = d.badge;
     detail.querySelector(".d-rate").textContent = d.rate;
-    detail.querySelector(".d-fx").textContent = d.badge;
 
-    const idx = detail.querySelector(".d-index");        // 보조 지표(절약률)
-    const label = detail.querySelector(".d-save-label");
+    const sub = detail.querySelector(".d-savesub");        // 보조: 서울 대비 체감 절약/부담
     const desc = detail.querySelector(".d-save-desc");
-    const save = detail.querySelector(".d-save");         // 예상 절약 금액
+    const save = detail.querySelector(".d-save");           // 예상 절약 금액
     const warn = detail.querySelector(".d-savecard__warn");
     if (d.savePct != null) {
       const cheaper = d.savePct >= 0;
-      idx.textContent = Math.abs(d.savePct);
-      label.textContent = cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담";
+      if (sub) sub.textContent = cheaper
+        ? `서울 대비 체감 절약 ${Math.abs(d.savePct)}%`
+        : `서울 대비 물가 부담 ${Math.abs(d.savePct)}%`;
       desc.textContent = cheaper
         ? `같은 돈으로 ${d.name}에서 더 여유롭게 여행할 수 있어요.`
         : `${d.name}은 서울보다 물가가 높은 편이에요.`;
@@ -449,8 +439,7 @@
         else warn.hidden = true;
       }
     } else {
-      idx.textContent = "—";
-      label.textContent = "서울 대비 체감 절약";
+      if (sub) sub.textContent = "체감 물가 데이터 없음";
       desc.textContent = "물가 데이터가 없어요.";
       save.textContent = "—";
       if (warn) warn.hidden = true;

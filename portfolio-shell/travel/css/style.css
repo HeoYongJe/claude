@@ -94,11 +94,12 @@ ul, ol { list-style: none; padding: 0; }
 .hero__title em { color: var(--primary); font-style: normal; }
 .hero__desc { font-size: 18px; line-height: 1.6; color: #334155; margin-top: 24px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
-.hero__cardwrap { perspective: 1000px; animation: t-float 6s ease-in-out infinite; }
+.hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
 .hero__scroll { position: absolute; z-index: 10; bottom: 32px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .1em; }
 
 /* 환율 카드(오늘의 추천) */
-.t-fxcard { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: 0 40px 80px -30px rgba(15,23,42,.28); transition: transform .2s ease-out; transform-style: preserve-3d; }
+/* 반투명 흰 배경 + 블러 → 뒤 구름 영상이 은은하게 비침(텍스트 가독성 유지). 틸트 제거. */
+.t-fxcard { background: rgba(255,255,255,.66); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.55); border-radius: 24px; padding: 28px; box-shadow: 0 40px 80px -30px rgba(15,23,42,.28); }
 .fxcard__top { display: flex; justify-content: space-between; align-items: center; }
 .fxcard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .t-hero-badge { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--surface); padding: 5px 10px; border-radius: 999px; }
@@ -116,8 +117,9 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 랭킹 섹션 ---- */
 /* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
-.rank { position: relative; overflow: hidden; padding: 96px 24px 88px; background: transparent; }
-.rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; width: 100%; }
+/* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1080+24 정렬선) */
+.rank { position: relative; overflow: hidden; padding: 96px 0 88px; background: transparent; }
+.rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
 .rank__headR { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
@@ -232,21 +234,24 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
 .rank { transition: background .5s ease; }
-.rank.is-detail { background: #fff; }              /* 상세뷰는 흰 배경 */
+.rank.is-detail { background: #fff; padding-top: 32px; }   /* 상세뷰: 흰 배경 + 상단 여백 축소(헤더가 네비 바로 아래에서 시작) */
 .t-rankview { transition: opacity .45s ease, transform .45s ease; }
 .t-rankview.is-out { opacity: 0; transform: translateY(-28px); pointer-events: none; }
 .t-detail { opacity: 0; transform: translateY(30px); transition: opacity .5s ease, transform .5s ease; color: var(--ink); }
 .t-detail.is-in { opacity: 1; transform: none; }
 
 .detail__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.detail__country { display: flex; align-items: center; gap: 12px; margin-right: auto; }
+/* head: 좌(나라+환율) 그룹 | 우 '다른 나라 선택하기' */
+.detail__head { align-items: flex-start; }
+.detail__headL { display: flex; flex-direction: column; gap: 12px; }
+.detail__country { display: flex; align-items: center; gap: 12px; }
 .detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); display: block; }
 .detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
 .detail__rank { font-size: 13px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
-/* 상단 대표 숫자 = 전날 대비 환율 변동 (방향 색은 JS에서) */
-.detail__fx { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+/* 대표 숫자 = 전날 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
+.detail__fx { display: flex; align-items: baseline; gap: 8px; }
 .detail__fx-label { font-size: 12px; font-weight: 700; color: var(--muted2); }
-.detail__fx-val { font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.detail__fx-val { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
 .t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
 .t-detail-back:hover { color: var(--primary-dark); }
 
@@ -283,10 +288,13 @@ ul, ol { list-style: none; padding: 0; }
 /* 파란 절약 카드 (detail 유일 컬러 면) */
 .d-savecard { background: var(--primary); color: #fff; border-radius: 20px; padding: 28px 26px; }
 .d-savecard__label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.75); }
+/* 대표(대형) 숫자 = 환율 이득 */
 .d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 8px; }
-.d-savecard__big b { font-size: 34px; font-weight: 800; line-height: 1; }
+.d-savecard__big b { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
 .d-savecard__pct { font-size: 18px; font-weight: 800; }
-.d-savecard__desc { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,.82); margin-top: 12px; }
+/* 보조 텍스트 = 서울 대비 체감 절약/부담 % (작게) */
+.d-savecard__sub { font-size: 13.5px; font-weight: 700; color: rgba(255,255,255,.9); margin-top: 10px; }
+.d-savecard__desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.78); margin-top: 8px; }
 /* 환율 유리·물가 비쌈 경고 라벨(파란 카드 안, 흰 톤 유지) */
 .d-savecard__warn { margin-top: 14px; font-size: 12.5px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
 .d-savecard__warn[hidden] { display: none; }
