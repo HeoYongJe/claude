@@ -196,7 +196,7 @@
           <div class="d-savecard__warn" hidden></div>
           <div class="d-savecard__div"></div>
           <div class="d-savecard__row"><span>1,000원 환산</span><b class="d-rate"></b></div>
-          <div class="d-savecard__row"><span>예상 절약(추정)</span><b class="d-save"></b></div>
+          <div class="d-savecard__row"><span class="d-save-caption">예상 절약(추정)</span><b class="d-save"></b></div>
         </aside>
       </div>
 
@@ -228,8 +228,24 @@
     <span class="foot-basis">환율·물가 데이터 · 전날 종가 기준</span>
   </footer>
 
+  <!-- 전체 랭킹(추적 중인 통화 국가) 팝업 -->
+  <div class="t-modal" hidden aria-hidden="true">
+    <div class="t-modal__overlay" data-modal-close></div>
+    <div class="t-modal__panel" role="dialog" aria-modal="true" aria-label="추적 중인 통화 국가">
+      <div class="t-modal__head">
+        <div>
+          <div class="t-modal__title">추적 중인 통화 <span class="t-modal__count"></span></div>
+          <div class="t-modal__sub">환율·물가를 매일 추적하는 나라예요. 순위권 나라를 누르면 상세로 이동합니다.</div>
+        </div>
+        <button class="t-modal__close" type="button" aria-label="닫기" data-modal-close>✕</button>
+      </div>
+      <div class="t-modal__grid"></div>
+    </div>
+  </div>
+
 </div>
 
+<script src="js/currencyCountryMap.js"></script>
 <script src="js/countryDetail.js"></script>
 <script src="js/cityImages.js"></script>
 <script src="js/main.js"></script>

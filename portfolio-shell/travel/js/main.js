@@ -119,6 +119,12 @@
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const pctText = (p) => `${p >= 0 ? "−" + p : "+" + -p}%`; // 체감물가: 절약(양수)을 −로 표기
+  // 받침 유무로 은/는 조사 선택 (예: "스위스는", "일본은")
+  const josaEunNeun = (w) => {
+    const s = String(w); const c = s.charCodeAt(s.length - 1);
+    const hasJong = c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0;
+    return hasJong ? "은" : "는";
+  };
 
   // ── 증감 수치 색: 방향(오름/내림)만 담당 (좋다/나쁘다 의미는 텍스트 라벨로) ──
   // 화면에 보이는 부호 기준: 오름(+, ▲) = 빨강 / 내림(−, ▼) = 파랑. 예외 없이 모든 지표에 동일 적용.
@@ -419,7 +425,8 @@
     const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
-    const save = detail.querySelector(".d-save");           // 예상 절약 금액
+    const save = detail.querySelector(".d-save");           // 예상 절약/추가지출 금액
+    const saveCap = detail.querySelector(".d-save-caption"); // 예상 절약/추가지출 라벨
     const warn = detail.querySelector(".d-savecard__warn");
     if (d.savePct != null) {
       const cheaper = d.savePct >= 0;
@@ -427,10 +434,12 @@
       label.textContent = cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담";
       desc.textContent = cheaper
         ? `같은 돈으로 ${d.name}에서 더 여유롭게 여행할 수 있어요.`
-        : `${d.name}은 서울보다 물가가 높은 편이에요.`;
+        : `${d.name}${josaEunNeun(d.name)} 서울보다 물가가 높은 편이에요.`;
       const amt = Math.round((BASELINE_7D * d.savePct) / 100 / 1000) * 1000;
+      // 비싼 나라는 '절약'이 아니라 '추가 지출'로 라벨·값을 정합적으로 표기(문구 깨짐 방지).
+      if (saveCap) saveCap.textContent = cheaper ? "예상 절약(추정)" : "예상 추가 지출(추정)";
       save.textContent = amt > 0 ? `약 ${amt.toLocaleString("ko-KR")}원`
-        : amt < 0 ? `약 ${(-amt).toLocaleString("ko-KR")}원 더` : "서울과 비슷";
+        : amt < 0 ? `약 ${(-amt).toLocaleString("ko-KR")}원` : "서울과 비슷";
       // 환율은 유리하나 현지 물가가 비싼 나라: 경고 라벨 노출(숨기지 않음)
       if (warn) {
         if (!cheaper) { warn.hidden = false; warn.textContent = "환율은 유리하나 현지 물가는 높은 편이에요."; }
@@ -440,6 +449,7 @@
       idx.textContent = "—";
       label.textContent = "서울 대비 체감 절약";
       desc.textContent = "물가 데이터가 없어요.";
+      if (saveCap) saveCap.textContent = "예상 절약(추정)";
       save.textContent = "—";
       if (warn) warn.hidden = true;
     }
@@ -467,7 +477,15 @@
   };
 
   function openDetail(d) {
-    if (!d || !detail || detailOpen) return;
+    if (!d || !detail) return;
+    // 이미 상세가 열려 있으면(다른 나라 보는 중) 내용만 교체해 언제든 전환 가능하게.
+    if (detailOpen) {
+      clearTimeout(detailTimer);
+      populateDetail(d);
+      animateDetailBars();
+      scrollToRank();
+      return;
+    }
     detailOpen = true;
     clearTimeout(detailTimer);
     populateDetail(d);
@@ -560,8 +578,75 @@
       openDetail(d);
     });
   });
+  // ---- 전체 랭킹(추적 통화 국가) 팝업 ----
+  const modal = document.querySelector(".t-modal");
+  const modalGrid = modal && modal.querySelector(".t-modal__grid");
+  const modalCount = modal && modal.querySelector(".t-modal__count");
+  const CCMAP = (typeof CURRENCY_COUNTRY_MAP !== "undefined") ? CURRENCY_COUNTRY_MAP : {};
+  const trackedCountries = Object.values(CCMAP); // [{country, code, unit}, ...]
+
+  function rankedByCode() {
+    // 현재 랭킹에 있는 나라(강세+약세)를 code로 찾을 수 있게 매핑
+    const m = {};
+    [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])].forEach((d) => { m[d.code] = d; });
+    return m;
+  }
+
+  function renderModal() {
+    if (!modalGrid) return;
+    if (modalCount) modalCount.textContent = `${trackedCountries.length}개국`;
+    const ranked = rankedByCode();
+    modalGrid.innerHTML = trackedCountries.map((c) => {
+      const d = ranked[c.code];
+      if (d) {
+        const up = (d.changePct == null ? 0 : d.changePct) >= 0;
+        return `<button class="t-mcountry is-rank" data-code="${esc(c.code)}" type="button">
+          ${flagImg(c.code, 26, 19)}
+          <span class="t-mcountry__name">${esc(c.country)}</span>
+          <span class="t-mcountry__badge" style="color:${dirColor(up)}">${esc(d.badge)}</span>
+        </button>`;
+      }
+      return `<div class="t-mcountry is-off">
+        ${flagImg(c.code, 26, 19)}
+        <span class="t-mcountry__name">${esc(c.country)}</span>
+        <span class="t-mcountry__flag-off">순위권 밖</span>
+      </div>`;
+    }).join("");
+    // 순위권 나라 클릭 → 해당 상세뷰(열려 있으면 전환)
+    modalGrid.querySelectorAll(".t-mcountry.is-rank").forEach((el) => {
+      el.addEventListener("click", () => {
+        const d = rankedByCode()[el.dataset.code];
+        if (!d) return;
+        closeModal();
+        openDetail(d);
+      });
+    });
+  }
+
+  function openModal() {
+    if (!modal) return;
+    renderModal();
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+  function closeModal() {
+    if (!modal || modal.hidden) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  if (modal) {
+    modal.querySelectorAll("[data-modal-close]").forEach((el) => el.addEventListener("click", closeModal));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+  }
+
   const backBtn = root.querySelector(".t-detail-back");
-  if (backBtn) backBtn.addEventListener("click", closeDetail);
+  // "다른 나라 선택하기" → 전체 랭킹 팝업(다른 나라로 전환용)
+  if (backBtn) backBtn.addEventListener("click", openModal);
+  // "전체 랭킹 보기 →" → 전체 랭킹 팝업
+  const summaryBtn = root.querySelector(".t-cta--summary");
+  if (summaryBtn) summaryBtn.addEventListener("click", openModal);
 
   // ── 네비 / 히어로 액션 ──
   // "추천 랭킹" 버튼: 상세뷰가 열려 있으면 목록으로 복귀, 아니면 랭킹 섹션으로 스크롤.

@@ -337,6 +337,28 @@ ul, ol { list-style: none; padding: 0; }
 .d-tip__title { font-size: 14px; font-weight: 800; }
 .d-tip__text { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
 
+/* ---- 전체 랭킹(추적 통화 국가) 팝업 ---- */
+.t-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.t-modal[hidden] { display: none; }
+.t-modal__overlay { position: absolute; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); animation: t-fade .2s ease; }
+.t-modal__panel { position: relative; width: 100%; max-width: 640px; max-height: 82vh; overflow-y: auto; background: #fff; border-radius: 22px; padding: 28px; box-shadow: 0 40px 90px -30px rgba(15,23,42,.5); animation: t-pop .22s cubic-bezier(.2,.7,.2,1); }
+@keyframes t-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes t-pop { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+.t-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.t-modal__title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.t-modal__sub { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.t-modal__close { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 15px; font-weight: 700; }
+.t-modal__close:hover { background: #E9EFFB; color: var(--ink); }
+.t-modal__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.t-mcountry { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
+.t-mcountry__name { font-size: 14px; font-weight: 800; color: var(--ink); flex: 1; min-width: 0; }
+.t-mcountry__badge { font-size: 12px; font-weight: 800; flex: none; }
+.t-mcountry__flag-off { font-size: 11px; font-weight: 700; color: var(--muted2); flex: none; }
+.t-mcountry.is-rank { cursor: pointer; }
+.t-mcountry.is-rank:hover { border-color: var(--primary); box-shadow: 0 10px 24px -14px rgba(15,23,42,.3); transform: translateY(-2px); }
+.t-mcountry.is-off { opacity: .7; cursor: default; }
+
 /* ---- 반응형 ---- */
 @media (max-width: 900px) {
   .why__grid { grid-template-columns: 1fr; }
@@ -345,6 +367,7 @@ ul, ol { list-style: none; padding: 0; }
   .d-tip:first-child { border-top: none; padding-left: 0; }
   .hero__grid { grid-template-columns: 1fr; gap: 40px; }
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
+  .t-modal__grid { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }
   .save-card { width: 100%; }
   .flow__grid { grid-template-columns: 1fr; gap: 32px; }
