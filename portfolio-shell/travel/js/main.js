@@ -485,6 +485,10 @@
     if (detailOpen) {
       clearTimeout(detailTimer);
       populateDetail(d);
+      // 섹션 순차 등장 애니메이션 재생(전환 시에도 동일 연출)
+      detail.classList.remove("is-in");
+      void detail.getBoundingClientRect();
+      detail.classList.add("is-in");
       animateDetailBars();
       scrollToRank();
       return;
