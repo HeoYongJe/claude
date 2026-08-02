@@ -78,12 +78,11 @@
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
-    // 항로 레일: Hero~랭킹까지만 표시. 랭킹 섹션을 지나거나 상세뷰가 열리면 페이드아웃.
+    // 항로 레일: Hero~랭킹(상세뷰 포함)까지 표시. 섹션을 완전히 지나면(푸터쪽) 페이드아웃.
     if (railEl && rankSecEl) {
       const rb = rankSecEl.getBoundingClientRect();
-      const detailIsOpen = rankSecEl.classList.contains("is-detail");
-      const pastRank = rb.bottom < window.innerHeight * 0.55;
-      railEl.style.opacity = (detailIsOpen || pastRank) ? "0" : "1";
+      const pastRank = rb.bottom < window.innerHeight * 0.4;
+      railEl.style.opacity = pastRank ? "0" : "1";
     }
     requestAnimationFrame(render);
   };
@@ -429,6 +428,9 @@
       fxVal.textContent = d.badge;
       fxVal.style.color = dirColor((d.changePct == null ? 0 : d.changePct) >= 0);
     }
+    // head에도 익숙한 시세("100엔 = 917원") 표기
+    const headKrw = detail.querySelector(".detail__krwper");
+    if (headKrw) headKrw.textContent = d.krwPer || "—";
 
     // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
     // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.

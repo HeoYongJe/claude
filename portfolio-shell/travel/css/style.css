@@ -57,14 +57,12 @@ ul, ol { list-style: none; padding: 0; }
 .t-progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
 .t-progress { height: 100%; width: 0%; background: var(--primary); }
 
-/* ---- 항로 레일 ---- */
+/* ---- 항로 레일: 은은한 푸른 점선(솔리드 채움·비행기 제거로 튀지 않게) ---- */
 .t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
 .t-rail svg { width: 100%; height: 100%; overflow: visible; }
-.t-rail-path { animation: t-dashflow 1.4s linear infinite; }
-.t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: top; }
-.t-plane-glow { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(14,74,235,.16), rgba(14,74,235,0) 70%); }
-.t-plane { position: relative; width: 30px; height: 30px; color: var(--primary); filter: drop-shadow(0 8px 12px rgba(14,74,235,.32)); animation: t-planebob 3s ease-in-out infinite; }
-.t-plane svg { display: block; }
+.t-rail-path { stroke: rgba(14,74,235,.28); animation: t-dashflow 2.6s linear infinite; }
+.t-rail-trail { display: none; }   /* 솔리드 파란 채움선 제거 */
+.t-planewrap { display: none; }    /* 비행기 제거(너무 튐) */
 
 /* ---- 네비 ---- */
 /* 최상단(히어로 위)에서는 배경 없음, 스크롤하면 반투명 배경이 생김 (.is-scrolled는 main.js에서 토글) */
@@ -259,6 +257,10 @@ ul, ol { list-style: none; padding: 0; }
 .detail__fx { display: flex; align-items: baseline; gap: 8px; }
 .detail__fx-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__fx-val { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+/* 익숙한 환율 시세(예: 100엔 = 917원) — 전날 대비 환율 바로 아래 */
+.detail__rateline { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
+.detail__rate-label { font-size: 14px; font-weight: 700; color: var(--muted); }
+.detail__krwper { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
 .t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
 .t-detail-back:hover { color: var(--primary-dark); }
 
