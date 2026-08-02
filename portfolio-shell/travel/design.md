@@ -151,7 +151,10 @@
   로직은 `lib/ranking.js`(로컬 `server.js` / Vercel `api/ranking.js` 공용). 닷홈은 정적이라 API는 Vercel 서버리스로 분리.
   **API 응답:** `strong`/`weak`(top3) + **`all`(전체 국가 랭킹, 환율이득 내림차순)** + **`counts`{tracked,strong,weak,avgSave}**
   + `cities`(**전체 국가** 물가데이터 — 어느 나라 상세든 품목 막대·절약률 표시) + `seoul`. 요약 스탯은 `counts`/`all`로 실시간 채움(하드코딩 제거).
-  ⚠️ 수출입은행 AP01은 일부 통화(VND·TWD·PHP·TRY·MXN)를 안 줘서 **환율 시계열이 있는 나라만 랭킹에 포함**(현재 ~17개국). currencyCountryMap 22개국과 다를 수 있음.
+  **환율 소스 2개 혼용**: ①주력 **수출입은행**(AP01, 공식) ②보충 **ECB(Frankfurter, `api.frankfurter.dev`)** — KRW 크로스레이트·과거 시계열 무료.
+  exim이 안 주는 통화를 ECB로 채워 **현재 ~28개국**(ECB 추가분: 필리핀·튀르키예·멕시코·인도·브라질·남아공·폴란드·체코·헝가리·이스라엘·루마니아).
+  `lib/ranking.js` `ECB_COUNTRIES` 맵 + `fetchEcbRange()` + `seriesMetrics()`(exim/ECB 공용 지표). exim 우선(중복 code는 ECB 건너뜀).
+  ⚠️ **베트남·대만(VND·TWD)은 ECB에도 없고 무료 과거데이터 소스가 없어 여전히 제외** — 큐레이션 전용. (넣으려면 유료/타 환율 API 필요.)
   ⚠️ **API(lib/api) 변경 시 Vercel 재배포 필요**: `cd portfolio-shell/travel && npx vercel --prod`(CLI 로그인·프로젝트 링크 상태, 인증키는 Vercel 환경변수).
 - **큐레이션 데이터:** 상세뷰의 **추천 도시·대표 먹거리·꿀팁은 API로 못 받는다**(KOTRA는 도시 단위 없음).
   `js/countryDetail.js`의 `COUNTRY_DETAIL`에 국가코드별로 손수 관리(현재 **22개국** = `currencyCountryMap.js`의 환율·물가 연동국 전체:

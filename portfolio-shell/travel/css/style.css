@@ -147,7 +147,7 @@ ul, ol { list-style: none; padding: 0; }
 .rc-warn { margin-top: 12px; font-size: 12px; font-weight: 700; line-height: 1.4; color: #B45309; background: #FEF3C7; border: 1px solid #FDE68A; padding: 8px 11px; border-radius: 10px; }
 .rc-warn[hidden] { display: none; }
 
-.t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; }
+.t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: #ffffff; border: 1px solid var(--border); border-radius: 20px; }
 .summary__stats { display: flex; gap: 48px; flex-wrap: wrap; }
 .stat__label { font-size: 13px; font-weight: 700; color: var(--muted); }
 .stat__val { font-size: 24px; font-weight: 800; margin-top: 4px; }

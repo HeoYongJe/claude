@@ -120,6 +120,81 @@ function fetchKotraPrices(seq, attempt = 0) {
   });
 }
 
+// ---------- ECB(Frankfurter) 보충 소스 ----------
+// 수출입은행 AP01이 안 주는 통화를 ECB 크로스레이트(KRW 기준)로 보충한다. 무료·과거 시계열 지원.
+// key = ISO4217, value = 화면용 국가정보. (VND·TWD는 ECB에도 없어 제외)
+const ECB_COUNTRIES = {
+  PHP: { country: "필리핀", code: "ph", unit: "페소" },
+  TRY: { country: "튀르키예", code: "tr", unit: "리라" },
+  MXN: { country: "멕시코", code: "mx", unit: "페소" },
+  INR: { country: "인도", code: "in", unit: "루피" },
+  BRL: { country: "브라질", code: "br", unit: "헤알" },
+  ZAR: { country: "남아프리카공화국", code: "za", unit: "랜드" },
+  PLN: { country: "폴란드", code: "pl", unit: "즈워티" },
+  CZK: { country: "체코", code: "cz", unit: "코루나" },
+  HUF: { country: "헝가리", code: "hu", unit: "포린트" },
+  ILS: { country: "이스라엘", code: "il", unit: "셰켈" },
+  RON: { country: "루마니아", code: "ro", unit: "레우" },
+};
+
+// 기간 범위 크로스레이트: { "YYYY-MM-DD": { ISO: (1 KRW 당 외화) } }
+function fetchEcbRange(startD, endD, symbols, attempt = 0) {
+  return new Promise((resolve) => {
+    const url = `https://api.frankfurter.dev/v1/${startD}..${endD}?base=KRW&symbols=${symbols}`;
+    https
+      .get(url, (r) => {
+        if (r.statusCode !== 200) {
+          r.resume();
+          return attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({});
+        }
+        let body = "";
+        r.on("data", (c) => (body += c));
+        r.on("end", () => {
+          try {
+            const j = JSON.parse(body);
+            resolve(j && j.rates ? j.rates : {});
+          } catch (e) {
+            resolve({});
+          }
+        });
+      })
+      .on("error", () => {
+        attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({});
+      });
+  });
+}
+
+// series([{date:YYYYMMDD, rate: KRW per foreign}]) → 지표 계산(exim/ECB 공용)
+function seriesMetrics(series, currentDate, meta, unitMult) {
+  const current = series[series.length - 1].rate;
+  const monthAgoTargetMs = parseYmd(currentDate) - 30 * 86400000;
+  let monthAgo = series[0];
+  let bestDiff = Infinity;
+  for (const s of series) {
+    const diff = Math.abs(parseYmd(s.date) - monthAgoTargetMs);
+    if (diff < bestDiff) { bestDiff = diff; monthAgo = s; }
+  }
+  const changePct = ((monthAgo.rate - current) / monthAgo.rate) * 100;
+  const rateVals = series.map((s) => s.rate);
+  const minR = Math.min(...rateVals);
+  const maxR = Math.max(...rateVals);
+  const is3moLow = current <= minR + 1e-9;
+  const n = series.length;
+  const line = series
+    .map((s, i) => {
+      const x = ((i / (n - 1)) * 240).toFixed(0);
+      const y = maxR === minR ? 24 : (4 + ((s.rate - minR) / (maxR - minR)) * 40).toFixed(0);
+      return `${x},${y}`;
+    })
+    .join(" ");
+  const foreignPer1000 = (1000 * (unitMult || 1)) / current;
+  const recv =
+    foreignPer1000 >= 100
+      ? `${Math.round(foreignPer1000).toLocaleString("ko-KR")}${meta.unit}`
+      : `${foreignPer1000.toFixed(1)}${meta.unit}`;
+  return { code: meta.code, name: meta.country, changePct, current, is3moLow, line, rate: `1,000원 = ${recv}`, recv };
+}
+
 // ---------- 랭킹 계산 ----------
 // 최근 약 3개월을 주 1회 간격(최대 13개 시점)으로 모아 국가별 시계열을 만들고
 // 한 달 변동률(원화 강세율)·3개월 최저 여부·스파크라인을 계산한다.
@@ -201,6 +276,33 @@ async function buildRanking() {
       rate: `1,000원 = ${recv}`,
       recv,
     });
+  }
+
+  // ECB(Frankfurter) 보충: 수출입은행이 안 주는 통화를 KRW 크로스레이트로 추가.
+  // 실패해도 exim 결과는 그대로 유지(try/catch).
+  try {
+    const endYmd = currentDate;
+    const endD = `${endYmd.slice(0, 4)}-${endYmd.slice(4, 6)}-${endYmd.slice(6, 8)}`;
+    const sd = new Date(parseYmd(endYmd) - 95 * 86400000);
+    const startD = `${sd.getFullYear()}-${String(sd.getMonth() + 1).padStart(2, "0")}-${String(sd.getDate()).padStart(2, "0")}`;
+    const symbols = Object.keys(ECB_COUNTRIES).join(",");
+    const ecbRates = await fetchEcbRange(startD, endD, symbols);
+    const ecbDates = Object.keys(ecbRates).sort(); // 오래된→최신
+    if (ecbDates.length >= 2) {
+      const ecbCurrentYmd = ecbDates[ecbDates.length - 1].replace(/-/g, "");
+      const existing = new Set(results.map((r) => r.code)); // exim이 이미 준 나라는 제외
+      for (const [iso, meta] of Object.entries(ECB_COUNTRIES)) {
+        if (existing.has(meta.code)) continue;
+        const series = ecbDates
+          .map((d) => ({ date: d.replace(/-/g, ""), v: ecbRates[d][iso] }))
+          .filter((x) => typeof x.v === "number" && x.v > 0)
+          .map((x) => ({ date: x.date, rate: 1 / x.v })); // KRW per foreign unit
+        if (series.length < 2) continue;
+        results.push(seriesMetrics(series, ecbCurrentYmd, meta, 1));
+      }
+    }
+  } catch (e) {
+    /* ECB 보충 실패는 무시 */
   }
 
   // 물가: KOTRA 3품목(USD)을 원화로 환산해 서울 대비 절약률 계산
