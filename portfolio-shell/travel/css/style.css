@@ -239,12 +239,12 @@ ul, ol { list-style: none; padding: 0; }
 .t-rankview.is-out { opacity: 0; transform: translateY(-28px); pointer-events: none; }
 /* 열릴 때 섹션(head/품목·절약/도시·먹거리/꿀팁)이 시간차를 두고 스르륵 올라옴 */
 .t-detail { color: var(--ink); }
-.t-detail > * { opacity: 0; transform: translateY(28px); transition: opacity .55s cubic-bezier(.2,.7,.2,1), transform .55s cubic-bezier(.2,.7,.2,1); }
+.t-detail > * { opacity: 0; transform: translateY(32px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
 .t-detail.is-in > * { opacity: 1; transform: none; }
 .t-detail.is-in > *:nth-child(1) { transition-delay: 0s; }
-.t-detail.is-in > *:nth-child(2) { transition-delay: .12s; }
-.t-detail.is-in > *:nth-child(3) { transition-delay: .24s; }
-.t-detail.is-in > *:nth-child(4) { transition-delay: .36s; }
+.t-detail.is-in > *:nth-child(2) { transition-delay: .22s; }
+.t-detail.is-in > *:nth-child(3) { transition-delay: .46s; }
+.t-detail.is-in > *:nth-child(4) { transition-delay: .72s; }
 
 .detail__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 /* head: 좌(나라+환율) 그룹 | 우 '다른 나라 선택하기' */
@@ -253,19 +253,19 @@ ul, ol { list-style: none; padding: 0; }
 .detail__country { display: flex; align-items: center; gap: 12px; }
 .detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); display: block; }
 .detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
-.detail__rank { font-size: 13px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
+.detail__rank { font-size: 14px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
 /* 대표 숫자 = 전날 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
 .detail__fx { display: flex; align-items: baseline; gap: 8px; }
-.detail__fx-label { font-size: 12px; font-weight: 700; color: var(--muted2); }
+.detail__fx-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__fx-val { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
 .t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
 .t-detail-back:hover { color: var(--primary-dark); }
 
 /* 공통 카드: 흰 면 + 테두리 (Surface 틴트 제거). 유일한 컬러 면은 파란 절약 카드. */
 .dcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 26px 28px; margin-top: 28px; }
-.detail__h { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.detail__h { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
 .detail__h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-.detail__note { font-size: 12px; font-weight: 700; color: var(--muted2); }
+.detail__note { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
 .detail__cols .dcard { margin-top: 0; }
 
@@ -282,11 +282,11 @@ ul, ol { list-style: none; padding: 0; }
 .d-item__name { font-size: 15px; font-weight: 800; }
 .d-cmp__row { display: grid; grid-template-columns: 80px 1fr 74px; align-items: center; gap: 10px; }
 .d-cmp__row + .d-cmp__row { margin-top: 8px; }
-.d-cmp__label { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-cmp__label { font-size: 14px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .d-cmp__track { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
 .d-cmp__fill { display: block; height: 100%; border-radius: 999px; width: 0; background: var(--primary); transition: width .9s cubic-bezier(.2,.7,.2,1); }
 .d-cmp__fill--seoul { background: #CBD5E1; }
-.d-cmp__amt { text-align: right; font-size: 13px; font-weight: 700; }
+.d-cmp__amt { text-align: right; font-size: 14px; font-weight: 700; }
 .d-cmp__amt--seoul { color: var(--muted); }
 .d-item__pct { text-align: right; font-size: 15px; font-weight: 800; }
 .d-empty { font-size: 14px; color: var(--muted); padding: 8px 0; }
@@ -299,32 +299,31 @@ ul, ol { list-style: none; padding: 0; }
 .d-savecard__big b { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
 .d-savecard__pct { font-size: 18px; font-weight: 800; }
 /* 보조 텍스트 = 서울 대비 체감 절약/부담 % (작게) */
-.d-savecard__sub { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.9); margin-top: 10px; }
-.d-savecard__desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,.78); margin-top: 8px; }
+.d-savecard__sub { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.9); margin-top: 10px; }
+.d-savecard__desc { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.8); margin-top: 8px; }
 /* 환율 유리·물가 비쌈 경고 라벨(파란 카드 안, 흰 톤 유지) */
-.d-savecard__warn { margin-top: 14px; font-size: 13px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
+.d-savecard__warn { margin-top: 14px; font-size: 14px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
 .d-savecard__warn[hidden] { display: none; }
 .d-savecard__div { height: 1px; background: rgba(255,255,255,.22); margin: 22px 0; }
-.d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: rgba(255,255,255,.75); }
+.d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: rgba(255,255,255,.8); }
 .d-savecard__row + .d-savecard__row { margin-top: 10px; }
 .d-savecard__row b { font-size: 15px; font-weight: 800; color: #fff; }
 
 /* 추천 도시 — 3개 가로 정렬 */
 .d-cities { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 /* 추천 도시: 이미지 썸네일(위) + 이름 + 지수. img 없으면 그라데이션 폴백 */
-/* hover: 카드가 살짝 올라가고 그림자, 이미지가 살짝 확대 */
-.d-city { border-radius: 12px; transition: transform .25s ease, box-shadow .25s ease; }
-.d-city:hover { transform: translateY(-6px); box-shadow: 0 18px 34px -18px rgba(15,23,42,.34); }
-.d-city__thumb { position: relative; width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background: #eee; }
-.d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
-.d-city:hover .d-city__thumb img { transform: scale(1.15); }
+/* hover: 이름/지수는 그대로, 이미지(썸네일)만 살짝 올라가며 확대 + 그림자 */
+.d-city__thumb { position: relative; width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background: #eee; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; }
+.d-city__thumb:hover { transform: translateY(-5px); box-shadow: 0 16px 30px -16px rgba(15,23,42,.34); }
+.d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .45s ease; }
+.d-city__thumb:hover img { transform: scale(1.15); }
 /* 이미지 없음/로드 실패 시 드러나는 폴백: 도시 아이콘 + '이미지 준비중' */
 .d-city__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
   background: linear-gradient(135deg, #EEF2FB, #F5F8FF); color: var(--muted2); }
 .d-city__ph svg { width: 26px; height: 26px; }
-.d-city__ph span { font-size: 11px; font-weight: 700; letter-spacing: .01em; }
+.d-city__ph span { font-size: 13px; font-weight: 700; letter-spacing: .01em; }
 .d-city__name { font-size: 15px; font-weight: 800; margin-top: 10px; }
-.d-city__idx { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 3px; }
+.d-city__idx { font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 4px; }
 .d-city__idx b { color: var(--up); }
 /* 대표 먹거리: 아이콘 + 번호·이름 + 한 줄 설명 + 가격 (세로 리스트 행) */
 /* 박스-속-박스 대신 가로줄로 구분(3개 → 구분선 2개) */
@@ -337,17 +336,17 @@ ul, ol { list-style: none; padding: 0; }
 .d-food__head { display: flex; align-items: center; gap: 8px; }
 .d-food__num { font-size: 12px; font-weight: 800; color: var(--muted2); }
 .d-food__name { font-size: 15px; font-weight: 800; color: var(--ink); }
-.d-food__desc { font-size: 13px; color: var(--muted2); margin-top: 3px; }
-.d-food__price { flex: none; font-size: 14px; font-weight: 800; color: var(--primary); }
+.d-food__desc { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.d-food__price { flex: none; font-size: 15px; font-weight: 800; color: var(--primary); }
 
 /* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘 */
 .d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
 .d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border-strong); }
 .d-tip:first-child { border-left: none; padding-left: 0; }
-.d-tip__icon { flex: none; width: 26px; height: 26px; color: var(--ink); }
-.d-tip__icon svg { width: 24px; height: 24px; display: block; }
+.d-tip__icon { flex: none; display: inline-flex; width: 40px; height: 40px; border-radius: 11px; background: var(--surface); align-items: center; justify-content: center; color: var(--primary); }
+.d-tip__icon svg { width: 22px; height: 22px; display: block; }
 .d-tip__title { font-size: 15px; font-weight: 800; }
-.d-tip__text { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 4px; }
+.d-tip__text { font-size: 14px; color: var(--muted); line-height: 1.55; margin-top: 5px; }
 
 /* ---- 전체 랭킹(추적 통화 국가) 팝업 ---- */
 .t-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
@@ -358,19 +357,19 @@ ul, ol { list-style: none; padding: 0; }
 @keyframes t-pop { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
 .t-modal__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
 .t-modal__title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
-.t-modal__sub { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.t-modal__sub { font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
 .t-modal__close { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 15px; font-weight: 700; }
 .t-modal__close:hover { background: #E9EFFB; color: var(--ink); }
 .t-modal__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .t-mcountry { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
 .t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
-.t-mcountry__rank { flex: none; width: 20px; font-size: 12px; font-weight: 800; color: var(--muted2); text-align: center; }
-.t-mcountry__main { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
-.t-mcountry__name { font-size: 14px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.t-mcountry__rate { font-size: 11.5px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-mcountry__rank { flex: none; width: 22px; font-size: 14px; font-weight: 800; color: var(--muted2); text-align: center; }
+.t-mcountry__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.t-mcountry__name { font-size: 15px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-mcountry__rate { font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .t-mcountry__metrics { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.t-mcountry__badge { font-size: 13px; font-weight: 800; }
-.t-mcountry__cut { font-size: 11px; font-weight: 700; }
+.t-mcountry__badge { font-size: 14px; font-weight: 800; }
+.t-mcountry__cut { font-size: 14px; font-weight: 700; }
 .t-mcountry__cut--none { color: var(--muted2); }
 .t-mcountry.is-rank { cursor: pointer; }
 .t-mcountry.is-rank:hover { border-color: var(--primary); box-shadow: 0 10px 24px -14px rgba(15,23,42,.3); transform: translateY(-2px); }
