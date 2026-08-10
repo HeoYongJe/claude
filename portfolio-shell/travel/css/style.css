@@ -109,9 +109,9 @@ ul, ol { list-style: none; padding: 0; }
 .t-hero-name { font-size: 32px; font-weight: 800; margin-top: 18px; letter-spacing: -.02em; }
 .fxcard__convert { display: flex; align-items: center; gap: 16px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .fxcard__cap { font-size: 12px; color: var(--muted2); font-weight: 600; }
-.fxcard__amt { font-size: 22px; font-weight: 800; }
+.fxcard__amt { font-size: 22px; font-weight: 400; }         /* 보내는 금액: normal */
 .fxcard__arrow { font-size: 20px; color: var(--primary); }
-.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--primary); }
+.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); }   /* 받는 금액: 잉크 + 굵게(방향색 파랑 제거) */
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 /* 히어로 '오늘의 추천' 카드: 클릭 가능 */
 .t-hero-card { cursor: pointer; }
