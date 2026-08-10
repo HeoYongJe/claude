@@ -123,6 +123,10 @@
   **전체 국가를 환율 이득 순으로** 나열(API `all`) — 각 행 = 순위 + 국기 + 이름 + 1,000원 환산 + 환율변동 뱃지(방향색) + 체감물가.
   **모든 나라 클릭 → 해당 상세로 전환**(상세가 열려 있어도 `openDetail`이 내용만 교체). 오버레이·✕·Esc로 닫기.
   (API `all`/`counts` 없으면 강세+약세 top으로 폴백.)
+- **첫 로드 즉시 렌더(스냅샷):** Vercel 콜드스타트로 `/api/ranking`이 5~15초 걸릴 수 있어, 배포 시점 데이터를 `js/rankingSnapshot.js`
+  (`RANKING_SNAPSHOT`)에 굳혀 함께 싣는다. `main.js`는 접속 즉시 `applyRanking(SNAPSHOT)`로 그리고(placeholder 방지),
+  이어서 `loadRanking()`이 라이브 최신값을 받아 `applyRanking(data)`로 교체(stale-while-revalidate). 스냅샷 있으면 로딩 에러문구도 안 띄움.
+  **배포 워크플로우: `node tools/gen-snapshot.js`(라이브 API에서 스냅샷 갱신) → `node deploy-tools/deploy-travel.js`.** (스냅샷은 deploy FILES에 포함.)
 - **기준일 표기(공통):** `main.js` `setBasis(currentDate)` 한 곳에서 랭킹 basis(`.t-rank-basis`)·푸터(`.foot-basis`)를 동시에 채움.
   실데이터(currentDate) 있으면 실제 기준일 표시, **"샘플" 문구는 사용 안 함**.
 

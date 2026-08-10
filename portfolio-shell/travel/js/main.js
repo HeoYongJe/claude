@@ -12,6 +12,9 @@
   let ALLDATA = [];               // 전체 국가 랭킹(환율 이득 내림차순)
   let COUNTS = null;              // { tracked, strong, weak, avgSave }
   let CITYDATA = {};
+  let hasData = false;            // 스냅샷/라이브 중 하나라도 반영됐는지
+  // 첫 로드 즉시 렌더용 스냅샷(배포 시점 데이터). 접속 직후 이걸로 그리고, loadRanking이 라이브로 교체.
+  const SNAPSHOT = (typeof RANKING_SNAPSHOT !== "undefined") ? RANKING_SNAPSHOT : null;
   let SEOULDATA = { bigmac: 5500, cola: 2000, water: 1000 };
 
   // 도시·먹거리·꿀팁은 API에 없어 큐레이션(js/countryDetail.js)에서 가져온다.
@@ -589,26 +592,32 @@
       .finally(() => clearTimeout(t));
   }
 
+  // 데이터(스냅샷 또는 라이브)를 화면에 반영. 상세뷰가 열려 있으면 목록 재렌더는 건너뜀(전환 방해 방지).
+  function applyRanking(data) {
+    RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
+    ALLDATA = data.all || [];
+    COUNTS = data.counts || null;
+    CITYDATA = data.cities || {};
+    if (data.seoul) SEOULDATA = data.seoul;
+    setBasis(data.currentDate);
+    updateSummary();
+    if (!detailOpen) renderRank(state.rmode);
+    updateHero();
+    hasData = true;
+  }
+
   async function loadRanking(attempt = 0) {
     const setCard0 = (txt) => { const el = root.querySelector('.t-rcard[data-slot="0"] .rc-name'); if (el) el.textContent = txt; };
     try {
       const data = await fetchRankingOnce(20000);
-      RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
-      ALLDATA = data.all || [];
-      COUNTS = data.counts || null;
-      CITYDATA = data.cities || {};
-      if (data.seoul) SEOULDATA = data.seoul;
-      setBasis(data.currentDate);
-      updateSummary();
-      renderRank(state.rmode);
-      updateHero();
+      applyRanking(data); // 라이브 최신값으로 교체
     } catch (e) {
       console.error("랭킹 로드 실패", e, "시도", attempt + 1);
       if (attempt < 3) {
         // 콜드스타트로 첫 요청이 느리면, 잠시 후 재시도(그때는 서버 캐시가 데워져 빠르게 온다).
-        setCard0("불러오는 중… 재시도");
+        if (!hasData) setCard0("불러오는 중…"); // 스냅샷이 이미 떠 있으면 건드리지 않음
         setTimeout(() => loadRanking(attempt + 1), 1800 * (attempt + 1));
-      } else {
+      } else if (!hasData) {
         setCard0("불러오지 못했어요 — 새로고침해 주세요");
       }
     }
@@ -770,5 +779,7 @@
     requestAnimationFrame(tick);
   })();
 
+  // 접속 즉시 스냅샷으로 렌더(빈 화면·placeholder 방지) → 백그라운드로 라이브 최신값 갱신.
+  if (SNAPSHOT) { try { applyRanking(SNAPSHOT); } catch (e) { console.warn("스냅샷 적용 실패", e); } }
   loadRanking();
 })();
