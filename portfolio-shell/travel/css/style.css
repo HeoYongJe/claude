@@ -55,7 +55,7 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 진행 바 ---- */
 .t-progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
-.t-progress { height: 100%; width: 0%; background: var(--primary); }
+.t-progress { height: 100%; width: 100%; background: var(--primary); transform: scaleX(0); transform-origin: left center; will-change: transform; }
 
 /* ---- 항로 레일: 평소 거의 안보이는 항로 + 비행기, 스크롤 시 은은한 푸른 점선이 아래→위로 채워짐 ---- */
 .t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
@@ -88,7 +88,7 @@ ul, ol { list-style: none; padding: 0; }
 .hero__video-grad { position: absolute; inset: 0; pointer-events: none; }
 .hero__video-grad--v { background: linear-gradient(180deg, rgba(255,255,255,.40) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.70) 100%); }
 .hero__video-grad--h { background: linear-gradient(90deg, rgba(255,255,255,.60) 0%, rgba(255,255,255,0) 60%); }
-.hero__blob { position: absolute; border-radius: 999px; filter: blur(6px); }
+.hero__blob { position: absolute; border-radius: 999px; filter: blur(6px); will-change: transform; }
 .hero__blob--1 { top: -120px; right: -80px; width: 560px; height: 560px; background: radial-gradient(circle at 30% 30%, rgba(14,74,235,.18), rgba(14,74,235,0) 70%); }
 .hero__blob--2 { bottom: -160px; left: -120px; width: 520px; height: 520px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,.16), rgba(6,182,212,0) 70%); }
 .hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 96px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
@@ -231,23 +231,24 @@ ul, ol { list-style: none; padding: 0; }
 .t-summary { transition-delay: .25s; }
 
 /* ---- WHY (서비스 소개) ---- */
-.why { padding: 96px 0; background: transparent; }
+/* 섹션 간격은 아래 섹션(rank)의 상단 패딩이 담당 — why 하단 패딩을 없애 이중 여백(간격 불일치) 제거 */
+.why { padding: 96px 0 0; background: transparent; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 .why-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
 .why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
 .why-card__icon svg { width: 30px; height: 30px; }
 /* B3: 카드 등장(is-revealed) 시 아이콘 stroke 패스는 그려지고, fill 막대는 페이드인 */
-.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset .55s cubic-bezier(.2,.7,.2,1) .15s; }
+.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) 2s; }
 .why-card.is-revealed .why-card__icon path[stroke], .why-card.is-revealed .why-card__icon circle[stroke] { stroke-dashoffset: 0; }
-.why-card__icon rect { opacity: 0; transition: opacity .4s ease .2s; }
+.why-card__icon rect { opacity: 0; transition: opacity .6s ease 2.4s; }
 .why-card.is-revealed .why-card__icon rect { opacity: 1; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
-.rank { transition: background .5s ease; }
-.rank.is-detail { background: #fff; padding-top: 32px; }   /* 상세뷰: 흰 배경 + 상단 여백 축소(헤더가 네비 바로 아래에서 시작) */
+/* 상세뷰도 배경은 body 그라데이션 그대로(색 전환 없음) — 내용 카드(.dcard)만 흰 면. 상단 여백만 축소. */
+.rank.is-detail { padding-top: 64px; }   /* 상세뷰: 상단 여백(스크롤 시 헤더가 네비 아래 적당한 간격) */
 .t-rankview { transition: opacity .45s ease, transform .45s ease; }
 .t-rankview.is-out { opacity: 0; transform: translateY(-28px); pointer-events: none; }
 /* 열릴 때 섹션(head/품목·절약/도시·먹거리/꿀팁)이 시간차를 두고 스르륵 올라옴 */
@@ -449,9 +450,10 @@ ul, ol { list-style: none; padding: 0; }
 }
 .t-rcard:active { transform: scale(.985); }
 
-/* ---- B4: 스크롤 진행률(main.js --bg-shift)에 따라 배경이 아주 살짝 더 블루하게 ---- */
-body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: linear-gradient(180deg, transparent 30%, rgba(14,74,235,.045) 100%); opacity: var(--bg-shift, 0); }
+/* ---- B4: 스크롤 진행률에 따라 배경이 아주 살짝 더 블루하게 ----
+   (opacity를 전용 요소 .t-bgshift에 직접 넣어, body에 CSS 변수 쓸 때 생기던 매 프레임 전체 트리 리캘크 제거 → 스크롤 부드럽게) */
+.t-bgshift { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; will-change: opacity;
+  background: linear-gradient(180deg, transparent 30%, rgba(14,74,235,.045) 100%); }
 
 /* ---- B5: rank 섹션 배경 도트 질감(색면 없이 정체성), 상단만 페이드 / 상세뷰에선 숨김 ---- */
 .rank::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
@@ -468,5 +470,5 @@ body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-even
   .t-rail-path { animation: none; }
   .hero__cardwrap { animation: none; }
   .t-plane { animation: none; }
-  body::before { opacity: 0 !important; }
+  .t-bgshift { opacity: 0 !important; }
 }

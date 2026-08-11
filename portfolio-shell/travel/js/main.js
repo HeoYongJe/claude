@@ -41,6 +41,7 @@
   const railEl = root.querySelector(".t-rail");
   const planeWrap = root.querySelector(".t-planewrap");
   const rankSecEl = document.getElementById("rank");
+  const bgShiftEl = root.querySelector(".t-bgshift");
   const railLen = 784;
 
   // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
@@ -55,14 +56,14 @@
     const gp = state.sm;
     const sy = gp * max;
 
+    // 패럴럭스: 레이아웃 스래싱 방지 위해 rect 읽기(read)와 transform 쓰기(write)를 분리.
     const vc = window.innerHeight / 2;
-    for (const l of layers) {
-      const r = l.getBoundingClientRect();
-      const off = r.top + r.height / 2 - vc;
-      l.style.transform = `translate3d(0, ${(-off * parseFloat(l.dataset.speed)).toFixed(1)}px, 0)`;
-    }
-    if (prog) prog.style.width = gp * 100 + "%";
-    document.body.style.setProperty("--bg-shift", gp.toFixed(3)); // B4: 스크롤 진행률로 배경 미세 블루
+    const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
+    layers.forEach((l, i) => {
+      l.style.transform = `translate3d(0, ${(-offs[i] * parseFloat(l.dataset.speed)).toFixed(1)}px, 0)`;
+    });
+    if (prog) prog.style.transform = "scaleX(" + gp.toFixed(4) + ")";
+    if (bgShiftEl) bgShiftEl.style.opacity = gp.toFixed(3); // B4: 스크롤 진행률로 배경 미세 블루(전용 요소 — 전체 트리 리캘크 없음)
 
     if (railTrail && planeWrap) {
       // 아래(792)에서 위로 채워지는 점선 + 채워진 선의 끝을 따라 위로 올라가는 비행기(스크롤 역방향)
