@@ -19,7 +19,7 @@
 }
 
 * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overscroll-behavior-y: none; }   /* 웹앱 당겨서-새로고침 오작동 방지 */
 /* 히어로(구름 영상) 아래 섹션들이 흰색으로 뚝 끊기지 않도록 아주 연한 블루 그라데이션 배경 */
 body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink); background: linear-gradient(180deg, #FFFFFF 0%, #F1F6FF 34%, #EAF1FF 60%, #F4F8FF 100%); }
 a { color: var(--primary); text-decoration: none; }
@@ -81,6 +81,7 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 히어로 ---- */
 .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: #EBF1FC; }
+.hero { min-height: 100svh; }   /* 지원 브라우저: 주소창 수축 시 레이아웃 점프 제거 */
 /* 배경 영상 레이어 — hero 맨 뒤. 밝은 하늘 영상용 흰색 가독성 그라디언트(세로/가로) */
 .hero__video { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #EBF1FC; }
 .hero__video-el { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; transition: opacity .1s linear; }
@@ -127,6 +128,9 @@ ul, ol { list-style: none; padding: 0; }
 .rank__headL { max-width: 620px; }
 .rank__headR { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .t-rank-basis { font-size: 13px; font-weight: 700; color: var(--muted); }
+/* 기준일 앞 라이브 펄스(실데이터일 때만 표시 — setBasis에서 토글) */
+.t-live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--primary); margin-right: 7px; vertical-align: 1px; animation: t-pulse 2.4s ease-in-out infinite; }
+@keyframes t-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(14,74,235,.28); } 50% { box-shadow: 0 0 0 5px rgba(14,74,235,0); } }
 .rtabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 5px; border-radius: 12px; }
 .t-rtab { cursor: pointer; font-size: 14px; font-weight: 700; padding: 9px 16px; border-radius: 9px; background: transparent; color: var(--muted); transition: all .15s; }
 
@@ -136,7 +140,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-rcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 28px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
 .rcard__top { display: flex; justify-content: space-between; align-items: center; }
 .rc-num { font-size: 13px; font-weight: 800; color: var(--muted2); background: #F1F5F9; width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
-.rc-badge { font-size: 18px; font-weight: 800; color: var(--primary); }
+.rc-badge { font-size: 18px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
 .rc-name { font-size: 26px; font-weight: 800; margin-top: 22px; display: flex; align-items: center; gap: 10px; }
 .rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
 .rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
@@ -154,7 +158,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: #ffffff; border: 1px solid var(--border); border-radius: 20px; }
 .summary__stats { display: flex; gap: 48px; flex-wrap: wrap; }
 .stat__label { font-size: 13px; font-weight: 700; color: var(--muted); }
-.stat__val { font-size: 24px; font-weight: 800; margin-top: 4px; }
+.stat__val { font-size: 24px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .stat__val--up { color: var(--up); }
 .stat__val--down { color: #0E4AEB; } /* 내림(−) = 파랑 (방향 색 규칙) */
 
@@ -233,6 +237,11 @@ ul, ol { list-style: none; padding: 0; }
 .why-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
 .why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
 .why-card__icon svg { width: 30px; height: 30px; }
+/* B3: 카드 등장(is-revealed) 시 아이콘 stroke 패스는 그려지고, fill 막대는 페이드인 */
+.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset .55s cubic-bezier(.2,.7,.2,1) .15s; }
+.why-card.is-revealed .why-card__icon path[stroke], .why-card.is-revealed .why-card__icon circle[stroke] { stroke-dashoffset: 0; }
+.why-card__icon rect { opacity: 0; transition: opacity .4s ease .2s; }
+.why-card.is-revealed .why-card__icon rect { opacity: 1; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
@@ -397,6 +406,10 @@ ul, ol { list-style: none; padding: 0; }
   .hero__title { font-size: 44px; }
   .section-title { font-size: 30px; }
   .cta__title { font-size: 32px; }
+  /* A3: 터치 타겟 ≥44px */
+  .t-rtab { padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .t-modal__close { width: 44px; height: 44px; }
+  .t-detail-back { padding: 12px 8px; margin: -12px -8px; }   /* 히트영역만 확장, 시각 크기 유지 */
 }
 
 /* ---- 모바일(폰) 세부: 380px 기준 ---- */
@@ -426,4 +439,34 @@ ul, ol { list-style: none; padding: 0; }
   .rank { padding: 72px 0 64px; }
   .rank__inner { padding: 0 18px; }
   .why { padding: 72px 0; }
+}
+
+/* ---- A4: hover 효과는 hover 가능한 기기에서만(터치기기 sticky-hover 방지) + 탭 피드백 ---- */
+@media (hover: none) {
+  .d-city__thumb:hover { transform: none; box-shadow: none; }
+  .d-city__thumb:hover img { transform: none; }
+  .t-mcountry.is-rank:hover { transform: none; box-shadow: none; border-color: var(--border); }
+}
+.t-rcard:active { transform: scale(.985); }
+
+/* ---- B4: 스크롤 진행률(main.js --bg-shift)에 따라 배경이 아주 살짝 더 블루하게 ---- */
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, transparent 30%, rgba(14,74,235,.045) 100%); opacity: var(--bg-shift, 0); }
+
+/* ---- B5: rank 섹션 배경 도트 질감(색면 없이 정체성), 상단만 페이드 / 상세뷰에선 숨김 ---- */
+.rank::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(14,74,235,.06) 1px, transparent 1px); background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 42%); mask-image: linear-gradient(180deg, #000 0%, transparent 42%);
+  transition: opacity .5s ease; }
+.rank.is-detail::before { opacity: 0; }
+
+/* ---- 모션 최소화 선호 시 인터랙션 정지(최종 상태 즉시 표시) ---- */
+@media (prefers-reduced-motion: reduce) {
+  .t-live-dot { animation: none; }
+  .why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dashoffset: 0; transition: none; }
+  .why-card__icon rect { opacity: 1; transition: none; }
+  .t-rail-path { animation: none; }
+  .hero__cardwrap { animation: none; }
+  .t-plane { animation: none; }
+  body::before { opacity: 0 !important; }
 }

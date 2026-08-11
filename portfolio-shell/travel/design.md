@@ -145,7 +145,19 @@
 
 ## 9. Responsive
 - 단일 브레이크포인트 **900px**(`css/style.css`의 `@media (max-width:900px)`): 히어로/랭킹/why/상세뷰 그리드 1열,
-  H1 44 · 섹션제목 30 · CTA 32.
+  H1 44 · 섹션제목 30 · CTA 32. 추가 폰(≤560px) 세부 조정 블록 있음.
+- **모바일 필수(2026-08-11, README 지시)**: `.hero`는 `100vh`+`100svh`(주소창 점프 제거), 터치타겟 ≥44px(`.t-rtab` min-height 44·`.t-modal__close` 44·`.t-detail-back` 히트영역 확장),
+  `html { overscroll-behavior-y:none }`, hover 효과는 `@media(hover:none)`에서 해제+`.t-rcard:active` 탭피드백, **영상은 ≤560px·reduced-motion에서 정지**(하늘 배경색 폴백), Pretendard `dynamic-subset`.
+
+## 9b. PWA · 브랜드
+- **브랜드명 `가뿐`**(구 travel): `<title>`·nav `.t-nav-brand`·푸터. `manifest.webmanifest`(name "가뿐 — 원화가 가벼운 여행지", theme_color #0E4AEB, display standalone) + `<meta theme-color>` + `assets/icons/favicon.svg`(브랜드 블루 라운드+종이비행기, **PNG/maskable은 디자인 전달 후 교체 예정** — 임시로 SVG를 manifest icon any/maskable로 사용).
+
+## 9c. 마이크로 인터랙션(은은하게 — 전부 reduced-motion 시 즉시 최종값)
+- **B1 카운트업**: `.rc-badge`·`.stat__val` 뷰포트 진입 시 0→값(.6s easeOut, `countIO`+`countUp`, tabular-nums, rAF 취소로 겹침/NaN 방지, 토글 재렌더 시 재생).
+- **B2 라이브 dot**: `.t-live-dot` 펄스(실데이터 있을 때만, `setBasis`에서 토글 — 텍스트는 `.t-rank-basis__text` 자식만 갱신해 dot 보존).
+- **B3 why 아이콘 드로잉**: 카드 `.is-revealed` 시 `path/circle[stroke]` dash 드로잉 + `rect` 페이드.
+- **B4 배경 시프트**: rAF에서 `--bg-shift`(스크롤 진행률) → `body::before` 오버레이 opacity(아주 살짝 블루).
+- **B5 rank 질감**: `.rank::before` 도트 그리드(상단만 mask 페이드, 상세뷰에선 숨김).
 
 ## 10. States
 - 로딩: 스켈레톤(카드 형태 유지). 데이터 로드 실패 시 카드에 "불러오지 못했어요".

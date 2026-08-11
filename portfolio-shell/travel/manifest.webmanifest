@@ -1,0 +1,15 @@
+{
+  "name": "가뿐 — 원화가 가벼운 여행지",
+  "short_name": "가뿐",
+  "description": "전날 환율과 현지 물가로, 지금 원화가 가장 가벼운 여행지를 알려줍니다.",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#0E4AEB",
+  "icons": [
+    { "src": "assets/icons/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icons/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

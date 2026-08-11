@@ -62,6 +62,7 @@
       l.style.transform = `translate3d(0, ${(-off * parseFloat(l.dataset.speed)).toFixed(1)}px, 0)`;
     }
     if (prog) prog.style.width = gp * 100 + "%";
+    document.body.style.setProperty("--bg-shift", gp.toFixed(3)); // B4: 스크롤 진행률로 배경 미세 블루
 
     if (railTrail && planeWrap) {
       // 아래(792)에서 위로 채워지는 점선 + 채워진 선의 끝을 따라 위로 올라가는 비행기(스크롤 역방향)
@@ -136,6 +137,36 @@
   const dirColor = (isUp) => (isUp ? DIR_UP : DIR_DOWN);
   const dirTint = (isUp) => (isUp ? DIR_UP_TINT : DIR_DOWN_TINT);
 
+  // ── B1: 수치 카운트업(뷰포트 진입/토글 시 0→최종값 .6s easeOut). 겹침·NaN 방지, reduced-motion이면 즉시 최종값 ──
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function countUp(el, to, fmt, dur = 600) {
+    if (!el) return;
+    if (el._raf) cancelAnimationFrame(el._raf);
+    if (reduceMotion || !isFinite(to)) { el.textContent = fmt(to); el._raf = 0; return; }
+    const t0 = performance.now();
+    const step = (now) => {
+      const p = Math.min((now - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(to * e);
+      el._raf = p < 1 ? requestAnimationFrame(step) : 0;
+    };
+    el._raf = requestAnimationFrame(step);
+  }
+  // 요소의 현재 텍스트(뱃지 ▲x.x% / N개국 / ±xx%)를 파싱해 0에서 세어 올림. 알 수 없는 포맷은 그대로 둠.
+  function animateCountup(el) {
+    const txt = (el.textContent || "").trim(); let m;
+    if ((m = txt.match(/^([▲▼])\s*([\d.]+)%$/))) countUp(el, +m[2], (v) => `${m[1]} ${v.toFixed(1)}%`);
+    else if ((m = txt.match(/^(\d+)개국$/))) countUp(el, +m[1], (v) => `${Math.round(v)}개국`);
+    else if ((m = txt.match(/^([−+])([\d.]+)%$/))) countUp(el, +m[2], (v) => `${m[1]}${Math.round(v)}%`);
+  }
+  const countIO = new IntersectionObserver((ents) => {
+    ents.forEach((en) => { if (en.isIntersecting) { animateCountup(en.target); countIO.unobserve(en.target); } });
+  }, { threshold: 0.6 });
+  function observeCountups() {
+    root.querySelectorAll(".rc-badge, .summary__stats .stat__val").forEach((el) => {
+      if (el.offsetParent !== null) countIO.observe(el); // 표시 중인 것만
+    });
+  }
+
   // ---- 스파크라인: 카드가 화면에 들어오면 선이 서서히 그려진다 ----
   // 선을 대시로 감춰두고(prepSpark), 카드가 뷰포트에 들어오면 dashoffset 0으로 애니메이션.
   function prepSpark(line) {
@@ -184,6 +215,7 @@
       t.style.background = on ? "#fff" : "transparent";
       t.style.color = on ? "#0F172A" : "#64748B";
       t.style.boxShadow = on ? "0 1px 3px rgba(15,23,42,.10)" : "none";
+      t.setAttribute("aria-selected", on ? "true" : "false");
     });
     const grid = root.querySelector(".t-rankgrid");
     if (grid) grid.dataset.count = String(Math.max(1, Math.min(data.length, 3)));
@@ -546,9 +578,12 @@
     const fmt = currentDate && currentDate.length >= 8
       ? `${currentDate.slice(0, 4)}.${currentDate.slice(4, 6)}.${currentDate.slice(6, 8)}`
       : null;
-    const rankBasis = root.querySelector(".t-rank-basis");
+    // 라이브 dot은 그대로 두고 텍스트 자식만 갱신(textContent로 통째 덮으면 dot이 사라짐)
+    const rankBasisText = root.querySelector(".t-rank-basis__text");
+    const liveDot = root.querySelector(".t-live-dot");
     const footBasis = document.querySelector(".foot-basis");
-    if (rankBasis) rankBasis.textContent = fmt ? `기준일 ${fmt} · 전날 종가` : "기준일 · 전날 종가";
+    if (rankBasisText) rankBasisText.textContent = fmt ? `기준일 ${fmt} · 전날 종가` : "기준일 · 전날 종가";
+    if (liveDot) liveDot.style.display = fmt ? "" : "none"; // 실데이터(기준일) 있을 때만 펄스
     if (footBasis) footBasis.textContent = fmt ? `환율·물가 데이터 · 기준일 ${fmt} (전날 종가)` : "환율·물가 데이터 · 전날 종가 기준";
   }
 
@@ -603,6 +638,7 @@
     updateSummary();
     if (!detailOpen) renderRank(state.rmode);
     updateHero();
+    observeCountups(); // 뷰포트 진입 시 카운트업(값 세팅 후 관찰)
     hasData = true;
   }
 
@@ -644,7 +680,13 @@
 
   // ---- 이벤트 ----
   root.querySelectorAll(".t-rtab").forEach((tab) => {
-    tab.addEventListener("click", () => renderRank(tab.dataset.mode));
+    tab.addEventListener("click", () => {
+      renderRank(tab.dataset.mode);
+      // 토글 시 표시 중인 뱃지 카운트업 재생(연타해도 countUp이 이전 rAF 취소 → 겹침/NaN 없음)
+      root.querySelectorAll(".t-rcard").forEach((c) => {
+        if (c.style.display !== "none") { const b = c.querySelector(".rc-badge"); if (b) animateCountup(b); }
+      });
+    });
   });
   root.querySelectorAll(".t-rcard").forEach((rcard) => {
     rcard.addEventListener("click", () => {
@@ -763,6 +805,10 @@
   (function heroVideo() {
     const v = document.querySelector(".hero__video-el");
     if (!v) return;
+    // 모바일(≤560px)·모션최소화: 영상 대신 하늘 배경색 폴백(데이터·배터리·성능). autoplay 해제 후 종료.
+    if (matchMedia("(max-width: 560px)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      v.removeAttribute("autoplay"); try { v.pause(); } catch (e) {} return;
+    }
     const FADE = 0.5; // 초
     v.play().catch(() => {});
     const tick = () => {
