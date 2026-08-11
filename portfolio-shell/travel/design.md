@@ -80,6 +80,8 @@
   세로·가로 **흰색** 가독성 그라디언트 오버레이). `.hero`는 `relative`+`overflow:hidden`(배경 `#EBF1FC` 로드 폴백),
   콘텐츠(`.hero__grid`)는 `z-index:10`으로 영상 위에. 루프 경계 하드컷 방지용 진입/종료 **페이드**는 `main.js`
   `heroVideo()`가 `currentTime` 기준 rAF로 opacity 제어(FADE 0.5s).
+  **포스터(2026-08-11): `<video poster="assets/hero/sky-poster.jpg">`**(sky.mp4 첫 프레임 1280×720, ~43KB). 모바일(≤560px)·reduced-motion에선
+  `heroVideo()`가 `autoplay` 해제 + `preload='none'` + `pause()` → 영상 다운로드 없이 포스터만 노출(데이터·배터리 절약). 데스크톱은 기존대로 영상 재생.
   **밝은 영상이라 히어로 텍스트는 어두운색**: 제목 `#0F172A`(+흰 halo text-shadow), 강조어·eyebrow는 Primary,
   설명 `#334155`, SCROLL `--muted`, eyebrow는 반투명 흰 pill. nav·버튼은 원래 어두운 톤(흰 nav+어두운 글자 / primary·흰 버튼) 유지.
   환율 카드(`.t-fxcard`): **반투명 흰 배경 `rgba(255,255,255,.66)` + `backdrop-filter:blur(10px)`**(뒤 구름 영상이 은은히 비침, 가독성 유지),
@@ -150,7 +152,8 @@
   `html { overscroll-behavior-y:none }`, hover 효과는 `@media(hover:none)`에서 해제+`.t-rcard:active` 탭피드백, **영상은 ≤560px·reduced-motion에서 정지**(하늘 배경색 폴백), Pretendard `dynamic-subset`.
 
 ## 9b. PWA · 브랜드
-- **브랜드명 `가뿐`**(구 travel): `<title>`·nav `.t-nav-brand`·푸터. `manifest.webmanifest`(name "가뿐 — 원화가 가벼운 여행지", theme_color #0E4AEB, display standalone) + `<meta theme-color>` + `assets/icons/favicon.svg`(브랜드 블루 라운드+종이비행기, **PNG/maskable은 디자인 전달 후 교체 예정** — 임시로 SVG를 manifest icon any/maskable로 사용).
+- **브랜드명 `가뿐`**(구 travel): `<title>`·nav `.t-nav-brand`·푸터. `manifest.webmanifest`(name "가뿐 — 원화가 가벼운 여행지", theme_color #0E4AEB, display standalone) + `<meta theme-color>` + `assets/icons/favicon.svg`(브랜드 블루 라운드+종이비행기).
+  **아이콘 PNG(2026-08-11 완료)**: favicon.svg를 소스로 `icon-192.png`·`icon-512.png`(any, 라운드사각형) + `icon-maskable-512.png`(maskable — 풀블리드 파랑 배경 + 종이비행기 80% 세이프존)를 sharp로 생성해 manifest icons에 등록. favicon.svg는 any로 함께 유지.
 
 ## 9c. 마이크로 인터랙션(은은하게 — 전부 reduced-motion 시 즉시 최종값)
 - **B1 카운트업**: `.rc-badge`·`.stat__val` 뷰포트 진입 시 0→값(.6s easeOut, `countIO`+`countUp`, tabular-nums, rAF 취소로 겹침/NaN 방지, 토글 재렌더 시 재생).

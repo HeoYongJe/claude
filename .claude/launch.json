@@ -13,6 +13,12 @@
       "runtimeArgs": ["server.js"],
       "cwd": "portfolio-shell/travel",
       "port": 4000
+    },
+    {
+      "name": "travel-static",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5188", "--directory", "portfolio-shell/travel"],
+      "port": 5188
     }
   ]
 }

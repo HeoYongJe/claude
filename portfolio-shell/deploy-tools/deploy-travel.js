@@ -9,7 +9,7 @@ const cfg = require("../deploy.config.js");
 const LOCAL_ROOT = path.join(__dirname, "..", "travel");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/travel";
 
-const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js", "js/cityImages.js", "js/currencyCountryMap.js", "js/rankingSnapshot.js", "manifest.webmanifest", "assets/icons/favicon.svg", "assets/hero/sky.mp4"];
+const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js", "js/cityImages.js", "js/currencyCountryMap.js", "js/rankingSnapshot.js", "manifest.webmanifest", "assets/icons/favicon.svg", "assets/icons/icon-192.png", "assets/icons/icon-512.png", "assets/icons/icon-maskable-512.png", "assets/hero/sky.mp4", "assets/hero/sky-poster.jpg"];
 
 (async () => {
   const client = new ftp.Client(20000);

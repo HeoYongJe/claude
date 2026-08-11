@@ -807,7 +807,8 @@
     if (!v) return;
     // 모바일(≤560px)·모션최소화: 영상 대신 하늘 배경색 폴백(데이터·배터리·성능). autoplay 해제 후 종료.
     if (matchMedia("(max-width: 560px)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      v.removeAttribute("autoplay"); try { v.pause(); } catch (e) {} return;
+      // 영상 다운로드도 막고 포스터(sky-poster.jpg)만 노출 — 데이터·배터리 절약
+      v.removeAttribute("autoplay"); v.preload = "none"; try { v.pause(); } catch (e) {} return;
     }
     const FADE = 0.5; // 초
     v.play().catch(() => {});
