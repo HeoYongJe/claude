@@ -23,7 +23,7 @@ html { scroll-behavior: smooth; overscroll-behavior-y: none; }   /* 웹앱 당�
 /* 히어로(구름 영상) 아래 섹션들이 흰색으로 뚝 끊기지 않도록 아주 연한 블루 그라데이션 배경 */
 body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink);
   /* 히어로(흰색)에서 자연스럽게 이어지도록 위쪽(why 구간)은 거의 흰색~아주 연한 블루로 오래 유지하고, 아래로 갈수록 진해지게 */
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 42%, #E7EEFB 72%, #D6E2F6 100%); background-color: #D6E2F6; }
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 55%, #E7EEFB 72%, #D6E2F6 100%); background-color: #D6E2F6; }/*기존 F8FBFF 42%*/
 a { color: var(--primary); text-decoration: none; }
 a:hover { color: var(--primary-dark); }
 button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; line-height: 1.2; }
@@ -133,8 +133,8 @@ ul, ol { list-style: none; padding: 0; }
 /* 기준일 앞 라이브 펄스(실데이터일 때만 표시 — setBasis에서 토글) */
 .t-live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--primary); margin-right: 7px; vertical-align: 1px; animation: t-pulse 2.4s ease-in-out infinite; }
 @keyframes t-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(14,74,235,.28); } 50% { box-shadow: 0 0 0 5px rgba(14,74,235,0); } }
-.rtabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 5px; border-radius: 12px; }
-.t-rtab { cursor: pointer; font-size: 14px; font-weight: 700; padding: 9px 16px; border-radius: 9px; background: transparent; color: var(--muted); transition: all .15s; }
+.rtabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 0px; margin-bottom: 8px; border-radius: 12px; }
+.t-rtab { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 16px; border-radius: 9px; background: transparent; color: var(--muted); transition: all .15s; }
 
 .t-rankgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 .t-rankgrid[data-count="1"] { grid-template-columns: 1fr; }
@@ -237,20 +237,20 @@ ul, ol { list-style: none; padding: 0; }
 .why { padding: 96px 0 0; background: transparent; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
-.why-card { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
+.why-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
 .why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
 .why-card__icon svg { width: 30px; height: 30px; }
 /* B3: 카드 등장(is-revealed) 시 아이콘 stroke 패스는 그려지고, fill 막대는 페이드인 */
-.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) 2s; }
+.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) 1.2s; }
 .why-card.is-revealed .why-card__icon path[stroke], .why-card.is-revealed .why-card__icon circle[stroke] { stroke-dashoffset: 0; }
-.why-card__icon rect { opacity: 0; transition: opacity .6s ease 2.4s; }
+.why-card__icon rect { opacity: 0; transition: opacity .6s ease 1.6s; }
 .why-card.is-revealed .why-card__icon rect { opacity: 1; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
 /* 상세뷰도 배경은 body 그라데이션 그대로(색 전환 없음) — 내용 카드(.dcard)만 흰 면. 상단 여백만 축소. */
-.rank.is-detail { padding-top: 64px; }   /* 상세뷰: 상단 여백(스크롤 시 헤더가 네비 아래 적당한 간격) */
+.rank.is-detail { padding-top: 96px; }   /* 상세뷰: 상단 여백(스크롤 시 헤더가 네비 아래 적당한 간격) */
 .t-rankview { transition: opacity .45s ease, transform .45s ease; }
 .t-rankview.is-out { opacity: 0; transform: translateY(-28px); pointer-events: none; }
 /* 열릴 때 섹션(head/품목·절약/도시·먹거리/꿀팁)이 시간차를 두고 스르륵 올라옴 */
@@ -335,8 +335,8 @@ ul, ol { list-style: none; padding: 0; }
 /* hover: 이름/지수는 그대로, 이미지(썸네일)만 살짝 올라가며 확대 + 그림자 */
 .d-city__thumb { position: relative; width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background: #eee; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; }
 .d-city__thumb:hover { transform: translateY(-5px); box-shadow: 0 16px 30px -16px rgba(15,23,42,.34); }
-.d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .45s ease; }
-.d-city__thumb:hover img { transform: scale(1.15); }
+.d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 이미지 확대(scale) 효과 제거 — 위로 살짝 뜨는 효과(.d-city__thumb:hover translateY)만 유지 */
 /* 이미지 없음/로드 실패 시 드러나는 폴백: 도시 아이콘 + '이미지 준비중' */
 .d-city__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
   background: linear-gradient(135deg, #EEF2FB, #F5F8FF); color: var(--muted2); }
