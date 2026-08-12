@@ -21,7 +21,9 @@
 * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 html { scroll-behavior: smooth; overscroll-behavior-y: none; }   /* 웹앱 당겨서-새로고침 오작동 방지 */
 /* 히어로(구름 영상) 아래 섹션들이 흰색으로 뚝 끊기지 않도록 아주 연한 블루 그라데이션 배경 */
-body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink); background: linear-gradient(180deg, #FFFFFF 0%, #F1F6FF 34%, #EAF1FF 60%, #F4F8FF 100%); }
+body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink);
+  /* 히어로(흰색) 아래로 갈수록 은은하게 파래지는 세로 그라데이션 — 단조 증가로 '그라데이션'이 실제로 보이게(구: 스톱들이 거의 동색이라 단색처럼 보였음) */
+  background: linear-gradient(180deg, #FFFFFF 0%, #EEF4FF 24%, #E1EAFA 60%, #D6E3F8 100%); background-color: #D6E3F8; }
 a { color: var(--primary); text-decoration: none; }
 a:hover { color: var(--primary-dark); }
 button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; line-height: 1.2; }

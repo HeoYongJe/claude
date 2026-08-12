@@ -802,7 +802,7 @@
   }, { threshold: 0.15 });
   root.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
 
-  // ---- 히어로 배경 영상: 루프 진입/종료 구간 페이드(하드컷 방지) ----
+  // ---- 히어로 배경 영상 ----
   (function heroVideo() {
     const v = document.querySelector(".hero__video-el");
     if (!v) return;
@@ -811,20 +811,10 @@
       // 영상 다운로드도 막고 포스터(sky-poster.jpg)만 노출 — 데이터·배터리 절약
       v.removeAttribute("autoplay"); v.preload = "none"; try { v.pause(); } catch (e) {} return;
     }
-    const FADE = 0.5; // 초
+    // 루프 경계 opacity 페이드는 제거함: 영상 위에 흰 가독성 그라디언트가 있어 opacity를 낮추면
+    // 흰 배경이 비쳐 '하얗게 깜빡'였음. 느린 구름 영상은 네이티브 루프의 하드컷이 흰 깜빡임보다 훨씬 덜 거슬린다.
+    v.style.opacity = "1";
     v.play().catch(() => {});
-    const tick = () => {
-      const d = v.duration;
-      if (d && !isNaN(d)) {
-        const t = v.currentTime;
-        let o = 1;
-        if (t < FADE) o = t / FADE;
-        else if (t > d - FADE) o = Math.max(0, (d - t) / FADE);
-        v.style.opacity = o.toFixed(3);
-      }
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
   })();
 
   // 접속 즉시 스냅샷으로 렌더(빈 화면·placeholder 방지) → 백그라운드로 라이브 최신값 갱신.

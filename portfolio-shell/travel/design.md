@@ -78,8 +78,9 @@
 ## 7. Components (섹션별)
 - **히어로:** 배경 = **루프 배경 영상**(`.hero__video` — 밝은 하늘 영상 `assets/hero/sky.mp4`, `object-fit:cover` +
   세로·가로 **흰색** 가독성 그라디언트 오버레이). `.hero`는 `relative`+`overflow:hidden`(배경 `#EBF1FC` 로드 폴백),
-  콘텐츠(`.hero__grid`)는 `z-index:10`으로 영상 위에. 루프 경계 하드컷 방지용 진입/종료 **페이드**는 `main.js`
-  `heroVideo()`가 `currentTime` 기준 rAF로 opacity 제어(FADE 0.5s).
+  콘텐츠(`.hero__grid`)는 `z-index:10`으로 영상 위에. **영상은 항상 opacity 1로 네이티브 루프**(2026-08-11: 구 루프 경계 opacity 페이드 제거 —
+  영상 위 흰 가독성 그라디언트 때문에 opacity를 낮추면 흰 배경이 비쳐 '하얗게 깜빡'였음. 느린 구름 영상은 하드컷이 흰 깜빡임보다 덜 거슬림.
+  완전 무이음(seamless) 원하면 sky.mp4를 크로스페이드 루프로 재인코딩 필요).
   **포스터(2026-08-11): `<video poster="assets/hero/sky-poster.jpg">`**(sky.mp4 첫 프레임 1280×720, ~43KB). 모바일(≤560px)·reduced-motion에선
   `heroVideo()`가 `autoplay` 해제 + `preload='none'` + `pause()` → 영상 다운로드 없이 포스터만 노출(데이터·배터리 절약). 데스크톱은 기존대로 영상 재생.
   **밝은 영상이라 히어로 텍스트는 어두운색**: 제목 `#0F172A`(+흰 halo text-shadow), 강조어·eyebrow는 Primary,
@@ -90,8 +91,10 @@
   히어로 버튼은 **"추천 랭킹 보기" 1개**(Primary)만 — 랭킹으로 스크롤. (구 "내 여행지 찾기" 버튼 제거.)
   (영상 파일은 `deploy-tools/deploy-travel.js` FILES에 포함해 닷홈 `/travel/assets/hero/`로 업로드. **도트 지도/도트 배경(`.hero__map`·`.hero__dots`)은
   구름 영상과 안 어울려 제거**, blob 글로우만 잔존. 하단 SCROLL 텍스트는 스크롤 시작하면 `heroScrollEl`이 opacity로 스르륵 사라짐.)
-  · **히어로 아래 섹션 배경:** 구름 히어로에서 흰색으로 뚝 끊기지 않게 `body`에 아주 연한 블루 세로 그라데이션
-    (`#FFFFFF→#F1F6FF→#EAF1FF→#F4F8FF`). rank·why 섹션 배경은 `transparent`로 두어 흰 카드가 그 위로 떠 보이게 함.
+  · **히어로 아래 섹션 배경:** 구름 히어로에서 흰색으로 뚝 끊기지 않게 `body`에 세로 그라데이션 — **아래로 갈수록 은은하게 파래짐**
+    (`#FFFFFF 0% → #EEF4FF 24% → #E1EAFA 60% → #D6E3F8 100%`, 폴백 `background-color:#D6E3F8`). 2026-08-11: 구 스톱(`#F1F6FF/#EAF1FF/#F4F8FF`)은
+    서로 거의 동색이라 긴 페이지에서 단색처럼 보였음 → 대비를 키워 실제 그라데이션으로 보이게(단, `background-attachment:fixed`는 스크롤 리페인트 유발이라 안 씀).
+    rank·why 섹션 배경은 `transparent`로 두어 흰 카드가 그 위로 떠 보이게 함.
 - **랭킹(흰 배경):** 흰 카드 **3개 균등 그리드**(gap 24, radius 20, 보더 `--border`). 세그먼트 토글(강세·유리 / 약세·불리,
   Surface 컨테이너·활성=흰 pill+그림자). 카드 = 순위 + 변동률 뱃지 + 국가명 26/800(국기) + 환산 문구 + 미니 스파크라인
   + "체감물가 ±xx%" pill(부호 방향색: −=파랑/+=빨강) + "상세 보기 →". **카드 클릭 → 상세뷰로 슬라이드 전환**.
