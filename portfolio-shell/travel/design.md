@@ -164,7 +164,7 @@
 - **B1 카운트업**: `.rc-badge`·`.stat__val` 뷰포트 진입 시 0→값(.6s easeOut, `countIO`+`countUp`, tabular-nums, rAF 취소로 겹침/NaN 방지, 토글 재렌더 시 재생).
 - **B2 라이브 dot**: `.t-live-dot` 펄스(실데이터 있을 때만, `setBasis`에서 토글 — 텍스트는 `.t-rank-basis__text` 자식만 갱신해 dot 보존).
 - **B3 why 아이콘 드로잉**: 카드 `.is-revealed` 시 `path/circle[stroke]` dash 드로잉 + `rect` 페이드.
-  **타이밍(2026-08-11): 섹션 도착 1.2s 후 1.2s에 걸쳐 천천히 그려짐**(`transition: stroke-dashoffset 1.2s … 1.2s`, rect는 1.6s 뒤 페이드) — 이전 .55s는 너무 빨라 조정(딜레이 2s→1.2s).
+  **타이밍(2026-08-11): 섹션 도착 0.9s 후 1.2s에 걸쳐 천천히 그려짐**(`transition: stroke-dashoffset 1.2s … .9s`, rect는 1.3s 뒤 페이드) — 이전 .55s는 너무 빨라 조정(딜레이 2s→1.2s→0.9s).
 - **B4 배경 시프트**: rAF에서 스크롤 진행률 → **전용 요소 `.t-bgshift`(fixed, z-index -1)의 opacity에 직접** 주입(아주 살짝 블루).
   (2026-08-11: 구 `body::before` + `--bg-shift` CSS 변수 방식은 매 프레임 전체 트리 style 리캘크를 유발해 스크롤이 끊겼음 → 전용 요소로 스코프 이동. 진행바도 `width`→`transform:scaleX`(컴포지터 전용), 히어로 블롭 `will-change:transform`로 GPU 승격, 패럴럭스 rAF는 read/write 분리.)
 - **B5 rank 질감**: `.rank::before` 도트 그리드(상단만 mask 페이드, 상세뷰에선 숨김).

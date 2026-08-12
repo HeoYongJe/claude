@@ -56,7 +56,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--primary); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
 
 /* ---- 진행 바 ---- */
-.t-progress-track { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
+.t-progress-track { display:none; position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
 .t-progress { height: 100%; width: 100%; background: var(--primary); transform: scaleX(0); transform-origin: left center; will-change: transform; }
 
 /* ---- 항로 레일: 평소 거의 안보이는 항로 + 비행기, 스크롤 시 은은한 푸른 점선이 아래→위로 채워짐 ---- */
@@ -241,9 +241,9 @@ ul, ol { list-style: none; padding: 0; }
 .why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
 .why-card__icon svg { width: 30px; height: 30px; }
 /* B3: 카드 등장(is-revealed) 시 아이콘 stroke 패스는 그려지고, fill 막대는 페이드인 */
-.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) 1.2s; }
+.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) .9s; }
 .why-card.is-revealed .why-card__icon path[stroke], .why-card.is-revealed .why-card__icon circle[stroke] { stroke-dashoffset: 0; }
-.why-card__icon rect { opacity: 0; transition: opacity .6s ease 1.6s; }
+.why-card__icon rect { opacity: 0; transition: opacity .6s ease 1.3s; }
 .why-card.is-revealed .why-card__icon rect { opacity: 1; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
