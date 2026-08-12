@@ -92,8 +92,9 @@
   (영상 파일은 `deploy-tools/deploy-travel.js` FILES에 포함해 닷홈 `/travel/assets/hero/`로 업로드. **도트 지도/도트 배경(`.hero__map`·`.hero__dots`)은
   구름 영상과 안 어울려 제거**, blob 글로우만 잔존. 하단 SCROLL 텍스트는 스크롤 시작하면 `heroScrollEl`이 opacity로 스르륵 사라짐.)
   · **히어로 아래 섹션 배경:** 구름 히어로에서 흰색으로 뚝 끊기지 않게 `body`에 세로 그라데이션 — **아래로 갈수록 은은하게 파래짐**
-    (`#FFFFFF 0% → #EEF4FF 24% → #E1EAFA 60% → #D6E3F8 100%`, 폴백 `background-color:#D6E3F8`). 2026-08-11: 구 스톱(`#F1F6FF/#EAF1FF/#F4F8FF`)은
-    서로 거의 동색이라 긴 페이지에서 단색처럼 보였음 → 대비를 키워 실제 그라데이션으로 보이게(단, `background-attachment:fixed`는 스크롤 리페인트 유발이라 안 씀).
+    (`#FFFFFF 0% → #F8FBFF 42% → #E7EEFB 72% → #D6E2F6 100%`, 폴백 `background-color:#D6E2F6`). 2026-08-11: 구 스톱(`#F1F6FF/#EAF1FF/#F4F8FF`)은
+    서로 거의 동색이라 단색처럼 보였음 → 대비를 키우되, **위쪽(hero~why)은 거의 흰색으로 오래 유지하고 아래로 갈수록 진해지게**(히어로에서 자연스럽게 이어지고 하단이 고급스럽게 깊어짐).
+    `background-attachment:fixed`는 스크롤 리페인트 유발이라 안 씀.
     rank·why 섹션 배경은 `transparent`로 두어 흰 카드가 그 위로 떠 보이게 함.
 - **랭킹(흰 배경):** 흰 카드 **3개 균등 그리드**(gap 24, radius 20, 보더 `--border`). 세그먼트 토글(강세·유리 / 약세·불리,
   Surface 컨테이너·활성=흰 pill+그림자). 카드 = 순위 + 변동률 뱃지 + 국가명 26/800(국기) + 환산 문구 + 미니 스파크라인
