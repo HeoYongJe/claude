@@ -21,7 +21,8 @@ function fetchJson(url) {
 
 (async () => {
   try {
-    const data = await fetchJson(API);
+    // 캐시버스터: 엣지 CDN 캐시(30분)에 걸린 옛/축소 결과 대신 항상 신선하게 재계산시킨다.
+    const data = await fetchJson(`${API}?cb=${Date.now()}`);
     if (!data || !data.all || !data.all.length) throw new Error("빈 데이터");
     const out =
       "// 자동 생성(tools/gen-snapshot.js) — 첫 로드 즉시 렌더용 스냅샷. 배포 시점 데이터라 접속 직후엔 이걸 보여주고,\n" +

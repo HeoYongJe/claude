@@ -10,6 +10,7 @@
   // CITYDATA[code] = {name,bigmac,cola,water,fx,savePct} (강세 top3 등 물가 데이터 있는 나라)
   let RANKDATA = { strong: [], weak: [] };
   let ALLDATA = [];               // 전체 국가 랭킹(환율 이득 내림차순)
+  let BYCODE = {};                // 코드→카드 맵(랭킹 제외국 포함) — '인기 여행지' 캐러셀용
   let COUNTS = null;              // { tracked, strong, weak, avgSave }
   let CITYDATA = {};
   let hasData = false;            // 스냅샷/라이브 중 하나라도 반영됐는지
@@ -453,15 +454,17 @@
       `<img src="https://flagcdn.com/${d.code}.svg" alt="" onerror="this.style.display='none'">`;
     detail.querySelector(".detail__name").textContent = d.name;
     const rankEl = detail.querySelector(".detail__rank");
-    rankEl.textContent = strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`;
+    // num이 없으면(랭킹 밖 인기국: 유럽·베트남 등) 순위 대신 '인기 여행지'로 표기.
+    rankEl.textContent = (d.num == null) ? "인기 여행지"
+      : (strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`);
     rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
     rankEl.style.background = "#F1F5F9";
 
-    // 상단 대표 숫자 = 최근 한 달 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑)
+    // 상단 대표 숫자 = 최근 한 달 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
-      fxVal.textContent = d.badge;
-      fxVal.style.color = dirColor((d.changePct == null ? 0 : d.changePct) >= 0);
+      fxVal.textContent = d.badge || "준비 중";
+      fxVal.style.color = (d.changePct == null) ? "#475569" : dirColor(d.changePct >= 0);
     }
     // head에도 익숙한 시세("100엔 = 917원") 표기
     const headKrw = detail.querySelector(".detail__krwper");
@@ -469,7 +472,7 @@
 
     // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
     // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.
-    detail.querySelector(".d-rate").textContent = d.rate;
+    detail.querySelector(".d-rate").textContent = d.rate || "환율 준비 중";
     const krwPerEl = detail.querySelector(".d-krwper");
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
@@ -632,6 +635,7 @@
   function applyRanking(data) {
     RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
     ALLDATA = data.all || [];
+    BYCODE = data.byCode || {};
     COUNTS = data.counts || null;
     CITYDATA = data.cities || {};
     if (data.seoul) SEOULDATA = data.seoul;
@@ -639,6 +643,7 @@
     updateSummary();
     if (!detailOpen) renderRank(state.rmode);
     updateHero();
+    renderPopular();
     observeCountups(); // 뷰포트 진입 시 카운트업(값 세팅 후 관찰)
     hasData = true;
   }
@@ -678,6 +683,53 @@
       top.is3moLow ? "최근 3개월 환율 중 가장 유리해요."
         : `최근 한 달 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);
   }
+
+  // ---- '인기 여행지' 캐러셀 (랭킹 섹션 아래) — 자주 찾는 여행 주요국 바로가기 ----
+  // 한국인 출국 상위·대중적 나라 고정 큐레이션(출국통계는 거의 안 바뀌어 실시간 연동 대신 고정). 클릭 → 상세뷰.
+  const POPULAR = [
+    { code: "jp", name: "일본" }, { code: "cn", name: "중국" }, { code: "us", name: "미국" },
+    { code: "th", name: "태국" }, { code: "sg", name: "싱가포르" }, { code: "ch", name: "스위스" },
+    { code: "eu", name: "유럽연합" }, { code: "vn", name: "베트남" },
+  ];
+  function popData(code, name) {
+    // 랭킹에 있으면 그 카드(순위 포함) → 없으면 byCode(환율만, 유럽 등) → 그것도 없으면 최소 객체(베트남 등).
+    return ALLDATA.find((x) => x.code === code) || BYCODE[code] || { code, name };
+  }
+  function renderPopular() {
+    const track = document.querySelector(".pop__track");
+    if (!track) return;
+    track.innerHTML = POPULAR.map((p) => {
+      const d = popData(p.code, p.name);
+      const hasFx = d.changePct != null && d.badge;
+      const up = (d.changePct == null ? 0 : d.changePct) >= 0;
+      const fx = hasFx
+        ? `<span class="pop-chip__fx" style="color:${dirColor(up)}">${esc(d.badge)}</span>`
+        : `<span class="pop-chip__fx pop-chip__fx--none">준비 중</span>`;
+      const cut = d.savePct != null
+        ? `<span class="pop-chip__cut" style="color:${dirColor(d.savePct < 0)}">체감 ${pctText(d.savePct)}</span>`
+        : "";
+      return `<button class="pop-chip" data-code="${esc(p.code)}" type="button">
+        <span class="pop-chip__top">${flagImg(p.code, 24, 17)}<span class="pop-chip__name">${esc(p.name)}</span></span>
+        <span class="pop-chip__metrics">${fx}${cut}</span>
+      </button>`;
+    }).join("");
+    track.querySelectorAll(".pop-chip").forEach((el) => {
+      el.addEventListener("click", () => {
+        const p = POPULAR.find((x) => x.code === el.dataset.code);
+        openDetail(popData(el.dataset.code, p ? p.name : el.dataset.code));
+      });
+    });
+  }
+  // 캐러셀 좌우 화살표(옆으로 넘기기)
+  (function popArrows() {
+    const track = document.querySelector(".pop__track");
+    if (!track) return;
+    const move = (dir) => track.scrollBy({ left: dir * Math.max(240, track.clientWidth * 0.7), behavior: "smooth" });
+    const prev = document.querySelector(".pop__arrow--prev");
+    const next = document.querySelector(".pop__arrow--next");
+    if (prev) prev.addEventListener("click", () => move(-1));
+    if (next) next.addEventListener("click", () => move(1));
+  })();
 
   // ---- 이벤트 ----
   root.querySelectorAll(".t-rtab").forEach((tab) => {

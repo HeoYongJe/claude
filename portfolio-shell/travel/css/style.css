@@ -248,6 +248,27 @@ ul, ol { list-style: none; padding: 0; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
+/* ---- 인기 여행지 캐러셀 (랭킹 아래) — 자주 찾는 주요국 바로가기. 한 줄 가로 스크롤로 공간 절약 ---- */
+.pop { padding: 8px 0 90px; background: transparent; }
+.pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.pop__title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-top: 8px; }
+.pop__arrows { display: flex; gap: 8px; flex: none; }
+.pop__arrow { width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--border-strong); background: #fff; color: var(--ink); font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s; }
+.pop__arrow:hover { border-color: var(--primary); color: var(--primary); }
+.pop__track { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.pop__track::-webkit-scrollbar { display: none; }
+.pop-chip { flex: 0 0 auto; width: 190px; scroll-snap-align: start; text-align: left; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
+.pop-chip:hover { box-shadow: 0 20px 40px -22px rgba(15,23,42,.28); transform: translateY(-4px); border-color: var(--primary); }
+.pop-chip:active { transform: scale(.985); }
+.pop-chip__top { display: flex; align-items: center; }
+.pop-chip__name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.pop-chip__metrics { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 20px; }
+.pop-chip__fx { font-size: 16px; font-weight: 800; }
+.pop-chip__fx--none { font-size: 13px; font-weight: 700; color: var(--muted2); }
+.pop-chip__cut { font-size: 12px; font-weight: 700; }
+@media (hover: none) { .pop-chip:hover { transform: none; box-shadow: none; border-color: var(--border); } }
+@media (max-width: 900px) { .pop__arrows { display: none; } .pop__title { font-size: 21px; } }
+
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
 /* 상세뷰도 배경은 body 그라데이션 그대로(색 전환 없음) — 내용 카드(.dcard)만 흰 면. 상단 여백만 축소. */
 .rank.is-detail { padding-top: 96px; }   /* 상세뷰: 상단 여백(스크롤 시 헤더가 네비 아래 적당한 간격) */

@@ -139,7 +139,10 @@ const ECB_COUNTRIES = {
 function fetchEcbRange(startD, endD, symbols, attempt = 0) {
   return new Promise((resolve) => {
     const url = `https://api.frankfurter.dev/v1/${startD}..${endD}?base=KRW&symbols=${symbols}`;
-    const retry = () => (attempt < 2 ? resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)) : resolve({}));
+    // 재시도는 짧은 백오프 후(즉시 재시도 대신) — Vercel 콜드스타트/일시 지연 대응. 최대 3회.
+    const retry = () => (attempt < 3
+      ? setTimeout(() => resolve(fetchEcbRange(startD, endD, symbols, attempt + 1)), 400 * (attempt + 1))
+      : resolve({}));
     const req = https.get(url, (r) => {
       if (r.statusCode !== 200) {
         r.resume();
@@ -157,7 +160,7 @@ function fetchEcbRange(startD, endD, symbols, attempt = 0) {
       });
     });
     req.on("error", retry);
-    req.setTimeout(7000, () => req.destroy(new Error("timeout"))); // 행 방지
+    req.setTimeout(8000, () => req.destroy(new Error("timeout"))); // 행 방지(서버리스 함수 제한 아래로 안전 마진)
   });
 }
 
@@ -401,6 +404,8 @@ async function buildRanking() {
     strong: strong.slice(0, 3).map(toCard),
     weak: weak.slice(0, 3).map(toCard),
     all: allSorted.map(toCard), // 전체 국가 랭킹(순위=배열 순서)
+    // 코드→카드 맵: '인기 여행지' 캐러셀 등에서 코드로 직접 조회용. 랭킹 제외국(유럽 등 물가 없음)도 포함(num은 순위 아님이라 null).
+    byCode: Object.fromEntries(results.map((r) => { const c = toCard(r, 0); c.num = null; return [r.code, c]; })),
     counts: { tracked: ranked.length, strong: strong.length, weak: weak.length, avgSave },
     cities,
     seoul: SEOUL_PRICE,
