@@ -343,10 +343,24 @@ async function buildRanking() {
     };
   };
 
-  const strong = results.filter((r) => r.changePct > 0).sort((a, b) => b.changePct - a.changePct);
-  const weak = results.filter((r) => r.changePct < 0).sort((a, b) => a.changePct - b.changePct);
-  // 전체 랭킹: 환율 이득(강세율) 내림차순 — 강세 상위 → 약세 하위 순.
-  const allSorted = results.slice().sort((a, b) => b.changePct - a.changePct);
+  // ── 결합 '이득' 점수: 원화 강세율(changePct) + 물가 이득(savePct) 가중합 ──
+  // 둘 다 "원화 관점에서 얼마나 이득인가"를 %로 나타내므로 같은 방향으로 더한다.
+  // 예) 튀르키예: 환율은 좋아도(+7%) 물가가 서울보다 68% 비싸(savePct≈-68) 점수가 크게 내려가 순위가 밀린다.
+  //     일본처럼 환율도 괜찮고 물가도 싼(savePct+) 나라가 위로 온다. → 서비스 취지("지금 원화로 가장 이득인 여행지")에 부합.
+  // 가중치는 아래 상수로 조정(현재 1:1). 물가 데이터 없는 나라는 물가 이득 0(중립)으로 둔다.
+  const FX_WEIGHT = 1;     // 환율 강세 가중치
+  const PRICE_WEIGHT = 1;  // 물가(서울 대비 절약) 가중치
+  results.forEach((r) => {
+    const p = priceInfo(r.code);
+    const save = p ? p.savePct : 0;
+    r._score = FX_WEIGHT * r.changePct + PRICE_WEIGHT * save;
+  });
+
+  // 탭 소속은 환율 부호(강세/약세)로 유지하되, 탭 안 순서·전체 랭킹은 결합 점수 내림차순.
+  const strong = results.filter((r) => r.changePct > 0).sort((a, b) => b._score - a._score);
+  const weak = results.filter((r) => r.changePct < 0).sort((a, b) => b._score - a._score);
+  // 전체 랭킹: 환율+물가 결합 이득 내림차순.
+  const allSorted = results.slice().sort((a, b) => b._score - a._score);
 
   // 물가 데이터: 전체 나라(데이터 있는) 모두 담는다 → 전체 국가 상세뷰 품목 막대·절약률용.
   const cities = {};
