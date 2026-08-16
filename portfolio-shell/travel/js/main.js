@@ -49,17 +49,23 @@
 
   // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
   const render = () => {
+    // ── 1) 읽기(레이아웃 유발) 모두 먼저 — 쓰기 뒤에 읽으면 강제 동기 레이아웃(thrash)이 남 ──
     const y = window.pageYOffset;
-    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const vh = window.innerHeight;
+    const max = Math.max(1, document.documentElement.scrollHeight - vh);
+    const vc = vh / 2;
+    const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
+    const railH = railEl ? railEl.clientHeight : 0;
+    const rankBottom = (railEl && rankSecEl) ? rankSecEl.getBoundingClientRect().bottom : 0;
+
+    // ── 2) 계산 ──
     const target = Math.min(1, Math.max(0, y / max));
     state.sm += (target - state.sm) * 0.09;
     if (Math.abs(target - state.sm) < 0.0002) state.sm = target;
     const gp = state.sm;
     const sy = gp * max;
 
-    // 패럴럭스: 레이아웃 스래싱 방지 위해 rect 읽기(read)와 transform 쓰기(write)를 분리.
-    const vc = window.innerHeight / 2;
-    const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
+    // ── 3) 쓰기(합성 위주) 모두 나중 ──
     layers.forEach((l, i) => {
       l.style.transform = `translate3d(0, ${(-offs[i] * parseFloat(l.dataset.speed)).toFixed(1)}px, 0)`;
     });
@@ -70,12 +76,13 @@
       // 아래(792)에서 위로 채워지는 점선 + 채워진 선의 끝을 따라 위로 올라가는 비행기(스크롤 역방향)
       const y2 = 792 - gp * 784;
       railTrail.setAttribute("y2", y2.toFixed(1));
-      const topPx = (y2 / 800) * railEl.clientHeight;
-      planeWrap.style.top = topPx.toFixed(1) + "px";
+      const topPx = (y2 / 800) * railH;
+      // top(레이아웃) 대신 transform(합성)으로 이동 — 스크롤 중 프레임 레이아웃 제거.
+      planeWrap.style.transform = `translate(-50%,-50%) translateY(${topPx.toFixed(1)}px)`;
     }
 
     if (hero && heroInner) {
-      const t = Math.min(1, sy / window.innerHeight);
+      const t = Math.min(1, sy / vh);
       heroInner.style.opacity = (1 - t * 0.9).toFixed(3);
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
@@ -84,11 +91,7 @@
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
     // 항로 레일: Hero~랭킹(상세뷰 포함)까지 표시. 섹션을 완전히 지나면(푸터쪽) 페이드아웃.
-    if (railEl && rankSecEl) {
-      const rb = rankSecEl.getBoundingClientRect();
-      const pastRank = rb.bottom < window.innerHeight * 0.4;
-      railEl.style.opacity = pastRank ? "0" : "1";
-    }
+    if (railEl) railEl.style.opacity = (rankBottom < vh * 0.4) ? "0" : "1";
     requestAnimationFrame(render);
   };
   render();
@@ -689,7 +692,7 @@
   const POPULAR = [
     { code: "jp", name: "일본" }, { code: "cn", name: "중국" }, { code: "us", name: "미국" },
     { code: "th", name: "태국" }, { code: "sg", name: "싱가포르" }, { code: "ch", name: "스위스" },
-    { code: "eu", name: "유럽연합" }, { code: "vn", name: "베트남" },
+    { code: "eu", name: "유럽연합" },
   ];
   function popData(code, name) {
     // 랭킹에 있으면 그 카드(순위 포함) → 없으면 byCode(환율만, 유럽 등) → 그것도 없으면 최소 객체(베트남 등).

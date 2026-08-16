@@ -64,7 +64,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-rail svg { width: 100%; height: 100%; overflow: visible; }
 .t-rail-path { stroke: rgba(14,74,235,.12); animation: t-dashflow 2.6s linear infinite; }          /* 스크롤 전 거의 안보이는 항로 */
 .t-rail-trail { stroke: rgba(14,74,235,.5); stroke-width: 2.5; stroke-dasharray: 1.5 8; stroke-linecap: round; }  /* 채워지는 은은한 푸른 점선 */
-.t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: top; }
+.t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: transform; }
 .t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(14,74,235,.14), rgba(14,74,235,0) 70%); }
 .t-plane { position: relative; width: 28px; height: 28px; color: var(--primary); filter: drop-shadow(0 6px 10px rgba(14,74,235,.28)); animation: t-planebob 3s ease-in-out infinite; }
 .t-plane svg { display: block; }
