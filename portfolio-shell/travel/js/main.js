@@ -457,7 +457,7 @@
     rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
     rankEl.style.background = "#F1F5F9";
 
-    // 상단 대표 숫자 = 전날 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑)
+    // 상단 대표 숫자 = 최근 한 달 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑)
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
       fxVal.textContent = d.badge;

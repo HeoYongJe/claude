@@ -313,6 +313,17 @@ async function buildRanking() {
   const bigmacM = await fetchKotraPrices(PRICE_SEQ.bigmac);
   const waterM = await fetchKotraPrices(PRICE_SEQ.water);
   const colaM = await fetchKotraPrices(PRICE_SEQ.cola);
+  // KOTRA(data.go.kr) 67개국 명단에 없어 물가가 비던 '인기 여행지'만 근사치(USD)로 수동 보강.
+  // (값은 Numbeo 등 참고한 대략치 — 정밀 데이터 아님. 새 나라 추가 = 여기 한 줄.)
+  const MANUAL_PRICES = {
+    HK: { bigmac: 2.9, water: 0.8, cola: 1.3 }, // 홍콩
+    PH: { bigmac: 2.7, water: 0.35, cola: 0.6 }, // 필리핀
+  };
+  for (const [iso, p] of Object.entries(MANUAL_PRICES)) {
+    if (bigmacM[iso] == null) bigmacM[iso] = p.bigmac;
+    if (waterM[iso] == null) waterM[iso] = p.water;
+    if (colaM[iso] == null) colaM[iso] = p.cola;
+  }
   const seoulTotal = SEOUL_PRICE.bigmac + SEOUL_PRICE.cola + SEOUL_PRICE.water;
   function priceInfo(code) {
     if (!usdKrw) return null;
@@ -347,20 +358,24 @@ async function buildRanking() {
   // 둘 다 "원화 관점에서 얼마나 이득인가"를 %로 나타내므로 같은 방향으로 더한다.
   // 예) 튀르키예: 환율은 좋아도(+7%) 물가가 서울보다 68% 비싸(savePct≈-68) 점수가 크게 내려가 순위가 밀린다.
   //     일본처럼 환율도 괜찮고 물가도 싼(savePct+) 나라가 위로 온다. → 서비스 취지("지금 원화로 가장 이득인 여행지")에 부합.
-  // 가중치는 아래 상수로 조정(현재 1:1). 물가 데이터 없는 나라는 물가 이득 0(중립)으로 둔다.
+  // 가중치는 아래 상수로 조정(현재 1:1).
   const FX_WEIGHT = 1;     // 환율 강세 가중치
   const PRICE_WEIGHT = 1;  // 물가(서울 대비 절약) 가중치
   results.forEach((r) => {
     const p = priceInfo(r.code);
-    const save = p ? p.savePct : 0;
-    r._score = FX_WEIGHT * r.changePct + PRICE_WEIGHT * save;
+    r._save = p ? p.savePct : null;
+    r._score = FX_WEIGHT * r.changePct + PRICE_WEIGHT * (p ? p.savePct : 0);
   });
 
+  // ★ 물가 데이터 있는 나라만 순위 집계 — 환율만으로는 '이득'을 판단할 수 없어 제외한다.
+  //   (예전엔 물가 없는 나라를 0=중립으로 둬, 물가 미상 나라가 '물가 비쌈이 확인된' 나라보다 위에 오는 불공정이 있었음.)
+  //   KOTRA 미수록 인기국(홍콩·필리핀)은 위 MANUAL_PRICES로 보강해 포함, 그 외(노르웨이·헝가리·EU 등)는 랭킹에서 빠짐.
+  const ranked = results.filter((r) => r._save != null);
   // 탭 소속은 환율 부호(강세/약세)로 유지하되, 탭 안 순서·전체 랭킹은 결합 점수 내림차순.
-  const strong = results.filter((r) => r.changePct > 0).sort((a, b) => b._score - a._score);
-  const weak = results.filter((r) => r.changePct < 0).sort((a, b) => b._score - a._score);
+  const strong = ranked.filter((r) => r.changePct > 0).sort((a, b) => b._score - a._score);
+  const weak = ranked.filter((r) => r.changePct < 0).sort((a, b) => b._score - a._score);
   // 전체 랭킹: 환율+물가 결합 이득 내림차순.
-  const allSorted = results.slice().sort((a, b) => b._score - a._score);
+  const allSorted = ranked.slice().sort((a, b) => b._score - a._score);
 
   // 물가 데이터: 전체 나라(데이터 있는) 모두 담는다 → 전체 국가 상세뷰 품목 막대·절약률용.
   const cities = {};
@@ -386,7 +401,7 @@ async function buildRanking() {
     strong: strong.slice(0, 3).map(toCard),
     weak: weak.slice(0, 3).map(toCard),
     all: allSorted.map(toCard), // 전체 국가 랭킹(순위=배열 순서)
-    counts: { tracked: results.length, strong: strong.length, weak: weak.length, avgSave },
+    counts: { tracked: ranked.length, strong: strong.length, weak: weak.length, avgSave },
     cities,
     seoul: SEOUL_PRICE,
   };
