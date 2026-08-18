@@ -133,8 +133,9 @@
 - **인기 여행지(`.t-pop`, 랭킹 섹션 아래, 2026-08-16 재디자인 — 배경 티커 + 정지 타일 3개):** 결합 순위는 가성비 국가 위주라, 익숙한 여행지를 따로 보여줌. 섹션 배경 없음(body 그라데이션 위).
   · **배경 티커(`.t-pop__ticker`, 장식)**: 칩(국기+이름+환율 ▲/▼%)이 좌→우로 흐름(`t-marquee` 72s). **클릭·포커스 안 받음**(`pointer-events:none`+`aria-hidden`). 세트를 2번 렌더+안전장치로 트랙 절반이 컨테이너보다 넓게(빈 구간 방지). 양쪽 페이드는 배경 무관하게 `mask-image`.
   · **정지 타일 3개(`.t-pop__tiles`, 클릭 대상)**: 뱃지 3종 = ①가장 많이 봄(인기순 1위) ②체감 최저(cpiDiff 최소) ③환율은 이득·물가는 부담(환율 강세+물가 비쌈, `is-warn` 빨강 톤). 각 타일 = 국기+국가명+뱃지 / 1,000원 환산 / **서울 대비 막대**(왼→오, `width=|cpiDiff|` 100%상한, 저렴=파랑·비쌈=빨강, IntersectionObserver로 진입 시 채움) / 도시3 + "눌러서 상세". 클릭 → 기존 `openDetail` 재사용.
-  · **데이터 매핑**(main.js `popRows`): `ALLDATA`(물가 있는 랭킹국) 기반. `cpiDiff = -savePct`(음수=저렴/파랑, 양수=비쌈/빨강), `fxChange = changePct`, `per1000 = recv`, cities는 `COUNTRY_DETAIL`. **조회수 데이터 없어 '인기'는 `POP_ORDER` 고정 순서로 대체.** 티커는 데이터 있는 랭킹국 전체를 인기순으로(스펙의 TW·개별 유럽국은 우리 데이터에 없어 자동 제외).
-  · **"전체 보기"(`data-pop-all`)** → 새 페이지 대신 **기존 전체 랭킹 팝업(`openModal`) 재사용.**
+  · **고정 인기국 리스트(2026-08-16 수정)**: 티커·타일·카운트·전체보기 **모두 `POPULAR_CODES`(main.js)만** 사용 — 전체 랭킹 25국 아님. 현재 11개: `jp cn th ph hk us sg my au ch eu`(대략 인기순, 첫번째=가장 많이 봄). ⚠️ **베트남·대만은 환율 과거데이터 소스가 없어 제외.** 나라 추가/변경 = 이 배열 한 줄. 카운트(`data-pop-count`)·전체보기도 이 수(11)를 따름.
+  · **데이터 매핑**(main.js `popRows`): 각 인기국을 `ALLDATA`(순위 있으면) 또는 `BYCODE`(유럽=환율만)에서 조회. `cpiDiff = -savePct`(음수=저렴/파랑, 양수=비쌈/빨강), `fxChange = changePct`, `per1000 = recv`, cities는 `COUNTRY_DETAIL`. 타일은 물가(cpiDiff) 있는 나라만 대상(유럽 제외).
+  · **"전체 보기"(`data-pop-all`)** → 기존 팝업을 **`modalMode='popular'`로** 열어 **인기국만** 나열(제목 "인기 여행국"). "전체 랭킹 보기"·"다른 나라 선택하기"는 `modalMode='all'`로 전체 25국 유지.
 - **첫 로드 즉시 렌더(스냅샷):** Vercel 콜드스타트로 `/api/ranking`이 5~15초 걸릴 수 있어, 배포 시점 데이터를 `js/rankingSnapshot.js`
   (`RANKING_SNAPSHOT`)에 굳혀 함께 싣는다. `main.js`는 접속 즉시 `applyRanking(SNAPSHOT)`로 그리고(placeholder 방지),
   이어서 `loadRanking()`이 라이브 최신값을 받아 `applyRanking(data)`로 교체(stale-while-revalidate). 스냅샷 있으면 로딩 에러문구도 안 띄움.

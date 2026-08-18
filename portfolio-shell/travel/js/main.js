@@ -688,25 +688,31 @@
   }
 
   // ---- 인기 여행지: 배경 티커(장식) + 정지 타일 3개(클릭) ----
-  // 행 = 랭킹국(환율+물가 있음) 기반. cpiDiff = -savePct(음수=저렴/파랑, 양수=비쌈/빨강), fxChange = changePct(+ = 원화 강세/▲빨강).
-  // 조회수 데이터가 없어 '인기'는 한국 출국 상위 대략 순서(POP_ORDER)로 대체.
-  const POP_ORDER = ["jp", "vn", "cn", "th", "ph", "us", "tw", "hk", "sg", "my", "id", "au", "ca", "gb", "ch", "eu"];
-  const popViews = (code) => { const i = POP_ORDER.indexOf(code); return i < 0 ? 0 : POP_ORDER.length - i; };
+  // 티커·타일·전체보기·카운트 전부 아래 '고정 인기국 리스트'만 사용(전체 랭킹 25국 아님).
+  // cpiDiff = -savePct(음수=저렴/파랑, 양수=비쌈/빨강), fxChange = changePct(+ = 원화 강세/▲빨강).
+  // 순서 = 대략 인기순(첫 번째가 '가장 많이 봄'). ※ 베트남·대만은 환율 과거데이터 소스가 없어 부득이 제외.
+  const POPULAR_CODES = ["jp", "cn", "th", "ph", "hk", "us", "sg", "my", "au", "ch", "eu"];
+  const popViews = (code) => { const i = POPULAR_CODES.indexOf(code); return i < 0 ? 0 : POPULAR_CODES.length - i; };
   const flagTag = (code, cls) => `<img class="${cls}" src="https://flagcdn.com/${esc(code)}.svg" alt="" onerror="this.style.display='none'">`;
 
   function popData(code) {
     return ALLDATA.find((x) => x.code === code) || BYCODE[code] || { code, name: code };
   }
   function popRows() {
-    return (ALLDATA || []).filter((d) => d.savePct != null).map((d) => ({
-      code: d.code,
-      nameKo: d.name,
-      fxChange: d.changePct == null ? 0 : d.changePct,
-      cpiDiff: -d.savePct,
-      per1000: d.recv || "",
-      cities: (DETAIL[d.code] && DETAIL[d.code].cities ? DETAIL[d.code].cities.map((c) => c.name) : []),
-      views: popViews(d.code),
-    }));
+    // 고정 인기국 순서대로, 데이터(최소 환율) 있는 나라만.
+    return POPULAR_CODES.map((code) => {
+      const d = ALLDATA.find((x) => x.code === code) || BYCODE[code];
+      if (!d) return null;
+      return {
+        code: d.code,
+        nameKo: d.name,
+        fxChange: d.changePct == null ? 0 : d.changePct,
+        cpiDiff: d.savePct == null ? null : -d.savePct,
+        per1000: d.recv || "",
+        cities: (DETAIL[code] && DETAIL[code].cities ? DETAIL[code].cities.map((c) => c.name) : []),
+        views: popViews(code),
+      };
+    }).filter(Boolean);
   }
 
   function renderPopTicker(rows) {
@@ -732,9 +738,10 @@
   }
 
   function popTiles(rows) {
-    const byViews = rows.slice().sort((a, b) => b.views - a.views)[0];
-    const byCheap = rows.filter((r) => r.code !== (byViews && byViews.code)).sort((a, b) => a.cpiDiff - b.cpiDiff)[0];
-    const paradox = rows.find((r) => r.fxChange > 0 && r.cpiDiff > 0 &&
+    const priced = rows.filter((r) => r.cpiDiff != null); // 물가 있는 나라만 타일 대상(유럽 등 제외)
+    const byViews = priced.slice().sort((a, b) => b.views - a.views)[0];
+    const byCheap = priced.filter((r) => r.code !== (byViews && byViews.code)).sort((a, b) => a.cpiDiff - b.cpiDiff)[0];
+    const paradox = priced.find((r) => r.fxChange > 0 && r.cpiDiff > 0 &&
       ![byViews && byViews.code, byCheap && byCheap.code].includes(r.code));
     return [
       byViews && { ...byViews, tag: "가장 많이 봄", warn: false },
@@ -789,12 +796,12 @@
     renderPopTiles(rows);
     renderPopTicker(rows);
     const cnt = document.querySelector("[data-pop-count]");
-    if (cnt && COUNTS && COUNTS.tracked != null) cnt.textContent = COUNTS.tracked;
+    if (cnt) cnt.textContent = rows.length; // 전체 추적국(25) 아니라 '인기국' 수
   }
-  // '전체 보기' → 기존 전체 랭킹 팝업 재사용(새 페이지/인기필터 안 만듦)
+  // '전체 보기' → 기존 팝업 재사용하되 '인기국 모드'로(인기국만 나열)
   (function popAll() {
     const btn = document.querySelector("[data-pop-all]");
-    if (btn) btn.addEventListener("click", () => { if (typeof openModal === "function") openModal(); });
+    if (btn) btn.addEventListener("click", () => { modalMode = "popular"; if (typeof openModal === "function") openModal(); });
   })();
 
   // ---- 이벤트 ----
@@ -819,16 +826,26 @@
   const modalCount = modal && modal.querySelector(".t-modal__count");
   const CCMAP = (typeof CURRENCY_COUNTRY_MAP !== "undefined") ? CURRENCY_COUNTRY_MAP : {};
 
-  // 전체 랭킹(ALLDATA)이 있으면 그걸로, 없으면(구 API) 강세+약세 top으로 폴백.
+  // 모달 모드: 'all'(전체 랭킹) / 'popular'(인기국만). 여는 버튼이 설정.
+  let modalMode = "all";
   function modalList() {
-    if (ALLDATA && ALLDATA.length) return ALLDATA;
-    return [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])];
+    const base = (ALLDATA && ALLDATA.length) ? ALLDATA : [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])];
+    if (modalMode === "popular") {
+      return POPULAR_CODES.map((c) => base.find((x) => x.code === c) || BYCODE[c]).filter(Boolean);
+    }
+    return base;
   }
 
   function renderModal() {
     if (!modalGrid) return;
     const list = modalList();
     if (modalCount) modalCount.textContent = `${list.length}개국`;
+    const titleLabel = modal.querySelector(".t-modal__title-label");
+    const sub = modal.querySelector(".t-modal__sub");
+    if (titleLabel) titleLabel.textContent = modalMode === "popular" ? "인기 여행국" : "추적 중인 통화";
+    if (sub) sub.textContent = modalMode === "popular"
+      ? "여행객이 자주 찾는 나라예요. 나라를 누르면 상세로 이동합니다."
+      : "환율·물가를 매일 추적하는 나라예요. 순위권 나라를 누르면 상세로 이동합니다.";
     modalGrid.innerHTML = list.map((d, i) => {
       const up = (d.changePct == null ? 0 : d.changePct) >= 0;
       const cutHtml = d.savePct != null
@@ -880,10 +897,10 @@
 
   const backBtn = root.querySelector(".t-detail-back");
   // "다른 나라 선택하기" → 전체 랭킹 팝업(다른 나라로 전환용)
-  if (backBtn) backBtn.addEventListener("click", openModal);
+  if (backBtn) backBtn.addEventListener("click", () => { modalMode = "all"; openModal(); });
   // "전체 랭킹 보기 →" → 전체 랭킹 팝업
   const summaryBtn = root.querySelector(".t-cta--summary");
-  if (summaryBtn) summaryBtn.addEventListener("click", openModal);
+  if (summaryBtn) summaryBtn.addEventListener("click", () => { modalMode = "all"; openModal(); });
 
   // ── 네비 / 히어로 액션 ──
   // "추천 랭킹" 버튼: 상세뷰가 열려 있으면 목록으로 복귀, 아니면 랭킹 섹션으로 스크롤.
