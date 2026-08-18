@@ -737,6 +737,12 @@
     });
   }
 
+  // 카드 뱃지 = 그 카드의 '주제(제목)'. 카테고리 라인 아이콘으로 강조(국가 특징이 아니라 카드 분류임을 명확히).
+  const POP_ICON = {
+    star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.05 6L12 17.8 6.6 19.6l1.05-6L3.3 9.4l6-.9z"/></svg>`,
+    down: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/></svg>`,
+    warn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+  };
   function popTiles(rows) {
     const priced = rows.filter((r) => r.cpiDiff != null); // 물가 있는 나라만 타일 대상(유럽 등 제외)
     const byViews = priced.slice().sort((a, b) => b.views - a.views)[0];
@@ -744,9 +750,10 @@
     const paradox = priced.find((r) => r.fxChange > 0 && r.cpiDiff > 0 &&
       ![byViews && byViews.code, byCheap && byCheap.code].includes(r.code));
     return [
-      byViews && { ...byViews, tag: "가장 많이 봄", warn: false },
-      byCheap && { ...byCheap, tag: "체감 최저", warn: false },
-      paradox && { ...paradox, tag: "환율은 이득, 물가는 부담", warn: true },
+      // '가장 많이 봄'은 실제 조회수 데이터가 없어 오해 소지 → '대표 인기'(고정 인기순 1위)로 정직하게.
+      byViews && { ...byViews, tag: "대표 인기", warn: false, icon: POP_ICON.star },
+      byCheap && { ...byCheap, tag: "체감물가 최저", warn: false, icon: POP_ICON.down },
+      paradox && { ...paradox, tag: "환율 이득·물가 부담", warn: true, icon: POP_ICON.warn },
     ].filter(Boolean).slice(0, 3);
   }
 
@@ -760,10 +767,8 @@
       const cities = (r.cities || []).slice(0, 3).join(" · ");
       return `<li class="t-pop-tile">
         <button type="button" class="t-pop-tile__btn" data-country="${esc(r.code)}" aria-label="${esc(r.nameKo)} 상세 보기 · 서울 대비 체감물가 ${Math.abs(r.cpiDiff)}% ${pricey ? "비쌈" : "저렴"}">
-          <span class="t-pop-tile__top">
-            <span class="t-pop-tile__id">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
-            <span class="t-pop-tile__tag${r.warn ? " is-warn" : ""}">${esc(r.tag)}</span>
-          </span>
+          <span class="t-pop-tile__badge${r.warn ? " is-warn" : ""}">${r.icon || ""}<span>${esc(r.tag)}</span></span>
+          <span class="t-pop-tile__id">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
           <span class="t-pop-tile__rate">1,000원 = <strong>${esc(r.per1000)}</strong></span>
           <span class="t-pop-tile__bar-row">
             <span class="t-pop-tile__bar-label">서울 대비 물가</span>
