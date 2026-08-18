@@ -248,26 +248,91 @@ ul, ol { list-style: none; padding: 0; }
 .why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
-/* ---- 인기 여행지 캐러셀 (랭킹 아래) — 자주 찾는 주요국 바로가기. 한 줄 가로 스크롤로 공간 절약 ---- */
-.pop { padding: 8px 0 90px; background: transparent; }
-.pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-.pop__title { font-size: 24px; font-weight: 800; letter-spacing: -.02em; margin-top: 8px; }
-.pop__arrows { display: flex; gap: 8px; flex: none; }
-.pop__arrow { width: 38px; height: 38px; border-radius: 999px; border: 1px solid var(--border-strong); background: #fff; color: var(--ink); font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: border-color .15s, color .15s; }
-.pop__arrow:hover { border-color: var(--primary); color: var(--primary); }
-.pop__track { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.pop__track::-webkit-scrollbar { display: none; }
-.pop-chip { flex: 0 0 auto; width: 190px; scroll-snap-align: start; text-align: left; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
-.pop-chip:hover { box-shadow: 0 20px 40px -22px rgba(15,23,42,.28); transform: translateY(-4px); border-color: var(--primary); }
-.pop-chip:active { transform: scale(.985); }
-.pop-chip__top { display: flex; align-items: center; }
-.pop-chip__name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
-.pop-chip__metrics { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; min-height: 20px; }
-.pop-chip__fx { font-size: 16px; font-weight: 800; }
-.pop-chip__fx--none { font-size: 13px; font-weight: 700; color: var(--muted2); }
-.pop-chip__cut { font-size: 12px; font-weight: 700; }
-@media (hover: none) { .pop-chip:hover { transform: none; box-shadow: none; border-color: var(--border); } }
-@media (max-width: 900px) { .pop__arrows { display: none; } .pop__title { font-size: 21px; } }
+/* ---- 인기 여행지 (랭킹 아래): 배경 티커 1줄 + 정지 타일 3개. 섹션 배경 없음(body 그라데이션 위) ---- */
+.t-pop { padding: 96px 0 104px; background: transparent; }
+.t-pop__inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+.t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
+.t-pop__eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 800; color: var(--primary); }
+.t-pop__eyebrow .t-live-dot { margin-right: 0; }   /* 기존 t-live-dot 재사용(펄스 포함), flex gap과 이중 여백 방지 */
+.t-pop__title { margin: 10px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.025em; color: var(--ink); }
+
+.t-pop__all { flex: none; display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13.5px; font-weight: 800; color: var(--primary);
+  background: #fff; border: 1px solid #DCE6F8; border-radius: 10px;
+  padding: 12px 18px; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+
+/* 티커(장식) — 페이드는 배경 무관하게 mask-image로(섹션 배경이 body 그라데이션이라 단색 페이드 못 씀) */
+.t-pop__ticker { position: relative; height: 40px; margin-top: 28px; overflow: hidden; pointer-events: none; opacity: .55;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.t-pop__track { display: flex; gap: 8px; width: max-content; will-change: transform; animation: t-marquee 72s linear infinite; }
+@keyframes t-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.t-chip { display: flex; align-items: center; gap: 7px; white-space: nowrap; background: rgba(255,255,255,.82); border-radius: 999px; padding: 8px 14px; }
+.t-chip__flag { width: 17px; height: 12px; object-fit: cover; border-radius: 2px; }
+.t-chip__name { font-size: 12.5px; font-weight: 700; color: #475569; }
+.t-chip__delta { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-chip__delta.is-up { color: var(--up); }       /* 방향색: 오름=빨강 */
+.t-chip__delta.is-down { color: var(--down); }   /* 내림=파랑(=--primary 계열) */
+
+.t-pop__caption { margin: 10px 0 0; font-size: 11.5px; font-weight: 800; color: #8098C4; letter-spacing: .02em; }
+
+/* 타일 */
+.t-pop__tiles { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 22px 0 0; padding: 0; }
+.t-pop-tile { display: flex; }
+.t-pop-tile__btn { flex: 1; display: flex; flex-direction: column; gap: 0; text-align: left; cursor: pointer; font: inherit;
+  background: #fff; border: 1px solid #E5EBF7; border-radius: 16px; padding: 20px 22px;
+  box-shadow: 0 14px 30px -22px rgba(15,23,42,.28); transition: transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s, border-color .2s; }
+.t-pop-tile__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+.t-pop-tile__id { display: flex; align-items: center; gap: 10px; }
+.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
+.t-pop-tile__name { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+.t-pop-tile__tag { flex: none; font-size: 11px; font-weight: 800; color: var(--primary); background: #EAF1FF; padding: 5px 9px; border-radius: 999px; }
+.t-pop-tile__tag.is-warn { color: var(--up); background: #FEECEC; }
+.t-pop-tile__rate { margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.t-pop-tile__rate strong { font-size: 15px; color: var(--ink); }
+.t-pop-tile__bar-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.t-pop-tile__bar-label { width: 56px; font-size: 11px; font-weight: 700; color: var(--muted2); }
+.t-pop-tile__bar { flex: 1; height: 7px; background: #EEF1F6; border-radius: 999px; overflow: hidden; }
+.t-pop-tile__fill { display: block; height: 7px; border-radius: 999px; width: 0; background: var(--down); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+.t-pop-tile__fill.is-pricey { background: var(--up); }
+.t-pop-tile__val { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-pop-tile__val.is-cheap { color: var(--down); }
+.t-pop-tile__val.is-pricey { color: var(--up); }
+.t-pop-tile__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #F1F5FC; }
+.t-pop-tile__cities { font-size: 12.5px; color: var(--muted2); }
+.t-pop-tile__cta { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--primary); }
+
+@media (hover: hover) {
+  .t-pop-tile__btn:hover { transform: translateY(-3px); border-color: #CFDDF8; box-shadow: 0 22px 40px -24px rgba(15,23,42,.34); }
+  .t-pop__all:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -14px rgba(14,74,235,.5); }
+  .t-pop__ticker:hover .t-pop__track { animation-play-state: paused; }
+}
+.t-pop-tile__btn:active { transform: scale(.985); }
+.t-pop-tile__btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .t-pop { padding: 72px 0 80px; }
+  .t-pop__head { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .t-pop__title { font-size: 25px; }
+  .t-pop__all { padding: 14px 18px; }
+  .t-pop__tiles { grid-template-columns: repeat(2, 1fr); }
+  .t-pop-tile:nth-child(3) { display: none; }
+}
+@media (max-width: 560px) {
+  .t-pop__tiles { grid-template-columns: 1fr; }
+  .t-pop-tile:nth-child(3) { display: flex; }
+  .t-pop-tile__btn { padding: 18px 18px; }
+  .t-pop-tile__name { font-size: 17px; }
+  .t-pop-tile__top { flex-wrap: wrap; }
+  .t-pop__ticker { height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-pop__track { animation: none; }
+  .t-pop-tile__fill { transition: none; }
+  .t-pop-tile__btn { transition: none; }
+}
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
 /* 상세뷰도 배경은 body 그라데이션 그대로(색 전환 없음) — 내용 카드(.dcard)만 흰 면. 상단 여백만 축소. */

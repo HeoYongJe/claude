@@ -687,51 +687,114 @@
         : `최근 한 달 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);
   }
 
-  // ---- '인기 여행지' 캐러셀 (랭킹 섹션 아래) — 자주 찾는 여행 주요국 바로가기 ----
-  // 한국인 출국 상위·대중적 나라 고정 큐레이션(출국통계는 거의 안 바뀌어 실시간 연동 대신 고정). 클릭 → 상세뷰.
-  const POPULAR = [
-    { code: "jp", name: "일본" }, { code: "cn", name: "중국" }, { code: "us", name: "미국" },
-    { code: "th", name: "태국" }, { code: "sg", name: "싱가포르" }, { code: "ch", name: "스위스" },
-    { code: "eu", name: "유럽연합" },
-  ];
-  function popData(code, name) {
-    // 랭킹에 있으면 그 카드(순위 포함) → 없으면 byCode(환율만, 유럽 등) → 그것도 없으면 최소 객체(베트남 등).
-    return ALLDATA.find((x) => x.code === code) || BYCODE[code] || { code, name };
+  // ---- 인기 여행지: 배경 티커(장식) + 정지 타일 3개(클릭) ----
+  // 행 = 랭킹국(환율+물가 있음) 기반. cpiDiff = -savePct(음수=저렴/파랑, 양수=비쌈/빨강), fxChange = changePct(+ = 원화 강세/▲빨강).
+  // 조회수 데이터가 없어 '인기'는 한국 출국 상위 대략 순서(POP_ORDER)로 대체.
+  const POP_ORDER = ["jp", "vn", "cn", "th", "ph", "us", "tw", "hk", "sg", "my", "id", "au", "ca", "gb", "ch", "eu"];
+  const popViews = (code) => { const i = POP_ORDER.indexOf(code); return i < 0 ? 0 : POP_ORDER.length - i; };
+  const flagTag = (code, cls) => `<img class="${cls}" src="https://flagcdn.com/${esc(code)}.svg" alt="" onerror="this.style.display='none'">`;
+
+  function popData(code) {
+    return ALLDATA.find((x) => x.code === code) || BYCODE[code] || { code, name: code };
   }
-  function renderPopular() {
-    const track = document.querySelector(".pop__track");
+  function popRows() {
+    return (ALLDATA || []).filter((d) => d.savePct != null).map((d) => ({
+      code: d.code,
+      nameKo: d.name,
+      fxChange: d.changePct == null ? 0 : d.changePct,
+      cpiDiff: -d.savePct,
+      per1000: d.recv || "",
+      cities: (DETAIL[d.code] && DETAIL[d.code].cities ? DETAIL[d.code].cities.map((c) => c.name) : []),
+      views: popViews(d.code),
+    }));
+  }
+
+  function renderPopTicker(rows) {
+    const track = document.querySelector("[data-pop-track]");
     if (!track) return;
-    track.innerHTML = POPULAR.map((p) => {
-      const d = popData(p.code, p.name);
-      const hasFx = d.changePct != null && d.badge;
-      const up = (d.changePct == null ? 0 : d.changePct) >= 0;
-      const fx = hasFx
-        ? `<span class="pop-chip__fx" style="color:${dirColor(up)}">${esc(d.badge)}</span>`
-        : `<span class="pop-chip__fx pop-chip__fx--none">준비 중</span>`;
-      const cut = d.savePct != null
-        ? `<span class="pop-chip__cut" style="color:${dirColor(d.savePct < 0)}">체감 ${pctText(d.savePct)}</span>`
-        : "";
-      return `<button class="pop-chip" data-code="${esc(p.code)}" type="button">
-        <span class="pop-chip__top">${flagImg(p.code, 24, 17)}<span class="pop-chip__name">${esc(p.name)}</span></span>
-        <span class="pop-chip__metrics">${fx}${cut}</span>
-      </button>`;
-    }).join("");
-    track.querySelectorAll(".pop-chip").forEach((el) => {
-      el.addEventListener("click", () => {
-        const p = POPULAR.find((x) => x.code === el.dataset.code);
-        openDetail(popData(el.dataset.code, p ? p.name : el.dataset.code));
-      });
+    const set = rows.slice().sort((a, b) => b.views - a.views); // 인기순(장식이라 데이터 있는 국가 전체로 폭 채움)
+    if (!set.length) { const t = track.closest(".t-pop__ticker"); if (t) t.remove(); return; }
+    const chip = (r) => {
+      const up = r.fxChange >= 0;
+      return `<span class="t-chip">${flagTag(r.code, "t-chip__flag")}<span class="t-chip__name">${esc(r.nameKo)}</span>` +
+        `<span class="t-chip__delta ${up ? "is-up" : "is-down"}">${up ? "▲" : "▼"}${Math.abs(r.fxChange).toFixed(1)}%</span></span>`;
+    };
+    const html = set.map(chip).join("");
+    track.innerHTML = html + html; // 세트 2번 → 트랙 절반이 컨테이너보다 넓어야 -50% 루프에 빈 구간 없음
+    requestAnimationFrame(() => {
+      const wrapW = (track.parentElement && track.parentElement.clientWidth) || 1;
+      for (let n = 1; n <= 4; n++) {
+        if (track.scrollWidth / 2 >= wrapW * 1.15) break;
+        const rep = html.repeat(n + 1);
+        track.innerHTML = rep + rep;
+      }
     });
   }
-  // 캐러셀 좌우 화살표(옆으로 넘기기)
-  (function popArrows() {
-    const track = document.querySelector(".pop__track");
-    if (!track) return;
-    const move = (dir) => track.scrollBy({ left: dir * Math.max(240, track.clientWidth * 0.7), behavior: "smooth" });
-    const prev = document.querySelector(".pop__arrow--prev");
-    const next = document.querySelector(".pop__arrow--next");
-    if (prev) prev.addEventListener("click", () => move(-1));
-    if (next) next.addEventListener("click", () => move(1));
+
+  function popTiles(rows) {
+    const byViews = rows.slice().sort((a, b) => b.views - a.views)[0];
+    const byCheap = rows.filter((r) => r.code !== (byViews && byViews.code)).sort((a, b) => a.cpiDiff - b.cpiDiff)[0];
+    const paradox = rows.find((r) => r.fxChange > 0 && r.cpiDiff > 0 &&
+      ![byViews && byViews.code, byCheap && byCheap.code].includes(r.code));
+    return [
+      byViews && { ...byViews, tag: "가장 많이 봄", warn: false },
+      byCheap && { ...byCheap, tag: "체감 최저", warn: false },
+      paradox && { ...paradox, tag: "환율은 이득, 물가는 부담", warn: true },
+    ].filter(Boolean).slice(0, 3);
+  }
+
+  function renderPopTiles(rows) {
+    const host = document.querySelector("[data-pop-tiles]");
+    if (!host) return;
+    host.innerHTML = popTiles(rows).map((r) => {
+      const pricey = r.cpiDiff > 0;
+      const sign = pricey ? "+" : "−";
+      const width = Math.min(Math.abs(r.cpiDiff), 100);
+      const cities = (r.cities || []).slice(0, 3).join(" · ");
+      return `<li class="t-pop-tile">
+        <button type="button" class="t-pop-tile__btn" data-country="${esc(r.code)}" aria-label="${esc(r.nameKo)} 상세 보기 · 서울 대비 체감물가 ${Math.abs(r.cpiDiff)}% ${pricey ? "비쌈" : "저렴"}">
+          <span class="t-pop-tile__top">
+            <span class="t-pop-tile__id">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
+            <span class="t-pop-tile__tag${r.warn ? " is-warn" : ""}">${esc(r.tag)}</span>
+          </span>
+          <span class="t-pop-tile__rate">1,000원 = <strong>${esc(r.per1000)}</strong></span>
+          <span class="t-pop-tile__bar-row">
+            <span class="t-pop-tile__bar-label">서울 대비</span>
+            <span class="t-pop-tile__bar"><span class="t-pop-tile__fill${pricey ? " is-pricey" : ""}" data-w="${width}"></span></span>
+            <span class="t-pop-tile__val ${pricey ? "is-pricey" : "is-cheap"}">${sign}${Math.abs(r.cpiDiff)}%</span>
+          </span>
+          <span class="t-pop-tile__foot">
+            <span class="t-pop-tile__cities">${esc(cities)}</span>
+            <span class="t-pop-tile__cta">눌러서 상세 <span aria-hidden="true">→</span></span>
+          </span>
+        </button>
+      </li>`;
+    }).join("");
+    // 막대: 뷰포트 진입 시 0 → 목표폭 (reduce-motion이면 즉시)
+    const fills = host.querySelectorAll(".t-pop-tile__fill");
+    const paint = () => fills.forEach((el) => { el.style.width = el.dataset.w + "%"; });
+    if (reduceMotion) paint();
+    else {
+      const io = new IntersectionObserver((ents, obs) => { if (ents.some((e) => e.isIntersecting)) { paint(); obs.disconnect(); } }, { threshold: 0.35 });
+      io.observe(host);
+    }
+    // 클릭 → 기존 상세뷰 재사용
+    host.querySelectorAll(".t-pop-tile__btn").forEach((btn) => {
+      btn.addEventListener("click", () => openDetail(popData(btn.dataset.country)));
+    });
+  }
+
+  function renderPopular() {
+    const rows = popRows();
+    renderPopTiles(rows);
+    renderPopTicker(rows);
+    const cnt = document.querySelector("[data-pop-count]");
+    if (cnt && COUNTS && COUNTS.tracked != null) cnt.textContent = COUNTS.tracked;
+  }
+  // '전체 보기' → 기존 전체 랭킹 팝업 재사용(새 페이지/인기필터 안 만듦)
+  (function popAll() {
+    const btn = document.querySelector("[data-pop-all]");
+    if (btn) btn.addEventListener("click", () => { if (typeof openModal === "function") openModal(); });
   })();
 
   // ---- 이벤트 ----

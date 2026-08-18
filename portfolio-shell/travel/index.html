@@ -6,10 +6,10 @@
 <title>가뿐 — 원화가 가벼운 여행지</title>
 <meta name="theme-color" content="#0E4AEB">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="assets/icons/favicon.svg?v=20260816e" type="image/svg+xml">
-<link rel="apple-touch-icon" href="assets/icons/favicon.svg?v=20260816e">
+<link rel="icon" href="assets/icons/favicon.svg?v=20260816f" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icons/favicon.svg?v=20260816f">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard-dynamic-subset.css">
-<link rel="stylesheet" href="css/style.css?v=20260816e">
+<link rel="stylesheet" href="css/style.css?v=20260816f">
 </head>
 <body>
 
@@ -45,8 +45,8 @@
   <section class="hero t-hero">
     <!-- 배경: 루프 영상 + 가독성 그라디언트 (진입/종료 페이드는 main.js에서 처리) -->
     <div class="hero__video" aria-hidden="true">
-      <video class="hero__video-el" muted playsinline autoplay loop preload="auto" poster="assets/hero/sky-poster.jpg?v=20260816e">
-        <source src="assets/hero/sky.mp4?v=20260816e" type="video/mp4">
+      <video class="hero__video-el" muted playsinline autoplay loop preload="auto" poster="assets/hero/sky-poster.jpg?v=20260816f">
+        <source src="assets/hero/sky.mp4?v=20260816f" type="video/mp4">
       </video>
       <div class="hero__video-grad hero__video-grad--v"></div>
       <div class="hero__video-grad hero__video-grad--h"></div>
@@ -231,20 +231,27 @@
    </div>
   </section>
 
-  <!-- ============ 인기 여행지 (랭킹 아래 · 가로 캐러셀) ============ -->
-  <section id="popular" class="pop">
-    <div class="container">
-      <header class="pop__head" data-reveal="">
+  <!-- ============ 인기 여행지 (랭킹 아래 · 배경 티커 + 정지 타일 3개) ============ -->
+  <section class="t-pop" data-reveal="">
+    <div class="t-pop__inner">
+
+      <div class="t-pop__head">
         <div>
-          <p class="kicker">여행객이 자주 찾는 나라</p>
-          <h3 class="pop__title">인기 여행지 바로 보기</h3>
+          <p class="t-pop__eyebrow"><span class="t-live-dot" aria-hidden="true"></span>여행객이 자주 찾는 나라 · 매일 갱신</p>
+          <h2 class="t-pop__title">익숙한 여행지, 지금은 얼마나 가뿐할까</h2>
         </div>
-        <div class="pop__arrows">
-          <button class="pop__arrow pop__arrow--prev" type="button" aria-label="이전">‹</button>
-          <button class="pop__arrow pop__arrow--next" type="button" aria-label="다음">›</button>
-        </div>
-      </header>
-      <div class="pop__track" role="list"></div>
+        <button type="button" class="t-pop__all" data-pop-all>인기 여행국 전체 보기 <span aria-hidden="true">→</span></button>
+      </div>
+
+      <!-- 배경 티커: 장식. 클릭·포커스 대상 아님 -->
+      <div class="t-pop__ticker" aria-hidden="true">
+        <div class="t-pop__track" data-pop-track></div>
+      </div>
+      <p class="t-pop__caption">지금 추적 중인 <strong data-pop-count>25</strong>개국 · 전날 종가 기준</p>
+
+      <!-- 정지 타일: 클릭 대상 -->
+      <ul class="t-pop__tiles" data-pop-tiles></ul>
+
     </div>
   </section>
 
@@ -272,10 +279,10 @@
 
 </div>
 
-<script src="js/currencyCountryMap.js?v=20260816e"></script>
-<script src="js/countryDetail.js?v=20260816e"></script>
-<script src="js/cityImages.js?v=20260816e"></script>
-<script src="js/rankingSnapshot.js?v=20260816e"></script>
-<script src="js/main.js?v=20260816e"></script>
+<script src="js/currencyCountryMap.js?v=20260816f"></script>
+<script src="js/countryDetail.js?v=20260816f"></script>
+<script src="js/cityImages.js?v=20260816f"></script>
+<script src="js/rankingSnapshot.js?v=20260816f"></script>
+<script src="js/main.js?v=20260816f"></script>
 </body>
 </html>
