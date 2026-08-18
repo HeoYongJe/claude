@@ -274,7 +274,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-chip__name { font-size: 12.5px; font-weight: 700; color: #475569; }
 .t-chip__delta { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .t-chip__delta.is-up { color: var(--up); }       /* 방향색: 오름=빨강 */
-.t-chip__delta.is-down { color: var(--down); }   /* 내림=파랑(=--primary 계열) */
+.t-chip__delta.is-down { color: var(--primary); }   /* 내림=파랑 #0E4AEB (방향색 규칙; --down 토큰은 회색이라 안 씀) */
 
 .t-pop__caption { margin: 10px 0 0; font-size: 11.5px; font-weight: 800; color: #8098C4; letter-spacing: .02em; }
 
@@ -295,10 +295,10 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop-tile__bar-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
 .t-pop-tile__bar-label { width: 56px; font-size: 11px; font-weight: 700; color: var(--muted2); }
 .t-pop-tile__bar { flex: 1; height: 7px; background: #EEF1F6; border-radius: 999px; overflow: hidden; }
-.t-pop-tile__fill { display: block; height: 7px; border-radius: 999px; width: 0; background: var(--down); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+.t-pop-tile__fill { display: block; height: 7px; border-radius: 999px; width: 0; background: var(--primary); transition: width .6s cubic-bezier(.2,.7,.2,1); }
 .t-pop-tile__fill.is-pricey { background: var(--up); }
 .t-pop-tile__val { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.t-pop-tile__val.is-cheap { color: var(--down); }
+.t-pop-tile__val.is-cheap { color: var(--primary); }
 .t-pop-tile__val.is-pricey { color: var(--up); }
 .t-pop-tile__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #F1F5FC; }
 .t-pop-tile__cities { font-size: 12.5px; color: var(--muted2); }
