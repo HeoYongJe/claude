@@ -853,19 +853,17 @@
       : "환율·물가를 매일 추적하는 나라예요. 순위권 나라를 누르면 상세로 이동합니다.";
     modalGrid.innerHTML = list.map((d, i) => {
       const up = (d.changePct == null ? 0 : d.changePct) >= 0;
-      const cutHtml = d.savePct != null
-        ? `<span class="t-mcountry__cut" style="color:${dirColor(d.savePct < 0)}">체감 ${pctText(d.savePct)}</span>`
-        : `<span class="t-mcountry__cut t-mcountry__cut--none">체감 —</span>`;
+      // 체감물가(±%)는 팝업에서 제거(환율 바로 밑이라 '환율 대비'로 오해). 물가는 상세뷰에서 봄.
+      // 대신 환율 뱃지 밑에 '1,000원 = @' 환산을 둔다(국가명 밑은 잘려서 의미 없었음).
       return `<button class="t-mcountry is-rank" data-code="${esc(d.code)}" type="button">
         <span class="t-mcountry__rank">${i + 1}</span>
         ${flagImg(d.code, 26, 19)}
         <span class="t-mcountry__main">
           <span class="t-mcountry__name">${esc(d.name)}</span>
-          <span class="t-mcountry__rate">${esc(d.rate || "")}</span>
         </span>
         <span class="t-mcountry__metrics">
           <span class="t-mcountry__badge" style="color:${dirColor(up)}">${esc(d.badge || "")}</span>
-          ${cutHtml}
+          <span class="t-mcountry__rate">${esc(d.rate || "")}</span>
         </span>
       </button>`;
     }).join("");
