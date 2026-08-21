@@ -771,7 +771,7 @@
           <span class="t-pop-tile__id">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
           <span class="t-pop-tile__rate">1,000원 = <strong>${esc(r.per1000)}</strong></span>
           <span class="t-pop-tile__bar-row">
-            <span class="t-pop-tile__bar-label">서울 대비 물가</span>
+            <span class="t-pop-tile__bar-label">체감물가</span>
             <span class="t-pop-tile__bar"><span class="t-pop-tile__fill${pricey ? " is-pricey" : ""}" data-w="${width}"></span></span>
             <span class="t-pop-tile__val ${pricey ? "is-pricey" : "is-cheap"}">${sign}${Math.abs(r.cpiDiff)}%</span>
           </span>
