@@ -605,7 +605,7 @@
       if (labels[1]) labels[1].textContent = "원화 강세 · 약세";
       if (vals[1]) { vals[1].textContent = `강세 ${COUNTS.strong} · 약세 ${COUNTS.weak}`; vals[1].style.color = ""; }
     } else {
-      if (labels[1]) labels[1].textContent = "이번 주 원화 강세";
+      if (labels[1]) labels[1].textContent = "최근 한 달 원화 강세";
       if (vals[1]) vals[1].textContent = `${COUNTS.strong}개국`;
     }
     // 3번째 = 체감물가 최대 절약(가장 유리한 나라 기준) — 데이터 있는 나라 중 최댓값.
@@ -644,7 +644,12 @@
     const allSorted = (data.all || []).slice().sort(byChange);
     ALLDATA = allSorted.length ? renum(allSorted) : (data.all || []);
     const strongFx = renum(allSorted.filter((x) => (x.changePct || 0) > 0).slice(0, 3));
-    const weakFx = renum(allSorted.filter((x) => (x.changePct || 0) < 0).slice(0, 3));
+    // 약세 탑3 = 가장 많이 약세인(= changePct가 가장 작은) 나라. allSorted는 강세→약세 내림차순이라
+    // 뒤에서부터(오름차순) 3개를 골라야 "하위 탑3"이 나온다. (이전엔 strongFx와 같은 내림차순을 써서
+    // 0에 가장 가까운=가장 덜 약세인 나라가 뽑히는 버그였음)
+    const weakFx = renum(
+      allSorted.filter((x) => (x.changePct || 0) < 0).sort((a, b) => (a.changePct || 0) - (b.changePct || 0)).slice(0, 3)
+    );
     RANKDATA = {
       strong: strongFx.length ? strongFx : (data.strong || []),
       weak: weakFx.length ? weakFx : (data.weak || []),

@@ -389,9 +389,11 @@ async function buildRanking() {
   //   반드시 보여주기 때문에 물가가 비는 나라를 올리면 UI가 빈칸이 된다.
   //   KOTRA 미수록 인기국(홍콩·필리핀)은 위 MANUAL_PRICES로 보강해 포함, 그 외(노르웨이·헝가리·EU 등)는 제외.
   const ranked = results.filter((r) => r._save != null);
-  // 탭 소속은 환율 부호(강세/약세), 탭 안 순서·전체 랭킹 모두 환율 강세율 내림차순.
+  // 탭 소속은 환율 부호(강세/약세). 탭 안 순서: 강세는 강세율 큰 순(1위=가장 강함),
+  // 약세는 약세율 큰 순(1위=가장 많이 약세 — changePct가 가장 작은=가장 음수인 나라부터).
+  // (이전엔 둘 다 b-a 내림차순을 써서 약세 탭에 0에 가장 가까운=가장 덜 약세인 나라가 뽑히는 버그였음)
   const strong = ranked.filter((r) => r.changePct > 0).sort((a, b) => b._score - a._score);
-  const weak = ranked.filter((r) => r.changePct < 0).sort((a, b) => b._score - a._score);
+  const weak = ranked.filter((r) => r.changePct < 0).sort((a, b) => a._score - b._score);
   // 전체 랭킹: 환율 강세율 내림차순.
   const allSorted = ranked.slice().sort((a, b) => b._score - a._score);
 
