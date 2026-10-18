@@ -636,8 +636,19 @@
 
   // 데이터(스냅샷 또는 라이브)를 화면에 반영. 상세뷰가 열려 있으면 목록 재렌더는 건너뜀(전환 방해 방지).
   function applyRanking(data) {
-    RANKDATA = { strong: data.strong || [], weak: data.weak || [] };
-    ALLDATA = data.all || [];
+    // ── 순위는 '환율 변동(changePct)'만으로 매긴다 ──
+    // lib/ranking.js는 PRICE_WEIGHT=0으로 이미 환율 기준이지만, 라이브 Vercel API가 아직 구버전(환율+물가
+    // 결합점수)일 수 있어 클라이언트에서 항상 환율 기준으로 재정렬·재번호한다. (서버가 이미 환율 기준이면 결과 동일 — 멱등)
+    const byChange = (a, b) => (b.changePct || 0) - (a.changePct || 0);
+    const renum = (arr) => arr.map((x, i) => ({ ...x, num: String(i + 1) }));
+    const allSorted = (data.all || []).slice().sort(byChange);
+    ALLDATA = allSorted.length ? renum(allSorted) : (data.all || []);
+    const strongFx = renum(allSorted.filter((x) => (x.changePct || 0) > 0).slice(0, 3));
+    const weakFx = renum(allSorted.filter((x) => (x.changePct || 0) < 0).slice(0, 3));
+    RANKDATA = {
+      strong: strongFx.length ? strongFx : (data.strong || []),
+      weak: weakFx.length ? weakFx : (data.weak || []),
+    };
     BYCODE = data.byCode || {};
     COUNTS = data.counts || null;
     CITYDATA = data.cities || {};
@@ -833,12 +844,25 @@
 
   // 모달 모드: 'all'(전체 랭킹) / 'popular'(인기국만). 여는 버튼이 설정.
   let modalMode = "all";
+  // 정렬 방향: 'desc'(원화 강세 순, 기본) / 'asc'(약세 순). 팝업 상단 세그먼트가 설정.
+  let modalSort = "desc";
+
   function modalList() {
     const base = (ALLDATA && ALLDATA.length) ? ALLDATA : [...(RANKDATA.strong || []), ...(RANKDATA.weak || [])];
-    if (modalMode === "popular") {
-      return POPULAR_CODES.map((c) => base.find((x) => x.code === c) || BYCODE[c]).filter(Boolean);
-    }
-    return base;
+    const list = (modalMode === "popular")
+      ? POPULAR_CODES.map((c) => base.find((x) => x.code === c) || BYCODE[c]).filter(Boolean)
+      : base;
+    // 서버는 이미 강세 순으로 내려주지만, 팝업에서 방향을 뒤집을 수 있어야 하므로 여기서 다시 정렬한다.
+    // 원본 배열을 건드리지 않도록 복사본을 만든다(ALLDATA는 다른 화면도 참조).
+    // changePct가 없는 항목(BYCODE 폴백 등)은 방향과 무관하게 항상 맨 뒤로 보낸다.
+    return [...list].sort((a, b) => {
+      const av = (a.changePct == null) ? null : a.changePct;
+      const bv = (b.changePct == null) ? null : b.changePct;
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      return modalSort === "desc" ? bv - av : av - bv;
+    });
   }
 
   function renderModal() {
@@ -874,28 +898,77 @@
       el.addEventListener("click", () => {
         const d = byCode[el.dataset.code];
         if (!d) return;
+        // 상세뷰로 넘어가는 경우엔 포커스를 원래 버튼으로 되돌리지 않는다.
+        // (openDetail이 상세 영역으로 이동시키는데 포커스가 뒤로 끌려가면 서로 싸운다)
+        modalLastFocus = null;
         closeModal();
         openDetail(d);
       });
     });
   }
 
+  // 모달을 열기 직전에 포커스가 있던 요소. 닫을 때 여기로 되돌린다.
+  let modalLastFocus = null;
+
   function openModal() {
     if (!modal) return;
+    modalLastFocus = document.activeElement;
     renderModal();
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
+    // 배경 스크롤 잠금. 스크롤바가 사라지면서 레이아웃이 옆으로 튀는 걸 패딩으로 보정한다.
+    const sbw = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
+    if (sbw > 0) document.body.style.paddingRight = sbw + "px";
+    const closeBtn = modal.querySelector(".t-modal__close");
+    if (closeBtn) closeBtn.focus();
   }
   function closeModal() {
     if (!modal || modal.hidden) return;
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
+    document.body.style.paddingRight = "";
+    // 키보드 사용자가 맥락을 잃지 않도록 원래 버튼으로 복귀
+    if (modalLastFocus && typeof modalLastFocus.focus === "function") modalLastFocus.focus();
   }
+
   if (modal) {
     modal.querySelectorAll("[data-modal-close]").forEach((el) => el.addEventListener("click", closeModal));
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+    // ---- 정렬 세그먼트 ----
+    const modalLive = document.querySelector("[data-modal-live]");
+    const sortBtns = modal.querySelectorAll("[data-msort]");
+    sortBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (modalSort === btn.dataset.msort) return;
+        modalSort = btn.dataset.msort;
+        // aria-pressed가 상태의 단일 출처. CSS도 이 값을 보고 스타일을 바꾼다.
+        sortBtns.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        renderModal();
+        const body = modal.querySelector(".t-modal__body");
+        if (body) body.scrollTop = 0; // 정렬이 바뀌면 맨 위부터 보여준다
+        if (modalLive) {
+          modalLive.textContent = modalSort === "desc"
+            ? "원화 강세 순으로 정렬했습니다."
+            : "원화 약세 순으로 정렬했습니다.";
+        }
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { closeModal(); return; }
+      if (modal.hidden || e.key !== "Tab") return;
+      // 포커스 트랩: Tab이 모달 밖 요소로 빠져나가지 않도록 처음↔끝을 순환시킨다.
+      const f = modal.querySelectorAll(
+        'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!f.length) return;
+      const first = f[0];
+      const last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
   }
 
   const backBtn = root.querySelector(".t-detail-back");
