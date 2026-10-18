@@ -459,7 +459,7 @@ ul, ol { list-style: none; padding: 0; }
 .d-food__num { font-size: 12px; font-weight: 800; color: var(--muted2); }
 .d-food__name { font-size: 15px; font-weight: 800; color: var(--ink); }
 .d-food__desc { font-size: 14px; color: var(--muted); margin-top: 4px; }
-.d-food__price { flex: none; font-size: 15px; font-weight: 800; color: var(--primary); }
+.d-food__price { flex: none; font-size: 15px; font-weight: 800; color: var(--ink); }
 
 /* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘 */
 .d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
