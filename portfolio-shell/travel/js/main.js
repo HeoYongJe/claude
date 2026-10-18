@@ -212,15 +212,21 @@
   function renderRank(mode) {
     state.rmode = mode;
     const data = RANKDATA[mode] || [];
-    // 환율 변동 방향 색: 강세(▲, 오름)=빨강 / 약세(▼, 내림)=파랑. (좋다/나쁨 의미는 탭 라벨로)
-    const color = dirColor(mode === "strong");
     // 섹션 타이틀·설명도 탭에 맞게 교체 — 전에는 "강해진 나라" 타이틀이 약세 탭에서도 고정돼 있어
     // 약세 카드(하위3) 위에 "강해진 나라"라는 제목이 뜨는 모순이 있었음.
+    // 약세 탭은 이제 "진짜 약세(음수)인 나라"가 하나도 없어도 하위 3개국을 보여주므로(원화가 몇 달째
+    // 전 통화 대비 강세라 약세 탭이 통째로 비어있던 문제), 그 경우엔 "약해진"이라는 단정적 표현 대신
+    // "상대적으로 덜 유리한" 식으로 톤을 낮춘다 — 실제로 음수인 나라가 하나라도 있으면 그대로 "약해진" 사용.
+    const anyNegative = mode === "weak" && data.some((d) => (d.changePct || 0) < 0);
     const titleEl = root.querySelector(".rank__head .section-title");
     const descEl = root.querySelector(".rank__head .section-desc");
-    if (titleEl) titleEl.textContent = mode === "weak" ? "최근 한 달, 원화가 가장 약해진 나라" : "최근 한 달, 원화가 가장 강해진 나라";
+    if (titleEl) titleEl.textContent = mode === "weak"
+      ? (anyNegative ? "최근 한 달, 원화가 가장 약해진 나라" : "최근 한 달, 원화 강세 폭이 가장 작은 나라")
+      : "최근 한 달, 원화가 가장 강해진 나라";
     if (descEl) descEl.textContent = mode === "weak"
-      ? "한 달 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
+      ? (anyNegative
+          ? "한 달 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
+          : "25개국 모두 원화 강세인 달이에요. 그중에서도 강세 폭이 가장 작은, 상대적으로 덜 유리한 하위 3개국이에요.")
       : "한 달 전 환율과 비교해 원화가 강해진 순으로 매겼어요. 체감 물가는 카드와 상세에서 함께 확인하세요.";
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
@@ -246,6 +252,9 @@
         return;
       }
       rcard.style.display = "";
+      // 방향 색은 탭이 아니라 그 나라의 실제 부호로 정한다(오름=빨강/내림=파랑, 예외 없이) — 약세 탭도
+      // 이제 '진짜 음수'가 아닌 나라를 보여줄 수 있어서, 탭 고정색을 쓰면 ▲인데 파랑으로 뜨는 모순이 생김.
+      const color = dirColor((d.changePct || 0) >= 0);
       const num = rcard.querySelector(".rc-num");
       num.textContent = d.num;
       num.style.color = "#94A3B8";
@@ -651,13 +660,11 @@
     const renum = (arr) => arr.map((x, i) => ({ ...x, num: String(i + 1) }));
     const allSorted = (data.all || []).slice().sort(byChange);
     ALLDATA = allSorted.length ? renum(allSorted) : (data.all || []);
-    const strongFx = renum(allSorted.filter((x) => (x.changePct || 0) > 0).slice(0, 3));
-    // 약세 탑3 = 가장 많이 약세인(= changePct가 가장 작은) 나라. allSorted는 강세→약세 내림차순이라
-    // 뒤에서부터(오름차순) 3개를 골라야 "하위 탑3"이 나온다. (이전엔 strongFx와 같은 내림차순을 써서
-    // 0에 가장 가까운=가장 덜 약세인 나라가 뽑히는 버그였음)
-    const weakFx = renum(
-      allSorted.filter((x) => (x.changePct || 0) < 0).sort((a, b) => (a.changePct || 0) - (b.changePct || 0)).slice(0, 3)
-    );
+    // 강세/약세 탭 = 전체 랭킹의 상위3/하위3 (전체 랭킹 팝업의 '강세 순/약세 순'과 동일한 방식 —
+    // changePct 부호로 걸러내지 않는다). 원화 약세인 나라가 아예 없는 달이 몇 달이고 이어질 수 있는데,
+    // 그렇다고 약세 탭을 계속 텅 비워두는 대신 "그래도 상대적으로 가장 덜 유리한 하위 3개국"을 보여준다.
+    const strongFx = renum(allSorted.slice(0, 3));
+    const weakFx = renum(allSorted.slice().sort((a, b) => (a.changePct || 0) - (b.changePct || 0)).slice(0, 3));
     RANKDATA = {
       strong: strongFx.length ? strongFx : (data.strong || []),
       weak: weakFx.length ? weakFx : (data.weak || []),
