@@ -739,10 +739,24 @@
     }).filter(Boolean);
   }
 
+  // 티커(장식) 노출 순서 — 새로고침마다 한 번 섞어서 고정(렌더 호출마다 다시 섞으면 스냅샷→라이브 교체 때
+  // 같은 데이터인데 순서만 재배치되는 게 보여서, 페이지 로드당 한 번만 섞고 재사용). 타일 선정 로직(popTiles)은
+  // 이 순서와 무관하게 항상 POPULAR_CODES 원래 순서(views)를 쓰므로 영향 없음.
+  let tickerOrder = null;
+  function shuffledTickerOrder() {
+    const arr = POPULAR_CODES.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
   function renderPopTicker(rows) {
     const track = document.querySelector("[data-pop-track]");
     if (!track) return;
-    const set = rows.slice().sort((a, b) => b.views - a.views); // 인기순(장식이라 데이터 있는 국가 전체로 폭 채움)
+    if (!tickerOrder) tickerOrder = shuffledTickerOrder();
+    const orderIdx = (code) => { const i = tickerOrder.indexOf(code); return i < 0 ? 999 : i; };
+    const set = rows.slice().sort((a, b) => orderIdx(a.code) - orderIdx(b.code)); // 장식용 랜덤 순서(새로고침마다 재셔플)
     if (!set.length) { const t = track.closest(".t-pop__ticker"); if (t) t.remove(); return; }
     const chip = (r) => {
       const up = r.fxChange >= 0;
