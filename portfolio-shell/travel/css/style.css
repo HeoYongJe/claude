@@ -290,9 +290,14 @@ ul, ol { list-style: none; padding: 0; }
   background: #EAF1FF; padding: 7px 12px; border-radius: 999px; margin-bottom: 16px; }
 .t-pop-tile__badge.is-warn { color: var(--up); background: #FEECEC; }
 .t-pop-tile__badge svg { width: 15px; height: 15px; flex: none; }
-.t-pop-tile__id { display: flex; align-items: center; gap: 10px; }
-.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
+.t-pop-tile__id { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.t-pop-tile__idname { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
 .t-pop-tile__name { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+/* 환율 변동 뱃지 — 추천 랭킹 카드(.rc-badge)와 톤 통일(통일성 요청, 2026-10-18) */
+.t-pop-tile__fx { flex: none; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-pop-tile__fx.is-up { color: var(--up); }       /* 오름=빨강 */
+.t-pop-tile__fx.is-down { color: var(--primary); } /* 내림=파랑 */
 .t-pop-tile__rate { margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .t-pop-tile__rate strong { font-size: 15px; color: var(--ink); }
 .t-pop-tile__bar-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }

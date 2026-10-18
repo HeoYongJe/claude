@@ -214,6 +214,14 @@
     const data = RANKDATA[mode] || [];
     // 환율 변동 방향 색: 강세(▲, 오름)=빨강 / 약세(▼, 내림)=파랑. (좋다/나쁨 의미는 탭 라벨로)
     const color = dirColor(mode === "strong");
+    // 섹션 타이틀·설명도 탭에 맞게 교체 — 전에는 "강해진 나라" 타이틀이 약세 탭에서도 고정돼 있어
+    // 약세 카드(하위3) 위에 "강해진 나라"라는 제목이 뜨는 모순이 있었음.
+    const titleEl = root.querySelector(".rank__head .section-title");
+    const descEl = root.querySelector(".rank__head .section-desc");
+    if (titleEl) titleEl.textContent = mode === "weak" ? "최근 한 달, 원화가 가장 약해진 나라" : "최근 한 달, 원화가 가장 강해진 나라";
+    if (descEl) descEl.textContent = mode === "weak"
+      ? "한 달 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
+      : "한 달 전 환율과 비교해 원화가 강해진 순으로 매겼어요. 체감 물가는 카드와 상세에서 함께 확인하세요.";
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
       // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
@@ -784,7 +792,10 @@
       return `<li class="t-pop-tile">
         <button type="button" class="t-pop-tile__btn" data-country="${esc(r.code)}" aria-label="${esc(r.nameKo)} 상세 보기 · 서울 대비 체감물가 ${Math.abs(r.cpiDiff)}% ${pricey ? "비쌈" : "저렴"}">
           <span class="t-pop-tile__badge${r.warn ? " is-warn" : ""}">${r.icon || ""}<span>${esc(r.tag)}</span></span>
-          <span class="t-pop-tile__id">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
+          <span class="t-pop-tile__id">
+            <span class="t-pop-tile__idname">${flagTag(r.code, "t-pop-tile__flag")}<span class="t-pop-tile__name">${esc(r.nameKo)}</span></span>
+            <span class="t-pop-tile__fx ${r.fxChange >= 0 ? "is-up" : "is-down"}">${r.fxChange >= 0 ? "▲" : "▼"} ${Math.abs(r.fxChange).toFixed(1)}%</span>
+          </span>
           <span class="t-pop-tile__rate">1,000원 = <strong>${esc(r.per1000)}</strong></span>
           <span class="t-pop-tile__bar-row">
             <span class="t-pop-tile__bar-label">체감물가</span>
