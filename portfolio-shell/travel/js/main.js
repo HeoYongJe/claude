@@ -127,7 +127,8 @@
     `<img src="https://flagcdn.com/${code}.svg" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:10px;box-shadow:0 0 0 1px rgba(15,23,42,.08);" onerror="this.style.display='none'">`;
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const pctText = (p) => `${p >= 0 ? "−" + p : "+" + -p}%`; // 체감물가: 절약(양수)을 −로 표기
+  // 체감물가: 절약(양수)을 −로 표기. p===0은 "−0%"처럼 헷갈리는 음수 0 표기를 피하려 부호 없이 "0%".
+  const pctText = (p) => (p === 0 ? "0%" : `${p > 0 ? "−" + p : "+" + -p}%`);
   // 받침 유무로 은/는 조사 선택 (예: "스위스는", "일본은")
   const josaEunNeun = (w) => {
     const s = String(w); const c = s.charCodeAt(s.length - 1);
@@ -807,7 +808,7 @@
     if (!host) return;
     host.innerHTML = popTiles(rows).map((r) => {
       const pricey = r.cpiDiff > 0;
-      const sign = pricey ? "+" : "−";
+      const sign = r.cpiDiff === 0 ? "" : (pricey ? "+" : "−"); // 0%는 부호 없이(−0% 방지)
       const width = Math.min(Math.abs(r.cpiDiff), 100);
       const cities = (r.cities || []).slice(0, 3).join(" · ");
       return `<li class="t-pop-tile">
