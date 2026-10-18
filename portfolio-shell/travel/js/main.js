@@ -277,27 +277,44 @@
       rate2.textContent = d.krwPer || "";
       const cut = rcard.querySelector(".rc-cut");
       if (d.savePct != null) {
-        // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
-        const up = d.savePct < 0; // savePct<0 이면 화면엔 "+"(비쌈)로 표기 → 오름
         cut.style.display = "";
-        cut.textContent = `체감물가 ${pctText(d.savePct)}`;
-        cut.style.color = dirColor(up);
-        cut.style.background = dirTint(up);
+        if (d.savePct === 0) {
+          // 서울과 체감물가가 사실상 같을 때 — "0%"라는 숫자 대신 "동일"로, 중립색(방향이 없으니 빨강/파랑 둘 다 아님).
+          cut.textContent = "체감물가 동일";
+          cut.style.color = "var(--muted)";
+          cut.style.background = "#F1F5F9";
+        } else {
+          // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
+          const up = d.savePct < 0; // savePct<0 이면 화면엔 "+"(비쌈)로 표기 → 오름
+          cut.textContent = `체감물가 ${pctText(d.savePct)}`;
+          cut.style.color = dirColor(up);
+          cut.style.background = dirTint(up);
+        }
       } else {
         cut.style.display = "none";
       }
-      // 물가가 오히려 비싼 나라 경고(추천에 포함돼도 숨기지 않음)
-      let warn = rcard.querySelector(".rc-warn");
-      if (!warn) {
-        warn = document.createElement("p");
-        warn.className = "rc-warn";
-        rcard.appendChild(warn);
+      // 체감물가 인사이트 한 줄 — 비쌀 때만 경고하던 걸, 항상 상태를 알려주는 쪽으로 확장(빈 공간 방지 + 매번 유용한 정보).
+      let insight = rcard.querySelector(".rc-insight");
+      if (!insight) {
+        insight = document.createElement("p");
+        insight.className = "rc-insight";
+        rcard.appendChild(insight);
       }
-      if (d.savePct != null && d.savePct < 0) {
-        warn.hidden = false;
-        warn.textContent = "환율 유리 · 현지 물가 높음";
+      insight.classList.remove("is-warn", "is-neutral", "is-good");
+      if (d.savePct == null) {
+        insight.hidden = true;
       } else {
-        warn.hidden = true;
+        insight.hidden = false;
+        if (d.savePct < 0) {
+          insight.classList.add("is-warn");
+          insight.textContent = "환율 유리 · 현지 물가 높음";
+        } else if (d.savePct === 0) {
+          insight.classList.add("is-neutral");
+          insight.textContent = "환율 이득이 고스란히 남아요";
+        } else {
+          insight.classList.add("is-good");
+          insight.textContent = "환율도 물가도 둘 다 유리해요";
+        }
       }
       const line = rcard.querySelector(".rc-line");
       line.setAttribute("points", d.line);
@@ -808,7 +825,9 @@
     if (!host) return;
     host.innerHTML = popTiles(rows).map((r) => {
       const pricey = r.cpiDiff > 0;
-      const sign = r.cpiDiff === 0 ? "" : (pricey ? "+" : "−"); // 0%는 부호 없이(−0% 방지)
+      const tied = r.cpiDiff === 0;
+      const sign = tied ? "" : (pricey ? "+" : "−");
+      const valText = tied ? "동일" : `${sign}${Math.abs(r.cpiDiff)}%`; // 0%는 숫자 대신 "동일"로(헷갈리는 −0% 방지)
       const width = Math.min(Math.abs(r.cpiDiff), 100);
       const cities = (r.cities || []).slice(0, 3).join(" · ");
       return `<li class="t-pop-tile">
@@ -822,7 +841,7 @@
           <span class="t-pop-tile__bar-row">
             <span class="t-pop-tile__bar-label">체감물가</span>
             <span class="t-pop-tile__bar"><span class="t-pop-tile__fill${pricey ? " is-pricey" : ""}" data-w="${width}"></span></span>
-            <span class="t-pop-tile__val ${pricey ? "is-pricey" : "is-cheap"}">${sign}${Math.abs(r.cpiDiff)}%</span>
+            <span class="t-pop-tile__val ${tied ? "is-tied" : (pricey ? "is-pricey" : "is-cheap")}">${valText}</span>
           </span>
           <span class="t-pop-tile__foot">
             <span class="t-pop-tile__cities">${esc(cities)}</span>

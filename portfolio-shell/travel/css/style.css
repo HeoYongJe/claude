@@ -153,9 +153,13 @@ ul, ol { list-style: none; padding: 0; }
 .rcard__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
 .rc-cut { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--surface); padding: 6px 12px; border-radius: 999px; }
 .rc-link { font-size: 14px; font-weight: 700; color: var(--muted); }
-/* 환율 유리·물가 비쌈 경고(랭킹 카드) */
-.rc-warn { margin-top: 12px; font-size: 12px; font-weight: 700; line-height: 1.4; color: #B45309; background: #FEF3C7; border: 1px solid #FDE68A; padding: 8px 11px; border-radius: 10px; }
-.rc-warn[hidden] { display: none; }
+/* 랭킹 카드 인사이트 한 줄 — 비쌀 때만 뜨는 경고가 아니라 늘 뜨는 요약(2026-10-18, 경고 전용 .rc-warn에서 확장).
+   체감물가 상태 3종: 비쌈=경고(앰버) / 동일=중립(회색) / 쌈=이득(Primary). */
+.rc-insight { margin-top: 12px; font-size: 12px; font-weight: 700; line-height: 1.4; padding: 8px 11px; border-radius: 10px; }
+.rc-insight[hidden] { display: none; }
+.rc-insight.is-warn { color: #B45309; background: #FEF3C7; border: 1px solid #FDE68A; }
+.rc-insight.is-neutral { color: var(--muted); background: #F8FAFC; border: 1px solid var(--border); }
+.rc-insight.is-good { color: var(--primary); background: var(--surface); border: 1px solid var(--border); }
 
 .t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: #ffffff; border: 1px solid var(--border); border-radius: 20px; }
 .summary__stats { display: flex; gap: 48px; flex-wrap: wrap; }
@@ -308,6 +312,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop-tile__val { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .t-pop-tile__val.is-cheap { color: var(--primary); }
 .t-pop-tile__val.is-pricey { color: var(--up); }
+.t-pop-tile__val.is-tied { color: var(--muted); }
 .t-pop-tile__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #F1F5FC; }
 .t-pop-tile__cities { font-size: 12.5px; color: var(--muted2); }
 .t-pop-tile__cta { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--primary); }
