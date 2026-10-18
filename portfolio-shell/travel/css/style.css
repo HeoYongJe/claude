@@ -419,6 +419,10 @@ ul, ol { list-style: none; padding: 0; }
 /* 보조 텍스트 = 서울 대비 체감 절약/부담 % (작게) */
 .d-savecard__sub { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.9); margin-top: 10px; }
 .d-savecard__desc { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.8); margin-top: 8px; }
+/* 체감물가 계산 방식 한 줄 설명(2026-10-18) — 왜 품목별 %가 서로 달라도 대표 숫자가 0%처럼 나올 수 있는지,
+   매번 보여줘서 미리 오해를 막는다(장바구니 합계 기준이지 품목 % 평균이 아님). */
+.d-savecard__basis { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.6); margin-top: 6px; }
+.d-savecard__basis[hidden] { display: none; }
 /* 환율 유리·물가 비쌈 경고 라벨(파란 카드 안, 흰 톤 유지) */
 .d-savecard__warn { margin-top: 14px; font-size: 14px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
 .d-savecard__warn[hidden] { display: none; }
