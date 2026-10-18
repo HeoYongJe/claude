@@ -358,11 +358,11 @@ ul, ol { list-style: none; padding: 0; }
 .detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); display: block; }
 .detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
 .detail__rank { font-size: 14px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
-/* 대표 숫자 = 전날 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
+/* 대표 숫자 = 한 달 전 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
 .detail__fx { display: flex; align-items: baseline; gap: 8px; }
 .detail__fx-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__fx-val { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
-/* 익숙한 환율 시세(예: 100엔 = 917원) — 전날 대비 환율 바로 아래 */
+/* 익숙한 환율 시세(예: 100엔 = 917원) — 한 달 전 대비 환율 바로 아래 */
 .detail__rateline { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
 .detail__rate-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__krwper { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
