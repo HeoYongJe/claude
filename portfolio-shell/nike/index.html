@@ -15,9 +15,6 @@
 </head>
 <body>
 
-  <!-- 커스텀 커서(데스크톱·호버 기기에서만 JS가 활성화) -->
-  <div class="cursor-dot" aria-hidden="true"></div>
-  <div class="cursor-ring" aria-hidden="true"><span class="cursor-ring__label">VIEW</span></div>
   <!-- 어두운 섹션 위 은은한 그레인(필름 질감) -->
   <div class="grain" aria-hidden="true"></div>
 
@@ -30,26 +27,30 @@
     </div>
   </nav>
 
-  <!-- ============ HERO ============ -->
-  <header class="hero" id="top">
-    <div class="hero__bg" aria-hidden="true"></div>
-    <div class="hero__inner">
-      <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
-      <h1 class="hero__word" data-reveal>NIKE</h1>
-      <p class="hero__tagline" data-reveal>움직임이 곧 증명이다.</p>
-      <p class="hero__sub" data-reveal>한계를 선이 아니라 다음 목표로 바꾸는 사람들을 위해.</p>
-    </div>
-    <div class="hero__scroll" aria-hidden="true"><span></span>SCROLL</div>
-  </header>
+  <!-- ============ HERO (스크롤 줌아웃 전환 — hero-wrap이 추가 높이를 주고 hero는 sticky) ============ -->
+  <div class="hero-wrap" id="top">
+    <header class="hero">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="hero__inner" data-hero-scrub>
+        <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
+        <h1 class="hero__word" data-reveal>NIKE</h1>
+        <p class="hero__tagline" data-reveal>움직임이 곧 증명이다.</p>
+        <p class="hero__sub" data-reveal>한계를 선이 아니라 다음 목표로 바꾸는 사람들을 위해.</p>
+      </div>
+      <div class="hero__scroll" data-hero-scroll aria-hidden="true"><span></span>SCROLL</div>
+    </header>
+  </div>
 
-  <!-- ============ MANIFESTO ============ -->
-  <section class="manifesto">
-    <div class="container">
-      <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
-      <p class="manifesto__text" data-reveal>
-        위대함은 타고나지 않는다.<br>
-        매일, 한 걸음씩 <em>만들어진다.</em>
-      </p>
+  <!-- ============ MANIFESTO (핀드 줌텍스트 — 섹션이 길고, 안쪽 텍스트는 sticky로 고정된 채 scale) ============ -->
+  <section class="manifesto" data-manifesto>
+    <div class="manifesto__pin">
+      <div class="container">
+        <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
+        <p class="manifesto__text" data-manifesto-scrub>
+          위대함은 타고나지 않는다.<br>
+          매일, 한 걸음씩 <em>만들어진다.</em>
+        </p>
+      </div>
     </div>
   </section>
 
@@ -130,19 +131,19 @@
       <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
       <div class="specs__grid">
         <div class="spec-card" data-reveal>
-          <div class="spec-card__num">243<span>g</span></div>
+          <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
           <div class="spec-card__label">초경량 무게</div>
         </div>
         <div class="spec-card" data-reveal>
-          <div class="spec-card__num">12<span>mm</span></div>
+          <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
           <div class="spec-card__label">쿠셔닝 두께</div>
         </div>
         <div class="spec-card" data-reveal>
-          <div class="spec-card__num">360<span>°</span></div>
+          <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
           <div class="spec-card__label">통기성 설계</div>
         </div>
         <div class="spec-card" data-reveal>
-          <div class="spec-card__num">100<span>%</span></div>
+          <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
           <div class="spec-card__label">리사이클 소재</div>
         </div>
       </div>
