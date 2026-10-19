@@ -115,7 +115,9 @@
     let smoothY = window.scrollY;
     function raf() {
       const realY = window.scrollY;
-      smoothY += (realY - smoothY) * 0.085;
+      // 0.085 → 0.06: 마우스 휠처럼 값이 뚝뚝 끊겨 들어오는 입력에서도 체감되는 끊김이 있었음(2026-10-19 피드백) —
+      // 보간 폭을 더 키워서(=더 천천히 따라가서) 개별 휠 틱들이 뭉개져 보이도록.
+      smoothY += (realY - smoothY) * 0.06;
       if (Math.abs(realY - smoothY) < 0.05) smoothY = realY;
 
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1

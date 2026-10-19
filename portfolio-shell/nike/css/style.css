@@ -28,8 +28,11 @@ button, input { font: inherit; }
 .progress { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 100; background: transparent; }
 .progress__bar { height: 100%; width: 0%; background: var(--volt); transform-origin: left; }
 
-/* ---- 그레인(필름 질감) ---- */
-.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+/* ---- 그레인(필름 질감) ----
+   2026-10-19: mix-blend-mode: overlay는 그 아래 레이어(히어로·매니페스토 스크럽 트랜스폼)가 매 프레임
+   바뀔 때마다 블렌드 영역 전체를 다시 합성해야 해서 스크롤 중 끊김의 원인이 됐음 — blend-mode 제거,
+   그만큼 opacity를 낮춰 비슷한 느낌은 유지. */
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .035;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
@@ -57,7 +60,7 @@ button, input { font: inherit; }
   radial-gradient(ellipse at 30% 20%, rgba(215,255,62,.14), transparent 55%),
   radial-gradient(ellipse at 75% 75%, rgba(215,255,62,.08), transparent 50%);
 }
-.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity; }
+.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity; backface-visibility: hidden; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
@@ -82,7 +85,7 @@ button, input { font: inherit; }
 .manifesto { background: var(--paper); height: 220vh; position: relative; }
 .manifesto__pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; }
-.manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; transform-origin: left center; will-change: transform; }
+.manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; transform-origin: left center; will-change: transform; backface-visibility: hidden; }
 .manifesto__text em { font-style: normal; color: var(--volt); -webkit-text-stroke: .5px var(--ink); }
 
 /* ---- 제품 쇼케이스(스티키) ---- */
@@ -90,6 +93,7 @@ button, input { font: inherit; }
 .showcase__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 .showcase__visual { position: sticky; top: 96px; aspect-ratio: 1 / 1; border-radius: 24px; }
 .ph-visual--shoe { border-radius: 24px; display: flex; align-items: center; justify-content: center; }
+.ph-visual--shoe svg { will-change: transform; backface-visibility: hidden; }
 .ph-shoe__swoosh { stroke-dasharray: 260; stroke-dashoffset: 260; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1); }
 .showcase.is-in .ph-shoe__swoosh { stroke-dashoffset: 0; }
 .showcase__features { padding-top: 140px; }
