@@ -128,6 +128,11 @@ ul, ol { list-style: none; padding: 0; }
 .rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
+/* PC에서 탭(강세/약세) 전환 때마다 설명 줄바꿈이 1줄↔2줄로 들쭉날쭉하던 것 방지 —
+   desc만 더 좁게 잡아 세 가지 문구(강세/약세/약세-강세폭최소) 전부 균형 있게 2줄로 고정(모바일은 이미 괜찮아 건드리지 않음). */
+@media (min-width: 901px) {
+  .rank__head .section-desc { max-width: 460px; }
+}
 .rank__headR { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .t-rank-basis { font-size: 13px; font-weight: 700; color: var(--muted); }
 /* 기준일 앞 라이브 펄스(실데이터일 때만 표시 — setBasis에서 토글) */
