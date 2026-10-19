@@ -811,18 +811,27 @@
     star: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.5 6 .9-4.35 4.2 1.05 6L12 17.8 6.6 19.6l1.05-6L3.3 9.4l6-.9z"/></svg>`,
     down: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17 13.5 8.5 8.5 13.5 2 7"/><path d="M16 17h6v-6"/></svg>`,
     warn: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>`,
+    move: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
   };
   function popTiles(rows) {
     const priced = rows.filter((r) => r.cpiDiff != null); // 물가 있는 나라만 타일 대상(유럽 등 제외)
     const byViews = priced.slice().sort((a, b) => b.views - a.views)[0];
     const byCheap = priced.filter((r) => r.code !== (byViews && byViews.code)).sort((a, b) => a.cpiDiff - b.cpiDiff)[0];
-    const paradox = priced.find((r) => r.fxChange > 0 && r.cpiDiff > 0 &&
-      ![byViews && byViews.code, byCheap && byCheap.code].includes(r.code));
+    const usedCodes = [byViews && byViews.code, byCheap && byCheap.code];
+    const paradox = priced.find((r) => r.fxChange > 0 && r.cpiDiff > 0 && !usedCodes.includes(r.code));
+    // 3번째 타일: "환율 좋은데 물가도 비쌈" 조합이 있으면 그걸(경고 톤) 우선 쓰고,
+    // 일주일 기준으로 바뀐 뒤론 그 조합 자체가 없는 주도 흔해져서(2026-10-19) —
+    // 없으면 "이번 주 변동폭이 가장 큰 인기국"(방향 무관, 중립 톤)으로 대체해 항상 3개를 채운다.
+    const mover = !paradox && priced.filter((r) => !usedCodes.includes(r.code))
+      .sort((a, b) => Math.abs(b.fxChange) - Math.abs(a.fxChange))[0];
+    const third = paradox
+      ? { ...paradox, tag: "환율 이득·물가 부담", warn: true, icon: POP_ICON.warn }
+      : mover && { ...mover, tag: "이번 주 환율 변동 최대", warn: false, icon: POP_ICON.move };
     return [
       // '가장 많이 봄'은 실제 조회수 데이터가 없어 오해 소지 → '대표 인기'(고정 인기순 1위)로 정직하게.
       byViews && { ...byViews, tag: "대표 인기", warn: false, icon: POP_ICON.star },
       byCheap && { ...byCheap, tag: "체감물가 최저", warn: false, icon: POP_ICON.down },
-      paradox && { ...paradox, tag: "환율 이득·물가 부담", warn: true, icon: POP_ICON.warn },
+      third,
     ].filter(Boolean).slice(0, 3);
   }
 
