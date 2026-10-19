@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIKE — Concept Campaign</title>
+<meta name="description" content="나이키 브랜드를 소재로 한 비공식 컨셉 캠페인 페이지 (포트폴리오 케이스스터디)">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <div class="progress" aria-hidden="true"><div class="progress__bar"></div></div>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="#top" class="nav__brand">NIKE</a>
+      <a href="#cta" class="nav__cta">드롭 알림 받기</a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero" id="top">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="hero__inner">
+      <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
+      <h1 class="hero__word" data-reveal>NIKE</h1>
+      <p class="hero__tagline" data-reveal>움직임이 곧 증명이다.</p>
+      <p class="hero__sub" data-reveal>한계를 선이 아니라 다음 목표로 바꾸는 사람들을 위해.</p>
+    </div>
+    <div class="hero__scroll" aria-hidden="true"><span></span>SCROLL</div>
+  </header>
+
+  <!-- ============ MANIFESTO ============ -->
+  <section class="manifesto">
+    <div class="container">
+      <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
+      <p class="manifesto__text" data-reveal>
+        위대함은 타고나지 않는다.<br>
+        매일, 한 걸음씩 <em>만들어진다.</em>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ PRODUCT SHOWCASE (sticky) ============ -->
+  <section class="showcase" id="showcase">
+    <div class="showcase__inner">
+      <div class="showcase__visual">
+        <!-- PLACEHOLDER: 실제 제품(신발) 목업 이미지로 교체 — 지금은 추상 그래픽 -->
+        <div class="ph-visual ph-visual--shoe" data-placeholder="product-hero">
+          <svg viewBox="0 0 400 400" width="100%" height="100%" aria-hidden="true">
+            <defs>
+              <radialGradient id="shoeGlow" cx="50%" cy="45%" r="60%">
+                <stop offset="0%" stop-color="#D7FF3E" stop-opacity=".35"/>
+                <stop offset="100%" stop-color="#D7FF3E" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="shoeBody" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2a2a2a"/>
+                <stop offset="100%" stop-color="#0a0a0a"/>
+              </linearGradient>
+            </defs>
+            <circle cx="200" cy="200" r="170" fill="url(#shoeGlow)"/>
+            <ellipse class="ph-shoe__shadow" cx="200" cy="330" rx="130" ry="18" fill="#000" opacity=".4"/>
+            <path class="ph-shoe__body" d="M70 250 Q90 190 160 180 Q220 170 260 140 Q300 115 340 140 Q365 155 360 200 Q355 250 300 265 L100 270 Q70 268 70 250 Z" fill="url(#shoeBody)" stroke="#D7FF3E" stroke-width="2"/>
+            <path class="ph-shoe__swoosh" d="M110 230 Q190 200 330 190" fill="none" stroke="#D7FF3E" stroke-width="6" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <div class="showcase__features">
+        <p class="showcase__kicker" data-reveal>PRODUCT</p>
+        <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
+        <ul class="feature-list">
+          <li class="feature-item" data-reveal>
+            <span class="feature-item__num">01</span>
+            <div>
+              <h3>반응형 쿠셔닝</h3>
+              <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
+            </div>
+          </li>
+          <li class="feature-item" data-reveal>
+            <span class="feature-item__num">02</span>
+            <div>
+              <h3>초경량 니트 갑피</h3>
+              <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
+            </div>
+          </li>
+          <li class="feature-item" data-reveal>
+            <span class="feature-item__num">03</span>
+            <div>
+              <h3>에너지 리턴 아웃솔</h3>
+              <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
+            </div>
+          </li>
+          <li class="feature-item" data-reveal>
+            <span class="feature-item__num">04</span>
+            <div>
+              <h3>올데이 핏</h3>
+              <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SPEC HIGHLIGHTS ============ -->
+  <section class="specs">
+    <div class="container">
+      <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
+      <div class="specs__grid">
+        <div class="spec-card" data-reveal>
+          <div class="spec-card__num">243<span>g</span></div>
+          <div class="spec-card__label">초경량 무게</div>
+        </div>
+        <div class="spec-card" data-reveal>
+          <div class="spec-card__num">12<span>mm</span></div>
+          <div class="spec-card__label">쿠셔닝 두께</div>
+        </div>
+        <div class="spec-card" data-reveal>
+          <div class="spec-card__num">360<span>°</span></div>
+          <div class="spec-card__label">통기성 설계</div>
+        </div>
+        <div class="spec-card" data-reveal>
+          <div class="spec-card__num">100<span>%</span></div>
+          <div class="spec-card__label">리사이클 소재</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOOKBOOK ============ -->
+  <section class="lookbook">
+    <div class="container">
+      <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
+      <h2 class="lookbook__title" data-reveal>어디서든, 당신의 속도로</h2>
+      <!-- PLACEHOLDER: 아래 6칸 전부 실사 라이프스타일 이미지로 교체 예정 -->
+      <div class="lookbook__grid">
+        <div class="lb-tile lb-tile--lg ph-visual" data-reveal data-placeholder="lookbook-1"><span class="lb-tile__cap">STREET</span></div>
+        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-2"><span class="lb-tile__cap">TRACK</span></div>
+        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-3"><span class="lb-tile__cap">STUDIO</span></div>
+        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-4"><span class="lb-tile__cap">NIGHT RUN</span></div>
+        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-5"><span class="lb-tile__cap">COURT</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CTA ============ -->
+  <section class="cta" id="cta">
+    <div class="container">
+      <p class="cta__kicker" data-reveal>DROP SOON</p>
+      <h2 class="cta__title" data-reveal>가장 먼저,<br>가장 빠르게.</h2>
+      <p class="cta__sub" data-reveal>출시 알림을 받고 드롭 당일 가장 먼저 만나보세요.</p>
+      <form class="cta__form" data-reveal>
+        <input type="email" class="cta__input" placeholder="이메일 주소" aria-label="이메일 주소" required>
+        <button type="submit" class="cta__btn">알림 신청</button>
+      </form>
+      <p class="cta__done" hidden>신청 완료 — 드롭 소식을 가장 먼저 보내드릴게요.</p>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="foot">
+    <div class="container foot__inner">
+      <span class="foot__brand">NIKE</span>
+      <span class="foot__note">비공식 컨셉 프로젝트 · 포트폴리오 케이스스터디 (Nike, Inc.와 무관)</span>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

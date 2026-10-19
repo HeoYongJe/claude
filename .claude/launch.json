@@ -19,6 +19,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "5188", "--directory", "portfolio-shell/travel"],
       "port": 5188
+    },
+    {
+      "name": "nike",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5190", "--directory", "portfolio-shell/nike"],
+      "port": 5190
     }
   ]
 }
