@@ -224,11 +224,13 @@
     if (titleEl) titleEl.textContent = mode === "weak"
       ? (anyNegative ? "최근 일주일, 원화가 가장 약해진 나라" : "최근 일주일, 원화 강세 폭이 가장 작은 나라")
       : "최근 일주일, 원화가 가장 강해진 나라";
-    if (descEl) descEl.textContent = mode === "weak"
+    // 두 문장을 "."에서 의도적으로 나눠 PC에서 둘째 문장이 새 줄로 시작하게(§css .section-desc__l2).
+    const descHtml = (s1, s2) => `${esc(s1)} <span class="section-desc__l2">${esc(s2)}</span>`;
+    if (descEl) descEl.innerHTML = mode === "weak"
       ? (anyNegative
-          ? "일주일 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
-          : "25개국 모두 원화 강세인 주예요. 그중에서도 강세 폭이 가장 작은, 상대적으로 덜 유리한 하위 3개국이에요.")
-      : "일주일 전 환율과 비교해 원화가 강해진 순으로 매겼어요. 체감 물가는 카드와 상세에서 함께 확인하세요.";
+          ? descHtml("일주일 전 환율과 비교해 원화가 약해진 순으로 매겼어요.", "여행 전에 환율을 한 번 더 확인하세요.")
+          : descHtml("25개국 모두 원화 강세인 주예요.", "그중에서도 강세 폭이 가장 작은, 상대적으로 덜 유리한 하위 3개국이에요."))
+      : descHtml("일주일 전 환율과 비교해 원화가 강해진 순으로 매겼어요.", "체감 물가는 카드와 상세에서 함께 확인하세요.");
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
       // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.

@@ -128,10 +128,11 @@ ul, ol { list-style: none; padding: 0; }
 .rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
-/* PC에서 탭(강세/약세) 전환 때마다 설명 줄바꿈이 1줄↔2줄로 들쭉날쭉하던 것 방지 —
-   desc만 더 좁게 잡아 세 가지 문구(강세/약세/약세-강세폭최소) 전부 균형 있게 2줄로 고정(모바일은 이미 괜찮아 건드리지 않음). */
+/* PC에서 탭(강세/약세) 전환 때마다 설명 줄바꿈이 1줄↔2줄로 들쭉날쭉하고, 폭 기반 자동 줄바꿈이라
+   끊기는 지점도 문장 중간 단어였던 문제(2026-10-19) — 두 문장을 "."에서 의도적으로 나눔
+   (main.js가 둘째 문장을 .section-desc__l2 span으로 감쌈). 모바일(900px 이하)은 이미 자연스러워 그대로 둠. */
 @media (min-width: 901px) {
-  .rank__head .section-desc { max-width: 460px; }
+  .rank__head .section-desc .section-desc__l2 { display: block; }
 }
 .rank__headR { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .t-rank-basis { font-size: 13px; font-weight: 700; color: var(--muted); }
