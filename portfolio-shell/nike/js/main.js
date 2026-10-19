@@ -89,6 +89,9 @@
   }
 
   // ---- rAF 루프: 히어로 줌아웃 스크럽 + 매니페스토 핀드줌 스크럽 + 쇼케이스 비주얼 스크럽 ----
+  // 실제 스크롤 위치를 바로 쓰지 않고 lerp로 보간한 "스무스 스크롤 값"을 모든 스크럽 계산에 써서
+  // 트랙패드·휠 스크롤의 미세한 끊김이 그대로 전달되지 않고 부드럽게 쫓아가는 느낌을 만든다
+  // (가뿐 히어로 패럴럭스의 lerp(0.09) 패턴과 동일 — 2026-10-19, "스크롤 효과가 더 부드러웠으면" 피드백 반영).
   const heroWrap = document.querySelector(".hero-wrap");
   const heroInner = document.querySelector("[data-hero-scrub]");
   const heroScrollEl = document.querySelector("[data-hero-scroll]");
@@ -96,37 +99,49 @@
   const manifestoText = document.querySelector("[data-manifesto-scrub]");
 
   if (!reduceMotion) {
+    const clamp01 = (v) => Math.min(1, Math.max(0, v));
+    let bounds = {};
+    function measure() {
+      bounds = {
+        hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
+        manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
+        showcase: showcase ? { start: showcase.offsetTop, range: showcase.offsetHeight - window.innerHeight } : null,
+      };
+    }
+    measure();
+    let resizeTimer;
+    window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
+
+    let smoothY = window.scrollY;
     function raf() {
+      const realY = window.scrollY;
+      smoothY += (realY - smoothY) * 0.085;
+      if (Math.abs(realY - smoothY) < 0.05) smoothY = realY;
+
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
-      if (heroWrap && heroInner) {
-        const rect = heroWrap.getBoundingClientRect();
-        const total = rect.height - window.innerHeight;
-        const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      if (heroInner && bounds.hero && bounds.hero.range > 0) {
+        const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
         const scale = 1 + progress * 0.9; // 1 -> 1.9
         const opacity = Math.max(0, 1 - progress * 1.6);
-        heroInner.style.transform = `scale(${scale})`;
-        heroInner.style.opacity = opacity;
-        if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - progress * 4);
+        heroInner.style.transform = `scale(${scale.toFixed(3)})`;
+        heroInner.style.opacity = opacity.toFixed(3);
+        if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - progress * 4).toFixed(3);
       }
 
       // 매니페스토: 섹션(220vh) 내 sticky 구간 진행률 0→1에 텍스트 scale 0.5→1.15 바인딩
-      if (manifesto && manifestoText) {
-        const rect = manifesto.getBoundingClientRect();
-        const total = rect.height - window.innerHeight;
-        const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      if (manifestoText && bounds.manifesto && bounds.manifesto.range > 0) {
+        const progress = clamp01((smoothY - bounds.manifesto.start) / bounds.manifesto.range);
         const scale = 0.5 + progress * 0.65;
         manifestoText.style.transform = `scale(${scale.toFixed(3)})`;
-        manifestoText.style.opacity = Math.min(1, progress * 2.5);
+        manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
       // 쇼케이스 비주얼: 섹션 스크롤 진행률에 회전·확대 바인딩
-      if (showcaseVisual && showcase) {
-        const rect = showcase.getBoundingClientRect();
-        const total = rect.height - window.innerHeight;
-        const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      if (showcaseVisual && bounds.showcase && bounds.showcase.range > 0) {
+        const progress = clamp01((smoothY - bounds.showcase.start) / bounds.showcase.range);
         const rotate = progress * 50 - 10;
         const scale = 0.9 + progress * 0.25;
-        showcaseVisual.style.transform = `rotate(${rotate}deg) scale(${scale})`;
+        showcaseVisual.style.transform = `rotate(${rotate.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
       }
 
       requestAnimationFrame(raf);
