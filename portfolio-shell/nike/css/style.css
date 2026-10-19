@@ -28,11 +28,34 @@ button, input { font: inherit; }
 .progress { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 100; background: transparent; }
 .progress__bar { height: 100%; width: 0%; background: var(--volt); transform-origin: left; }
 
+/* ---- 커스텀 커서(호버 가능 기기에서만 JS가 .cursor-active를 html에 붙임) ---- */
+.cursor-dot, .cursor-ring { position: fixed; top: 0; left: 0; z-index: 200; pointer-events: none; border-radius: 50%; opacity: 0; transition: opacity .2s; }
+.cursor-dot { width: 7px; height: 7px; background: var(--volt); transform: translate(-50%, -50%); }
+.cursor-ring { width: 38px; height: 38px; border: 1.5px solid rgba(215,255,62,.7); transform: translate(-50%, -50%); transition: opacity .2s, width .25s cubic-bezier(.2,.8,.2,1), height .25s cubic-bezier(.2,.8,.2,1), background .25s; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--ink); }
+html.cursor-active .cursor-dot, html.cursor-active .cursor-ring { opacity: 1; }
+html.cursor-active, html.cursor-active a, html.cursor-active button { cursor: none; }
+.cursor-ring.is-hover { width: 48px; height: 48px; background: rgba(215,255,62,.9); mix-blend-mode: difference; }
+.cursor-ring.is-hover-label { width: 72px; height: 72px; }
+.cursor-ring.is-hover-label .cursor-ring__label { opacity: 1; }
+.cursor-ring__label { opacity: 0; transition: opacity .2s; }
+
+/* ---- 그레인(필름 질감) ---- */
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ---- 마퀴(장식 텍스트 띠) ---- */
+.marquee { background: var(--ink); overflow: hidden; padding: 28px 0; white-space: nowrap; }
+.marquee__track { display: inline-flex; animation: marqueeScroll 22s linear infinite; }
+.marquee__item { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 6vw, 72px); letter-spacing: -.01em; color: transparent; -webkit-text-stroke: 1.5px var(--text-on-dark); padding-right: 48px; }
+.marquee__item:nth-child(even) { -webkit-text-stroke: 1.5px var(--volt); }
+@keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
 /* ---- 네비 ---- */
 .nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 90; padding: 20px 0; transition: background .3s, padding .3s; }
 .nav__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
 .nav__brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; color: var(--text-on-dark); }
-.nav__cta { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--ink); background: var(--volt); padding: 10px 18px; border-radius: 999px; }
+.nav__cta { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--ink); background: var(--volt); padding: 10px 18px; border-radius: 999px; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
 .nav.is-scrolled { background: rgba(10,10,10,.85); backdrop-filter: blur(10px); padding: 14px 0; }
 
 /* ---- 히어로 ---- */
@@ -44,6 +67,8 @@ button, input { font: inherit; }
 .hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
+.hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
+@keyframes letterIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); } }
 .hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px); color: var(--text-on-dark); margin-top: 24px; }
 .hero__sub { font-size: 16px; color: var(--muted-on-dark); margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto; }
 .hero__scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); }
@@ -84,7 +109,7 @@ button, input { font: inherit; }
 .specs { background: var(--paper); padding: 140px 0; }
 .specs__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 48px; text-align: center; }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-.spec-card { text-align: center; padding: 40px 16px; background: var(--paper2); border-radius: 20px; }
+.spec-card { text-align: center; padding: 40px 16px; background: var(--paper2); border-radius: 20px; transition: transform .25s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; will-change: transform; }
 .spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: 48px; letter-spacing: -.01em; }
 .spec-card__num span { font-size: 24px; margin-left: 2px; color: var(--muted); }
 .spec-card__label { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
@@ -94,8 +119,7 @@ button, input { font: inherit; }
 .lookbook__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 18px; }
 .lookbook__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4vw, 44px); margin-bottom: 48px; }
 .lookbook__grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 220px; grid-auto-flow: dense; gap: 16px; }
-.lb-tile { border-radius: 16px; position: relative; overflow: hidden; transition: transform .4s cubic-bezier(.2,.7,.2,1); }
-.lb-tile:hover { transform: scale(1.02); }
+.lb-tile { border-radius: 16px; position: relative; overflow: hidden; transition: transform .25s cubic-bezier(.2,.8,.2,1); transform-style: preserve-3d; will-change: transform; }
 .lb-tile--lg { grid-column: span 2; grid-row: span 2; }
 .lb-tile__cap { position: absolute; left: 18px; bottom: 16px; font-size: 12px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark); background: rgba(0,0,0,.4); padding: 6px 12px; border-radius: 999px; }
 
@@ -107,8 +131,7 @@ button, input { font: inherit; }
 .cta__form { margin-top: 36px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
 .cta__input { width: 320px; max-width: 100%; padding: 16px 20px; border-radius: 999px; border: none; font-size: 15px; background: var(--ink); color: var(--text-on-dark); }
 .cta__input::placeholder { color: var(--muted-on-dark); }
-.cta__btn { padding: 16px 28px; border-radius: 999px; border: none; background: var(--ink); color: var(--volt); font-weight: 700; font-size: 15px; cursor: pointer; transition: transform .15s; }
-.cta__btn:hover { transform: translateY(-2px); }
+.cta__btn { padding: 16px 28px; border-radius: 999px; border: none; background: var(--ink); color: var(--volt); font-weight: 700; font-size: 15px; cursor: pointer; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
 .cta__done { margin-top: 24px; font-weight: 700; color: var(--ink); }
 .cta__done[hidden] { display: none; }
 
@@ -136,4 +159,16 @@ button, input { font: inherit; }
   .hero__scroll span { animation: none; }
   .ph-shoe__swoosh { transition: none; stroke-dashoffset: 0; }
   html { scroll-behavior: auto; }
+  .cursor-dot, .cursor-ring { display: none; }
+  html.cursor-active, html.cursor-active a, html.cursor-active button { cursor: auto; }
+  .grain { display: none; }
+  .marquee__track { animation: none; }
+  .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
+  .spec-card, .lb-tile, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
+  .ph-visual--shoe svg { transform: none !important; }
+}
+
+/* 터치 기기(호버 불가)에서도 커스텀 커서·틸트 비활성화 */
+@media (hover: none) {
+  .cursor-dot, .cursor-ring { display: none; }
 }

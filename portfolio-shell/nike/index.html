@@ -15,6 +15,12 @@
 </head>
 <body>
 
+  <!-- 커스텀 커서(데스크톱·호버 기기에서만 JS가 활성화) -->
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"><span class="cursor-ring__label">VIEW</span></div>
+  <!-- 어두운 섹션 위 은은한 그레인(필름 질감) -->
+  <div class="grain" aria-hidden="true"></div>
+
   <div class="progress" aria-hidden="true"><div class="progress__bar"></div></div>
 
   <nav class="nav">
@@ -46,6 +52,16 @@
       </p>
     </div>
   </section>
+
+  <!-- ============ MARQUEE(장식 — 좌→우 무한 스크롤 텍스트 띠) ============ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track" data-marquee-track>
+      <span class="marquee__item">JUST MOVE —</span>
+      <span class="marquee__item">NEVER STATIC —</span>
+      <span class="marquee__item">JUST MOVE —</span>
+      <span class="marquee__item">NEVER STATIC —</span>
+    </div>
+  </div>
 
   <!-- ============ PRODUCT SHOWCASE (sticky) ============ -->
   <section class="showcase" id="showcase">
