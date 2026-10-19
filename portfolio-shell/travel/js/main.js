@@ -222,13 +222,13 @@
     const titleEl = root.querySelector(".rank__head .section-title");
     const descEl = root.querySelector(".rank__head .section-desc");
     if (titleEl) titleEl.textContent = mode === "weak"
-      ? (anyNegative ? "최근 한 달, 원화가 가장 약해진 나라" : "최근 한 달, 원화 강세 폭이 가장 작은 나라")
-      : "최근 한 달, 원화가 가장 강해진 나라";
+      ? (anyNegative ? "최근 일주일, 원화가 가장 약해진 나라" : "최근 일주일, 원화 강세 폭이 가장 작은 나라")
+      : "최근 일주일, 원화가 가장 강해진 나라";
     if (descEl) descEl.textContent = mode === "weak"
       ? (anyNegative
-          ? "한 달 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
-          : "25개국 모두 원화 강세인 달이에요. 그중에서도 강세 폭이 가장 작은, 상대적으로 덜 유리한 하위 3개국이에요.")
-      : "한 달 전 환율과 비교해 원화가 강해진 순으로 매겼어요. 체감 물가는 카드와 상세에서 함께 확인하세요.";
+          ? "일주일 전 환율과 비교해 원화가 약해진 순으로 매겼어요. 여행 전에 환율을 한 번 더 확인하세요."
+          : "25개국 모두 원화 강세인 주예요. 그중에서도 강세 폭이 가장 작은, 상대적으로 덜 유리한 하위 3개국이에요.")
+      : "일주일 전 환율과 비교해 원화가 강해진 순으로 매겼어요. 체감 물가는 카드와 상세에서 함께 확인하세요.";
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
       // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
@@ -242,7 +242,7 @@
     const emptyNote = ensureEmptyNote();
     if (data.length === 0) {
       emptyNote.style.display = "";
-      emptyNote.textContent = mode === "weak" ? "최근 한 달, 원화가 약세인 나라가 거의 없어요." : "표시할 나라가 없어요.";
+      emptyNote.textContent = mode === "weak" ? "최근 일주일, 원화가 약세인 나라가 거의 없어요." : "표시할 나라가 없어요.";
     } else {
       emptyNote.style.display = "none";
     }
@@ -498,7 +498,7 @@
     rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
     rankEl.style.background = "#F1F5F9";
 
-    // 상단 대표 숫자 = 최근 한 달 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
+    // 상단 대표 숫자 = 최근 일주일 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
       fxVal.textContent = d.badge || "준비 중";
@@ -646,7 +646,7 @@
       if (labels[1]) labels[1].textContent = "원화 강세 · 약세";
       if (vals[1]) { vals[1].textContent = `강세 ${COUNTS.strong} · 약세 ${COUNTS.weak}`; vals[1].style.color = ""; }
     } else {
-      if (labels[1]) labels[1].textContent = "최근 한 달 원화 강세";
+      if (labels[1]) labels[1].textContent = "최근 일주일 원화 강세";
       if (vals[1]) vals[1].textContent = `${COUNTS.strong}개국`;
     }
     // 3번째 = 체감물가 최대 절약(가장 유리한 나라 기준) — 데이터 있는 나라 중 최댓값.
@@ -739,7 +739,7 @@
     set(".t-hero-recv", top.recv);
     set(".t-hero-desc",
       top.is3moLow ? "최근 3개월 환율 중 가장 유리해요."
-        : `최근 한 달 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);
+        : `최근 일주일 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);
   }
 
   // ---- 인기 여행지: 배경 티커(장식) + 정지 타일 3개(클릭) ----

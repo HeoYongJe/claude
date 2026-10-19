@@ -2,7 +2,7 @@
 //
 // 왜 서버가 계산하나:
 // - 수출입은행 API는 CORS 미허용 + 인증키를 브라우저에 두면 노출됨 → 프록시 필수.
-// - "최근 3개월 최저 / 한 달 변동률 / 스파크라인"은 과거 여러 날짜를 조회해야 하는데,
+// - "최근 3개월 최저 / 일주일 변동률 / 스파크라인"은 과거 여러 날짜를 조회해야 하는데,
 //   브라우저에서 매번 수십 번 호출하면 느리고 낭비. 서버가 하루 1회 모아 계산해 캐시한다.
 
 const https = require("https");
@@ -167,14 +167,14 @@ function fetchEcbRange(startD, endD, symbols, attempt = 0) {
 // series([{date:YYYYMMDD, rate: KRW per foreign}]) → 지표 계산(exim/ECB 공용)
 function seriesMetrics(series, currentDate, meta, unitMult) {
   const current = series[series.length - 1].rate;
-  const monthAgoTargetMs = parseYmd(currentDate) - 30 * 86400000;
-  let monthAgo = series[0];
+  const weekAgoTargetMs = parseYmd(currentDate) - 7 * 86400000;
+  let weekAgo = series[0];
   let bestDiff = Infinity;
   for (const s of series) {
-    const diff = Math.abs(parseYmd(s.date) - monthAgoTargetMs);
-    if (diff < bestDiff) { bestDiff = diff; monthAgo = s; }
+    const diff = Math.abs(parseYmd(s.date) - weekAgoTargetMs);
+    if (diff < bestDiff) { bestDiff = diff; weekAgo = s; }
   }
-  const changePct = ((monthAgo.rate - current) / monthAgo.rate) * 100;
+  const changePct = ((weekAgo.rate - current) / weekAgo.rate) * 100;
   const rateVals = series.map((s) => s.rate);
   const minR = Math.min(...rateVals);
   const maxR = Math.max(...rateVals);
@@ -199,7 +199,10 @@ function seriesMetrics(series, currentDate, meta, unitMult) {
 
 // ---------- 랭킹 계산 ----------
 // 최근 약 3개월을 주 1회 간격(최대 13개 시점)으로 모아 국가별 시계열을 만들고
-// 한 달 변동률(원화 강세율)·3개월 최저 여부·스파크라인을 계산한다.
+// 일주일 변동률(원화 강세율)·3개월 최저 여부·스파크라인을 계산한다.
+// (2026-10-19: 한 달→일주일로 변경 — 한 달 기준은 너무 느리게 바뀌어 "정적인 사이트"처럼 느껴짐.
+//  일주일 기준은 매일 들어와도 순위가 바뀌는 게 보여 재방문 동기가 생기면서도, 하루 기준처럼
+//  부호가 뒤집히는 노이즈는 아님. 과거 시점 수집 범위(12주)는 그대로 유지 — 3개월 최저 계산에 필요.)
 async function buildRanking() {
   const base = await resolveLatest(new Date());
   if (!base) throw new Error("최신 영업일 환율을 찾지 못했습니다.");
@@ -220,7 +223,7 @@ async function buildRanking() {
   points.sort((a, b) => (a.date < b.date ? -1 : 1)); // 오래된→최신
 
   const currentDate = points[points.length - 1].date;
-  const monthAgoTargetMs = parseYmd(currentDate) - 30 * 86400000;
+  const weekAgoTargetMs = parseYmd(currentDate) - 7 * 86400000;
 
   const results = [];
   for (const [unit, meta] of Object.entries(COUNTRIES)) {
@@ -231,18 +234,18 @@ async function buildRanking() {
 
     const current = series[series.length - 1].rate;
 
-    // 한 달 전에 가장 가까운 시점
-    let monthAgo = series[0];
+    // 일주일 전에 가장 가까운 시점 (points가 7일 간격이라 보통 바로 직전 포인트)
+    let weekAgo = series[0];
     let bestDiff = Infinity;
     for (const s of series) {
-      const diff = Math.abs(parseYmd(s.date) - monthAgoTargetMs);
+      const diff = Math.abs(parseYmd(s.date) - weekAgoTargetMs);
       if (diff < bestDiff) {
         bestDiff = diff;
-        monthAgo = s;
+        weekAgo = s;
       }
     }
     // deal_bas_r 하락 = 원화 강세 → changePct 양수(유리)
-    const changePct = ((monthAgo.rate - current) / monthAgo.rate) * 100;
+    const changePct = ((weekAgo.rate - current) / weekAgo.rate) * 100;
 
     const rateVals = series.map((s) => s.rate);
     const minR = Math.min(...rateVals);
@@ -362,7 +365,7 @@ async function buildRanking() {
   // [왜 물가를 점수에서 뺐나]
   // 처음엔 changePct + savePct를 1:1로 더했다. 둘 다 "원화 관점의 이득"을 %로 나타내니
   // 공평해 보였지만, 실제 스케일이 달랐다.
-  //   - changePct(한 달 환율 변동): 대체로 ±10% 안쪽
+  //   - changePct(당시엔 한 달 환율 변동 — 2026-10-19부터 일주일 기준으로 변경, 폭은 더 작아짐): 대체로 ±10% 안쪽
   //   - savePct(서울 대비 물가 절약): -70% ~ +50%
   // 폭이 7배쯤 차이나서 합산 점수를 사실상 savePct가 단독 결정했고, 환율은 순위에
   // 거의 영향을 주지 못했다. 그 결과 물가가 구조적으로 낮은 나라(인도네시아·필리핀·
