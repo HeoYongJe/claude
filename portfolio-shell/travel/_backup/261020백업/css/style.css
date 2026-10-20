@@ -1,0 +1,611 @@
+/* ==========================================================================
+   travel — 스타일 시트 (인라인 스타일을 전부 여기로 분리)
+   색/간격은 :root 토큰과 컴포넌트 클래스로만 관리한다.
+   ========================================================================== */
+
+:root {
+  --primary: #0E4AEB;
+  --primary-dark: #0b3bc0;
+  --ink: #0F172A;
+  --muted: #64748B;
+  --muted2: #94A3B8;
+  --surface: #F5F8FF;
+  --border: #EEF1F6;
+  --border-strong: #E2E8F0;
+  --up: #EF4444;      /* 강세(유리) = 빨강 포인트 */
+  --up-tint: #FEF2F2;
+  --down: #767676;    /* 약세(불리)/중립 = 회색계열 (AA 4.5:1) */
+  --down-tint: #F2F4F6;
+}
+
+* { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+html { scroll-behavior: smooth; overscroll-behavior-y: none; }   /* 웹앱 당겨서-새로고침 오작동 방지 */
+/* 히어로(구름 영상) 아래 섹션들이 흰색으로 뚝 끊기지 않도록 아주 연한 블루 그라데이션 배경 */
+body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink);
+  /* 히어로(흰색)에서 자연스럽게 이어지도록 위쪽(why 구간)은 거의 흰색~아주 연한 블루로 오래 유지하고, 아래로 갈수록 진해지게 */
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FBFF 55%, #E7EEFB 72%, #D6E2F6 100%); background-color: #D6E2F6; }/*기존 F8FBFF 42%*/
+a { color: var(--primary); text-decoration: none; }
+a:hover { color: var(--primary-dark); }
+button { font-family: inherit; border: none; background: none; cursor: pointer; color: inherit; line-height: 1.2; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { list-style: none; padding: 0; }
+
+@keyframes t-dashflow { to { stroke-dashoffset: -20; } }
+@keyframes t-planebob { 0%,100% { transform: translateX(-3px); } 50% { transform: translateX(3px); } }
+@keyframes t-fly { to { offset-distance: 100%; } }
+@keyframes t-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes t-float2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
+
+#twrap { overflow-x: hidden; }
+.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
+
+/* ---- 텍스트 역할 ---- */
+.kicker { font-size: 14px; font-weight: 700; color: var(--primary); }
+.kicker--light { color: #BBD0FF; }
+.section-title { font-size: 40px; font-weight: 800; letter-spacing: -.02em; margin-top: 14px; }
+.section-title--light { color: #fff; }
+.section-desc { font-size: 17px; color: var(--muted); line-height: 1.6; margin-top: 16px; }
+.section-desc--light { color: #D6E2FF; }
+
+/* ---- 버튼 ---- */
+.t-cta { background: var(--primary); color: #fff; font-weight: 700; cursor: pointer; transition: background .15s; }
+.t-cta--nav { font-size: 14px; padding: 10px 18px; border-radius: 12px; }
+.t-cta--hero { font-size: 16px; padding: 15px 26px; border-radius: 14px; }
+.t-cta--summary { font-size: 15px; padding: 13px 22px; border-radius: 12px; }
+.btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
+.t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--primary); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
+
+/* ---- 진행 바 ---- */
+.t-progress-track { display:none; position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 60; background: transparent; }
+.t-progress { height: 100%; width: 100%; background: var(--primary); transform: scaleX(0); transform-origin: left center; will-change: transform; }
+
+/* ---- 항로 레일: 평소 거의 안보이는 항로 + 비행기, 스크롤 시 은은한 푸른 점선이 아래→위로 채워짐 ---- */
+.t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
+.t-rail svg { width: 100%; height: 100%; overflow: visible; }
+.t-rail-path { stroke: rgba(14,74,235,.12); animation: t-dashflow 2.6s linear infinite; }          /* 스크롤 전 거의 안보이는 항로 */
+.t-rail-trail { stroke: rgba(14,74,235,.5); stroke-width: 2.5; stroke-dasharray: 1.5 8; stroke-linecap: round; }  /* 채워지는 은은한 푸른 점선 */
+.t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: transform; }
+.t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(14,74,235,.14), rgba(14,74,235,0) 70%); }
+.t-plane { position: relative; width: 28px; height: 28px; color: var(--primary); filter: drop-shadow(0 6px 10px rgba(14,74,235,.28)); animation: t-planebob 3s ease-in-out infinite; }
+.t-plane svg { display: block; }
+/* 1080px 이하(태블릿·모바일)에서는 항로 레일 숨김(콘텐츠 방해) */
+@media (max-width: 1080px) { .t-rail { display: none; } }
+
+/* ---- 네비 ---- */
+/* 최상단(히어로 위)에서는 배경 없음, 스크롤하면 반투명 배경이 생김 (.is-scrolled는 main.js에서 토글) */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease, backdrop-filter .3s ease; }
+.nav.is-scrolled { background: rgba(255,255,255,.72); backdrop-filter: blur(14px); border-bottom-color: var(--border); }
+.nav__inner { max-width: 1080px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+.nav__brand { font-size: 22px; font-weight: 800; color: var(--primary); letter-spacing: -.01em; }
+.nav__right { display: flex; align-items: center; gap: 28px; }
+.nav__links { display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: var(--muted); }
+.nav__link { color: var(--muted); }
+
+/* ---- 히어로 ---- */
+.hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: #EBF1FC; }
+.hero { min-height: 100svh; }   /* 지원 브라우저: 주소창 수축 시 레이아웃 점프 제거 */
+/* 배경 영상 레이어 — hero 맨 뒤. 밝은 하늘 영상용 흰색 가독성 그라디언트(세로/가로) */
+.hero__video { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: #EBF1FC; }
+.hero__video-el { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 1; transition: opacity .1s linear; }
+.hero__video-grad { position: absolute; inset: 0; pointer-events: none; }
+.hero__video-grad--v { background: linear-gradient(180deg, rgba(255,255,255,.40) 0%, rgba(255,255,255,.10) 45%, rgba(255,255,255,.70) 100%); }
+.hero__video-grad--h { background: linear-gradient(90deg, rgba(255,255,255,.60) 0%, rgba(255,255,255,0) 60%); }
+.hero__blob { position: absolute; border-radius: 999px; filter: blur(6px); will-change: transform; }
+.hero__blob--1 { top: -120px; right: -80px; width: 560px; height: 560px; background: radial-gradient(circle at 30% 30%, rgba(14,74,235,.18), rgba(14,74,235,0) 70%); }
+.hero__blob--2 { bottom: -160px; left: -120px; width: 520px; height: 520px; background: radial-gradient(circle at 50% 50%, rgba(6,182,212,.16), rgba(6,182,212,0) 70%); }
+.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 96px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+/* 밝은 하늘 영상 배경 위 어두운 텍스트 (hero 전용) */
+.hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--primary); background: rgba(255,255,255,.7); border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; backdrop-filter: blur(6px); }
+.hero__title { font-size: 64px; font-weight: 800; line-height: 1.08; letter-spacing: -.03em; margin-top: 24px; color: #0F172A; text-shadow: 0 1px 16px rgba(255,255,255,.6); }
+.hero__title em { color: var(--primary); font-style: normal; }
+.hero__desc { font-size: 18px; line-height: 1.6; color: #334155; margin-top: 24px; max-width: 440px; }
+.hero__actions { display: flex; gap: 14px; margin-top: 36px; }
+.hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
+.hero__scroll { position: absolute; z-index: 10; bottom: 32px; left: 50%; transform: translateX(-50%); font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .1em; }
+
+/* 환율 카드(오늘의 추천) */
+/* 반투명 흰 배경 + 블러 → 뒤 구름 영상이 은은하게 비침(텍스트 가독성 유지). 틸트 제거. */
+.t-fxcard { background: rgba(255,255,255,.66); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.55); border-radius: 24px; padding: 28px; box-shadow: 0 40px 80px -30px rgba(15,23,42,.28); }
+.fxcard__top { display: flex; justify-content: space-between; align-items: center; }
+.fxcard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
+.t-hero-badge { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--surface); padding: 5px 10px; border-radius: 999px; }
+.t-hero-name { font-size: 32px; font-weight: 800; margin-top: 18px; letter-spacing: -.02em; }
+.fxcard__convert { display: flex; align-items: center; gap: 16px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.fxcard__cap { font-size: 12px; color: var(--muted2); font-weight: 600; }
+.fxcard__amt { font-size: 22px; font-weight: 400; }         /* 보내는 금액: normal */
+.fxcard__arrow { font-size: 20px; color: var(--primary); }
+.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); }   /* 받는 금액: 잉크 + 굵게(방향색 파랑 제거) */
+.t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
+/* 히어로 '오늘의 추천' 카드: 클릭 가능 */
+.t-hero-card { cursor: pointer; }
+.t-hero-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.t-hero-cardhint { display: inline-block; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--primary); }
+
+/* ---- 랭킹 섹션 ---- */
+/* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
+/* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1080+24 정렬선) */
+.rank { position: relative; overflow: hidden; padding: 96px 0 88px; background: transparent; }
+.rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
+.rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
+.rank__headL { max-width: 620px; }
+/* PC에서 탭(강세/약세) 전환 때마다 설명 줄바꿈이 1줄↔2줄로 들쭉날쭉하고, 폭 기반 자동 줄바꿈이라
+   끊기는 지점도 문장 중간 단어였던 문제(2026-10-19) — 두 문장을 "."에서 의도적으로 나눔
+   (main.js가 둘째 문장을 .section-desc__l2 span으로 감쌈). 모바일(900px 이하)은 이미 자연스러워 그대로 둠. */
+@media (min-width: 901px) {
+  .rank__head .section-desc .section-desc__l2 { display: block; }
+}
+.rank__headR { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.t-rank-basis { font-size: 13px; font-weight: 700; color: var(--muted); }
+/* 기준일 앞 라이브 펄스(실데이터일 때만 표시 — setBasis에서 토글) */
+.t-live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--primary); margin-right: 7px; vertical-align: 1px; animation: t-pulse 2.4s ease-in-out infinite; }
+@keyframes t-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(14,74,235,.28); } 50% { box-shadow: 0 0 0 5px rgba(14,74,235,0); } }
+.rtabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 0px; margin-bottom: 8px; border-radius: 12px; }
+.t-rtab { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 16px; border-radius: 9px; background: transparent; color: var(--muted); transition: all .15s; }
+
+.t-rankgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+.t-rankgrid[data-count="1"] { grid-template-columns: 1fr; }
+.t-rankgrid[data-count="2"] { grid-template-columns: repeat(2,1fr); }
+.t-rcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 28px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
+.rcard__top { display: flex; justify-content: space-between; align-items: center; }
+.rc-num { font-size: 13px; font-weight: 800; color: var(--muted2); background: #F1F5F9; width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+.rc-badge { font-size: 18px; font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; }
+.rc-name { font-size: 26px; font-weight: 800; margin-top: 22px; display: flex; align-items: center; gap: 10px; }
+.rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); }
+.rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
+.rc-rate2 { font-size: 14px; color: var(--muted2); margin-top: 3px; }
+.rc-spark { width: 100%; height: 44px; margin-top: 18px; display: block; }
+/* 스파크라인 그리기 애니메이션: 초기엔 감춰두고 화면 진입 시 채운다 */
+.rc-line { transition: stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1); }
+.rcard__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.rc-cut { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--surface); padding: 6px 12px; border-radius: 999px; }
+.rc-link { font-size: 14px; font-weight: 700; color: var(--muted); }
+/* 랭킹 카드 인사이트 한 줄 — 비쌀 때만 뜨는 경고가 아니라 늘 뜨는 요약(2026-10-18, 경고 전용 .rc-warn에서 확장).
+   체감물가 상태 3종: 비쌈=경고(앰버) / 동일=중립(회색) / 쌈=이득(Primary). */
+.rc-insight { margin-top: 12px; font-size: 12px; font-weight: 700; line-height: 1.4; padding: 8px 11px; border-radius: 10px; }
+.rc-insight[hidden] { display: none; }
+.rc-insight.is-warn { color: #B45309; background: #FEF3C7; border: 1px solid #FDE68A; }
+.rc-insight.is-neutral { color: var(--muted); background: #F8FAFC; border: 1px solid var(--border); }
+.rc-insight.is-good { color: var(--primary); background: var(--surface); border: 1px solid var(--border); }
+
+.t-summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-top: 24px; padding: 26px 32px; background: #ffffff; border: 1px solid var(--border); border-radius: 20px; }
+.summary__stats { display: flex; gap: 48px; flex-wrap: wrap; }
+.stat__label { font-size: 13px; font-weight: 700; color: var(--muted); }
+.stat__val { font-size: 24px; font-weight: 800; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.stat__val--up { color: var(--up); }
+.stat__val--down { color: #0E4AEB; } /* 내림(−) = 파랑 (방향 색 규칙) */
+
+/* ---- 물가 섹션 ---- */
+.price { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.citytabs { display: flex; gap: 10px; margin-top: 36px; }
+.t-citytab { cursor: pointer; font-size: 15px; font-weight: 700; padding: 11px 20px; border-radius: 12px; background: #fff; color: var(--muted); border: 1px solid var(--border-strong); transition: all .15s; }
+.price__body { display: grid; grid-template-columns: 1fr 320px; gap: 40px; margin-top: 40px; align-items: start; }
+.price-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 36px; }
+.t-item { margin-bottom: 30px; }
+.t-item:last-child { margin-bottom: 0; }
+.item__title { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
+.item__title span { font-size: 17px; font-weight: 800; }
+.bar-row { display: flex; align-items: center; gap: 14px; }
+.bar-row + .bar-row { margin-top: 10px; }
+.bar-label { width: 70px; font-size: 13px; font-weight: 700; }
+.bar-label--seoul { color: var(--muted2); }
+.t-city-label { color: var(--primary); }
+.bar-track { flex: 1; height: 16px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; }
+.bar-fill--seoul { width: 100%; background: #CBD5E1; }
+.t-bar { width: 0%; background: var(--primary); transition: width .9s cubic-bezier(.2,.7,.2,1); }
+.bar-num { width: 74px; text-align: right; font-size: 14px; font-weight: 700; }
+.bar-num--seoul { color: var(--muted); }
+.t-num { font-weight: 800; color: var(--primary); }
+
+.save-card { background: var(--primary); border-radius: 20px; padding: 32px; color: #fff; width: 325px; }
+.save-card__label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.7); }
+.save-card__big { display: flex; align-items: baseline; gap: 6px; margin-top: 12px; }
+.t-save { font-size: 56px; font-weight: 800; line-height: 1; }
+.save-card__pct { font-size: 28px; font-weight: 800; }
+.t-save-desc { font-size: 15px; color: rgba(255,255,255,.7); margin-top: 16px; line-height: 1.5; }
+.save-card__divider { height: 1px; background: rgba(255,255,255,.25); margin: 24px 0; }
+.save-card__fxlabel { font-size: 14px; color: rgba(255,255,255,.7); }
+.t-save-fx { font-size: 24px; font-weight: 800; margin-top: 6px; }
+
+/* ---- 여정(스크롤텔링) ---- */
+.t-scrolly { position: relative; height: 320vh; }
+.flow__sticky { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
+.flow__grid { max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; display: grid; grid-template-columns: .9fr 1.1fr; gap: 64px; align-items: center; }
+.flow__title { font-size: 44px; font-weight: 800; letter-spacing: -.02em; line-height: 1.12; margin: 14px 0 40px; }
+.sidx-list { display: flex; flex-direction: column; gap: 4px; }
+.t-sidx { display: flex; align-items: center; gap: 16px; padding: 14px 0; transition: all .3s; }
+.t-sidx-n { font-size: 14px; font-weight: 800; color: #CBD5E1; transition: color .3s; }
+.t-sidx-t { font-size: 22px; font-weight: 800; color: #CBD5E1; transition: color .3s; }
+.panels { position: relative; height: 440px; }
+.t-spanel { position: absolute; inset: 0; border: 1px solid var(--border); border-radius: 24px; padding: 40px; display: flex; flex-direction: column; justify-content: center; transition: opacity .5s, transform .5s; background: #fff; opacity: 0; transform: translateY(24px) scale(.98); }
+.t-spanel[data-i="0"] { opacity: 1; transform: none; }
+.panel__step { font-size: 15px; font-weight: 800; color: var(--primary); }
+.panel__title { font-size: 34px; font-weight: 800; margin-top: 16px; letter-spacing: -.02em; }
+.panel__desc { font-size: 17px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+.panel__tags { display: flex; gap: 10px; margin-top: 24px; }
+.tag { font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 999px; }
+.tag--up { color: var(--up); background: var(--down-tint); }
+.tag--muted { color: var(--down); background: var(--down-tint); }
+
+/* ---- CTA ---- */
+.cta { position: relative; overflow: hidden; min-height: 100vh; display: flex; align-items: center; background: var(--primary); color: #fff; }
+.cta__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 96px 24px; text-align: center; width: 100%; }
+.cta__title { font-size: 48px; font-weight: 800; letter-spacing: -.02em; }
+
+/* ---- 푸터 ---- */
+.footer { max-width: 1080px; margin: 0 auto; padding: 32px 24px; font-size: 13px; color: var(--muted2); display: flex; justify-content: space-between; }
+
+/* ---- 등장 애니메이션(스크롤 진입 시 페이드업) ---- */
+[data-reveal] { opacity: 0; transform: translateY(36px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+[data-reveal].is-revealed { opacity: 1; transform: none; }
+.t-rcard[data-slot="1"] { transition-delay: .1s; }
+.t-rcard[data-slot="2"] { transition-delay: .2s; }
+.t-summary { transition-delay: .25s; }
+
+/* ---- WHY (서비스 소개) ---- */
+/* 섹션 간격은 아래 섹션(rank)의 상단 패딩이 담당 — why 하단 패딩을 없애 이중 여백(간격 불일치) 제거 */
+.why { padding: 96px 0 0; background: transparent; }
+.why__head { max-width: 620px; }
+.why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+.why-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
+.why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
+.why-card__icon svg { width: 30px; height: 30px; }
+/* B3: 카드 등장(is-revealed) 시 아이콘 stroke 패스는 그려지고, fill 막대는 페이드인 */
+.why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dasharray: 64; stroke-dashoffset: 64; transition: stroke-dashoffset 1.2s cubic-bezier(.25,.6,.2,1) .9s; }
+.why-card.is-revealed .why-card__icon path[stroke], .why-card.is-revealed .why-card__icon circle[stroke] { stroke-dashoffset: 0; }
+.why-card__icon rect { opacity: 0; transition: opacity .6s ease 1.3s; }
+.why-card.is-revealed .why-card__icon rect { opacity: 1; }
+.why-card__title { font-size: 19px; font-weight: 800; margin-top: 18px; letter-spacing: -.01em; }
+.why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
+
+/* ---- 인기 여행지 (랭킹 아래): 배경 티커 1줄 + 정지 타일 3개. 섹션 배경 없음(body 그라데이션 위) ---- */
+.t-pop { padding: 96px 0 104px; background: transparent; }
+.t-pop__inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+.t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
+.t-pop__eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; font-weight: 800; color: var(--primary); }
+.t-pop__eyebrow .t-live-dot { margin-right: 0; }   /* 기존 t-live-dot 재사용(펄스 포함), flex gap과 이중 여백 방지 */
+.t-pop__title { margin: 10px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.025em; color: var(--ink); }
+
+.t-pop__all { flex: none; display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13.5px; font-weight: 800; color: var(--primary);
+  background: #fff; border: 1px solid #DCE6F8; border-radius: 10px;
+  padding: 12px 18px; cursor: pointer; transition: transform .18s, box-shadow .18s; }
+
+/* 티커(장식) — 페이드는 배경 무관하게 mask-image로(섹션 배경이 body 그라데이션이라 단색 페이드 못 씀) */
+.t-pop__ticker { position: relative; height: 40px; margin-top: 28px; overflow: hidden; pointer-events: none; opacity: .55;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.t-pop__track { display: flex; gap: 8px; width: max-content; will-change: transform; animation: t-marquee 72s linear infinite; }
+@keyframes t-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+.t-chip { display: flex; align-items: center; gap: 7px; white-space: nowrap; background: rgba(255,255,255,.82); border-radius: 999px; padding: 8px 14px; }
+.t-chip__flag { width: 17px; height: 12px; object-fit: cover; border-radius: 2px; }
+.t-chip__name { font-size: 12.5px; font-weight: 700; color: #475569; }
+.t-chip__delta { font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-chip__delta.is-up { color: var(--up); }       /* 방향색: 오름=빨강 */
+.t-chip__delta.is-down { color: var(--primary); }   /* 내림=파랑 #0E4AEB (방향색 규칙; --down 토큰은 회색이라 안 씀) */
+
+.t-pop__caption { margin: 10px 0 0; font-size: 11.5px; font-weight: 800; color: #8098C4; letter-spacing: .02em; }
+
+/* 타일 */
+.t-pop__tiles { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 22px 0 0; padding: 0; }
+.t-pop-tile { display: flex; }
+.t-pop-tile__btn { flex: 1; display: flex; flex-direction: column; gap: 0; text-align: left; cursor: pointer; font: inherit;
+  background: #fff; border: 1px solid #E5EBF7; border-radius: 16px; padding: 20px 22px;
+  box-shadow: 0 14px 30px -22px rgba(15,23,42,.28); transition: transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s, border-color .2s; }
+/* 뱃지 = 카드 주제(제목). 카드 최상단 eyebrow 위치 + 아이콘으로 '분류'임을 명확히(국가 특징으로 오해 방지) */
+.t-pop-tile__badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 800; letter-spacing: -.01em; color: var(--primary);
+  background: #EAF1FF; padding: 7px 12px; border-radius: 999px; margin-bottom: 16px; }
+.t-pop-tile__badge.is-warn { color: var(--up); background: #FEECEC; }
+.t-pop-tile__badge svg { width: 15px; height: 15px; flex: none; }
+.t-pop-tile__id { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.t-pop-tile__idname { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
+.t-pop-tile__name { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
+/* 환율 변동 뱃지 — 추천 랭킹 카드(.rc-badge)와 톤 통일(통일성 요청, 2026-10-18) */
+.t-pop-tile__fx { flex: none; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-pop-tile__fx.is-up { color: var(--up); }       /* 오름=빨강 */
+.t-pop-tile__fx.is-down { color: var(--primary); } /* 내림=파랑 */
+.t-pop-tile__rate { margin-top: 14px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.t-pop-tile__rate strong { font-size: 15px; color: var(--ink); }
+.t-pop-tile__bar-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.t-pop-tile__bar-label { flex: none; font-size: 13px; font-weight: 700; color: var(--muted2); white-space: nowrap; }
+.t-pop-tile__bar { flex: 1; height: 7px; background: #EEF1F6; border-radius: 999px; overflow: hidden; }
+.t-pop-tile__fill { display: block; height: 7px; border-radius: 999px; width: 0; background: var(--primary); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+.t-pop-tile__fill.is-pricey { background: var(--up); }
+.t-pop-tile__val { font-size: 13.5px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.t-pop-tile__val.is-cheap { color: var(--primary); }
+.t-pop-tile__val.is-pricey { color: var(--up); }
+.t-pop-tile__val.is-tied { color: var(--muted); }
+.t-pop-tile__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #F1F5FC; }
+.t-pop-tile__cities { font-size: 12.5px; color: var(--muted2); }
+.t-pop-tile__cta { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; color: var(--primary); }
+
+@media (hover: hover) {
+  .t-pop-tile__btn:hover { transform: translateY(-3px); border-color: #CFDDF8; box-shadow: 0 22px 40px -24px rgba(15,23,42,.34); }
+  .t-pop__all:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -14px rgba(14,74,235,.5); }
+  .t-pop__ticker:hover .t-pop__track { animation-play-state: paused; }
+}
+.t-pop-tile__btn:active { transform: scale(.985); }
+.t-pop-tile__btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+
+@media (max-width: 900px) {
+  .t-pop { padding: 72px 0 80px; }
+  .t-pop__head { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .t-pop__title { font-size: 25px; }
+  .t-pop__all { padding: 14px 18px; }
+  .t-pop__tiles { grid-template-columns: repeat(2, 1fr); }
+  .t-pop-tile:nth-child(3) { display: none; }
+}
+@media (max-width: 560px) {
+  .t-pop__tiles { grid-template-columns: 1fr; }
+  .t-pop-tile:nth-child(3) { display: flex; }
+  .t-pop-tile__btn { padding: 18px 18px; }
+  .t-pop-tile__name { font-size: 17px; }
+  .t-pop__ticker { height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .t-pop__track { animation: none; }
+  .t-pop-tile__fill { transition: none; }
+  .t-pop-tile__btn { transition: none; }
+}
+
+/* ---- 랭킹 상세뷰 (나라 클릭) ---- */
+/* 상세뷰도 배경은 body 그라데이션 그대로(색 전환 없음) — 내용 카드(.dcard)만 흰 면. 상단 여백만 축소. */
+.rank.is-detail { padding-top: 96px; }   /* 상세뷰: 상단 여백(스크롤 시 헤더가 네비 아래 적당한 간격) */
+.t-rankview { transition: opacity .45s ease, transform .45s ease; }
+.t-rankview.is-out { opacity: 0; transform: translateY(-28px); pointer-events: none; }
+/* 열릴 때 섹션(head/품목·절약/도시·먹거리/꿀팁)이 시간차를 두고 스르륵 올라옴 */
+.t-detail { color: var(--ink); }
+.t-detail > * { opacity: 0; transform: translateY(32px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+.t-detail.is-in > * { opacity: 1; transform: none; }
+.t-detail.is-in > *:nth-child(1) { transition-delay: 0s; }
+.t-detail.is-in > *:nth-child(2) { transition-delay: .22s; }
+.t-detail.is-in > *:nth-child(3) { transition-delay: .46s; }
+.t-detail.is-in > *:nth-child(4) { transition-delay: .72s; }
+
+.detail__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+/* head: 좌(나라+환율) 그룹 | 우 '다른 나라 선택하기' */
+.detail__head { align-items: flex-start; }
+.detail__headL { display: flex; flex-direction: column; gap: 12px; }
+.detail__country { display: flex; align-items: center; gap: 12px; }
+.detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); display: block; }
+.detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
+.detail__rank { font-size: 14px; font-weight: 700; color: #475569; background: #F1F5F9; padding: 6px 12px; border-radius: 999px; }
+/* 대표 숫자 = 일주일 전 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
+.detail__fx { display: flex; align-items: baseline; gap: 8px; }
+.detail__fx-label { font-size: 14px; font-weight: 700; color: var(--muted); }
+.detail__fx-val { font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+/* 익숙한 환율 시세(예: 100엔 = 917원) — 일주일 전 대비 환율 바로 아래 */
+.detail__rateline { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
+.detail__rate-label { font-size: 14px; font-weight: 700; color: var(--muted); }
+.detail__krwper { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+.t-detail-back { font-size: 15px; font-weight: 700; color: var(--primary); }
+.t-detail-back:hover { color: var(--primary-dark); }
+
+/* 공통 카드: 흰 면 + 테두리 (Surface 틴트 제거). 유일한 컬러 면은 파란 절약 카드. */
+.dcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 26px 28px; margin-top: 28px; }
+.detail__h { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.detail__h-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.detail__note { font-size: 14px; font-weight: 700; color: var(--muted); }
+.detail__cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 28px; }
+.detail__cols .dcard { margin-top: 0; }
+
+/* 품목 물가(좌 흰 카드) + 절약(우 파란 카드) */
+.detail__price { display: grid; grid-template-columns: 1fr 300px; gap: 20px; margin-top: 24px; }
+.detail__price .dcard { margin-top: 0; }
+
+/* 품목: 아이콘 + 이름 + [서울/현지 두 막대+금액] + 큰 % */
+.d-items { margin-top: 22px; }
+.d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
+.d-item + .d-item { margin-top: 24px; }
+.d-item__icon { display: flex; align-items: center; justify-content: center; color: var(--primary); }
+.d-item__icon svg { width: 24px; height: 24px; display: block; }
+.d-item__name { font-size: 15px; font-weight: 800; }
+.d-cmp__row { display: grid; grid-template-columns: 80px 1fr 74px; align-items: center; gap: 10px; }
+.d-cmp__row + .d-cmp__row { margin-top: 8px; }
+.d-cmp__label { font-size: 14px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.d-cmp__track { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
+.d-cmp__fill { display: block; height: 100%; border-radius: 999px; width: 0; background: var(--primary); transition: width .9s cubic-bezier(.2,.7,.2,1); }
+.d-cmp__fill--seoul { background: #CBD5E1; }
+.d-cmp__amt { text-align: right; font-size: 14px; font-weight: 700; }
+.d-cmp__amt--seoul { color: var(--muted); }
+.d-item__pct { text-align: right; font-size: 15px; font-weight: 800; }
+.d-empty { font-size: 14px; color: var(--muted); padding: 8px 0; }
+
+/* 파란 절약 카드 (detail 유일 컬러 면) */
+.d-savecard { background: var(--primary); color: #fff; border-radius: 20px; padding: 28px 26px; }
+.d-savecard__label { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.75); }
+/* 대표(대형) 숫자 = 환율 이득 */
+.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 8px; }
+.d-savecard__big b { font-size: 44px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.d-savecard__pct { font-size: 18px; font-weight: 800; }
+/* 보조 텍스트 = 서울 대비 체감 절약/부담 % (작게) */
+.d-savecard__sub { font-size: 14px; font-weight: 700; color: rgba(255,255,255,.9); margin-top: 10px; }
+.d-savecard__desc { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,.8); margin-top: 8px; }
+/* 체감물가 계산 방식 한 줄 설명(2026-10-18) — 왜 품목별 %가 서로 달라도 대표 숫자가 0%처럼 나올 수 있는지,
+   매번 보여줘서 미리 오해를 막는다(장바구니 합계 기준이지 품목 % 평균이 아님). */
+.d-savecard__basis { font-size: 12px; line-height: 1.5; color: rgba(255,255,255,.6); margin-top: 6px; }
+.d-savecard__basis[hidden] { display: none; }
+/* 환율 유리·물가 비쌈 경고 라벨(파란 카드 안, 흰 톤 유지) */
+.d-savecard__warn { margin-top: 14px; font-size: 14px; font-weight: 700; line-height: 1.45; color: #fff; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.30); padding: 10px 12px; border-radius: 12px; }
+.d-savecard__warn[hidden] { display: none; }
+.d-savecard__div { height: 1px; background: rgba(255,255,255,.22); margin: 22px 0; }
+.d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: rgba(255,255,255,.8); }
+.d-savecard__row + .d-savecard__row { margin-top: 10px; }
+.d-savecard__row b { font-size: 15px; font-weight: 800; color: #fff; }
+
+/* 추천 도시 — 3개 가로 정렬 */
+.d-cities { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+/* 추천 도시: 이미지 썸네일(위) + 이름 + 지수. img 없으면 그라데이션 폴백 */
+/* hover: 이름/지수는 그대로, 이미지(썸네일)만 살짝 올라가며 확대 + 그림자 */
+.d-city__thumb { position: relative; width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background: #eee; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; }
+.d-city__thumb:hover { transform: translateY(-5px); box-shadow: 0 16px 30px -16px rgba(15,23,42,.34); }
+.d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 이미지 확대(scale) 효과 제거 — 위로 살짝 뜨는 효과(.d-city__thumb:hover translateY)만 유지 */
+/* 이미지 없음/로드 실패 시 드러나는 폴백: 도시 아이콘 + '이미지 준비중' */
+.d-city__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  background: linear-gradient(135deg, #EEF2FB, #F5F8FF); color: var(--muted2); }
+.d-city__ph svg { width: 26px; height: 26px; }
+.d-city__ph span { font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+.d-city__name { font-size: 15px; font-weight: 800; margin-top: 10px; }
+.d-city__idx { font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 4px; }
+.d-city__idx b { color: var(--up); }
+/* 대표 먹거리: 아이콘 + 번호·이름 + 한 줄 설명 + 가격 (세로 리스트 행) */
+/* 박스-속-박스 대신 가로줄로 구분(3개 → 구분선 2개) */
+.d-foods { margin-top: 8px; display: flex; flex-direction: column; }
+.d-food { display: flex; align-items: center; gap: 14px; padding: 14px 2px; }
+.d-food + .d-food { border-top: 1px solid var(--border); }
+.d-food__icon { flex: none; display: inline-flex; width: 44px; height: 44px; border-radius: 12px; background: var(--surface); align-items: center; justify-content: center; color: var(--primary); }
+.d-food__icon svg { width: 22px; height: 22px; display: block; }
+.d-food__body { flex: 1; min-width: 0; }
+.d-food__head { display: flex; align-items: center; gap: 8px; }
+.d-food__num { font-size: 12px; font-weight: 800; color: var(--muted2); }
+.d-food__name { font-size: 15px; font-weight: 800; color: var(--ink); }
+.d-food__desc { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.d-food__price { flex: none; font-size: 15px; font-weight: 800; color: var(--ink); }
+
+/* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘 */
+.d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
+.d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border-strong); }
+.d-tip:first-child { border-left: none; padding-left: 0; }
+.d-tip__icon { flex: none; display: inline-flex; width: 40px; height: 40px; border-radius: 11px; background: var(--surface); align-items: center; justify-content: center; color: var(--primary); }
+.d-tip__icon svg { width: 22px; height: 22px; display: block; }
+.d-tip__title { font-size: 15px; font-weight: 800; }
+.d-tip__text { font-size: 14px; color: var(--muted); line-height: 1.55; margin-top: 5px; }
+
+/* ---- 전체 랭킹(추적 통화 국가) 팝업 ---- */
+.t-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.t-modal[hidden] { display: none; }
+.t-modal__overlay { position: absolute; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(3px); animation: t-fade .2s ease; }
+/* 패널 = flex column. 높이를 head / tools / body로 나누고 body에만 스크롤을 준다.
+   position:sticky 대신 이 방식을 쓴 이유: 모달처럼 부모에 overflow가 걸린 구조에서는
+   sticky가 기준 컨테이너를 못 잡아 안 붙는 경우가 있다. flex는 그 변수가 없다.
+   dvh — 모바일에서 주소창이 접히고 펼쳐질 때 vh가 튀는 문제를 피한다. */
+.t-modal__panel { position: relative; width: 100%; max-width: 640px; max-height: min(82dvh, 780px); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 22px; box-shadow: 0 40px 90px -30px rgba(15,23,42,.5); animation: t-pop .22s cubic-bezier(.2,.7,.2,1); }
+@keyframes t-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes t-pop { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
+/* 고정 영역 1 — 타이틀 + 닫기 */
+.t-modal__head { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px 28px 0; }
+/* 고정 영역 2 — 정렬 컨트롤. 아래 테두리가 스크롤 경계를 시각적으로 알려준다 */
+.t-modal__tools { flex: none; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 16px 28px; border-bottom: 1px solid var(--border); }
+/* 스크롤 영역 — min-height:0 이 없으면 flex 자식이 안 줄어들어 스크롤이 안 생긴다 */
+.t-modal__body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 28px 28px; -webkit-overflow-scrolling: touch; }
+
+/* 정렬 세그먼트 — 상태는 aria-pressed 하나로만 관리하고 CSS가 그 값을 읽는다.
+   별도 클래스를 토글하면 상태가 두 군데 생겨 어긋날 수 있다. */
+.t-msort { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 4px; gap: 4px; }
+.t-msort__btn { border: 0; background: transparent; cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); padding: 9px 16px; border-radius: 999px; transition: background .15s, color .15s; }
+.t-msort__btn:hover { color: var(--ink); }
+.t-msort__btn[aria-pressed="true"] { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(15,23,42,.1); }
+.t-msort__note { font-size: 12px; color: var(--muted2); margin-left: auto; }
+
+/* 스크린리더 전용 */
+.t-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.t-modal__title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.t-modal__sub { font-size: 14px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.t-modal__close { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 15px; font-weight: 700; }
+.t-modal__close:hover { background: #E9EFFB; color: var(--ink); }
+.t-modal__grid { display: grid; grid-template-columns: 1fr; gap: 10px; }  /* 1열: 환율 뱃지 밑 환산이 길어 2열에선 국가명이 잘려서 */
+.t-mcountry { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
+.t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(15,23,42,.08); flex: none; }
+.t-mcountry__rank { flex: none; width: 22px; font-size: 14px; font-weight: 800; color: var(--muted2); text-align: center; }
+.t-mcountry__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.t-mcountry__name { font-size: 15px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.t-mcountry__metrics { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.t-mcountry__badge { font-size: 14px; font-weight: 800; }
+/* 환산(1,000원 = @)을 뱃지 밑에 우측 정렬 — 국가명 밑에서 잘리던 문제 해결 */
+.t-mcountry__rate { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+.t-mcountry.is-rank { cursor: pointer; }
+.t-mcountry.is-rank:hover { border-color: var(--primary); box-shadow: 0 10px 24px -14px rgba(15,23,42,.3); transform: translateY(-2px); }
+
+/* ---- 반응형 ---- */
+@media (max-width: 900px) {
+  .why__grid { grid-template-columns: 1fr; }
+  .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
+  .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
+  .d-tip:first-child { border-top: none; padding-left: 0; }
+  .hero__grid { grid-template-columns: 1fr; gap: 40px; }
+  .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
+  .t-modal__grid { grid-template-columns: 1fr; }
+  .price__body { grid-template-columns: 1fr; }
+  .save-card { width: 100%; }
+  .flow__grid { grid-template-columns: 1fr; gap: 32px; }
+  .hero__title { font-size: 44px; }
+  .section-title { font-size: 30px; }
+  .cta__title { font-size: 32px; }
+  /* A3: 터치 타겟 ≥44px */
+  .t-rtab { padding: 11px 16px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .t-modal__close { width: 44px; height: 44px; }
+  .t-detail-back { padding: 12px 8px; margin: -12px -8px; }   /* 히트영역만 확장, 시각 크기 유지 */
+}
+
+/* ---- 모바일(폰) 세부: 380px 기준 ---- */
+@media (max-width: 560px) {
+  /* 주요 품목 물가: [아이콘·이름·%] 한 줄 + 비교 막대는 아래 풀너비(고정폭 그리드 넘침 방지) */
+  .d-item { grid-template-columns: 28px 1fr auto; grid-template-areas: "icon name pct" "cmp cmp cmp"; column-gap: 10px; row-gap: 10px; }
+  .d-item__icon { grid-area: icon; }
+  .d-item__name { grid-area: name; }
+  .d-item__pct { grid-area: pct; }
+  .d-item__cmp { grid-area: cmp; }
+  .d-item + .d-item { margin-top: 18px; }
+  /* 상세 헤더: 대표 환율숫자 조금 축소, 카드 패딩 축소 */
+  .detail__name { font-size: 26px; }
+  .detail__fx-val { font-size: 24px; }
+  .dcard { padding: 20px 18px; }
+  .d-savecard { padding: 22px 20px; }
+  .detail__price { gap: 16px; }
+  .detail__cols { gap: 16px; }
+  /* 추천 도시 3열은 유지하되 간격 축소 */
+  .d-cities { gap: 8px; }
+  .d-city__thumb { height: 88px; }
+  /* 히어로 타이틀 폰 크기 */
+  .hero__title { font-size: 38px; }
+  .section-title { font-size: 26px; }
+  .nav__inner { padding: 14px 18px; }
+  .hero__grid { padding: 88px 18px 40px; }
+  .rank { padding: 72px 0 64px; }
+  .rank__inner { padding: 0 18px; }
+  .why { padding: 72px 0; }
+  /* 모달: 좌우 여백을 줄이고 높이를 더 쓴다. 패딩이 head/tools/body로 나뉘어 각각 조정 */
+  .t-modal { padding: 16px; }
+  .t-modal__panel { max-height: 92dvh; }
+  .t-modal__head { padding: 20px 18px 0; }
+  .t-modal__tools { padding: 14px 18px; }
+  .t-modal__body { padding: 14px 18px 20px; }
+  .t-msort__btn { padding: 9px 13px; font-size: 12.5px; }
+  .t-msort__note { margin-left: 0; width: 100%; }
+}
+
+/* ---- A4: hover 효과는 hover 가능한 기기에서만(터치기기 sticky-hover 방지) + 탭 피드백 ---- */
+@media (hover: none) {
+  .d-city__thumb:hover { transform: none; box-shadow: none; }
+  .d-city__thumb:hover img { transform: none; }
+  .t-mcountry.is-rank:hover { transform: none; box-shadow: none; border-color: var(--border); }
+}
+.t-rcard:active { transform: scale(.985); }
+
+/* ---- B4: 스크롤 진행률에 따라 배경이 아주 살짝 더 블루하게 ----
+   (opacity를 전용 요소 .t-bgshift에 직접 넣어, body에 CSS 변수 쓸 때 생기던 매 프레임 전체 트리 리캘크 제거 → 스크롤 부드럽게) */
+.t-bgshift { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: 0; will-change: opacity;
+  background: linear-gradient(180deg, transparent 30%, rgba(14,74,235,.045) 100%); }
+
+/* ---- B5: rank 섹션 배경 도트 질감(색면 없이 정체성), 상단만 페이드 / 상세뷰에선 숨김 ---- */
+.rank::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(14,74,235,.06) 1px, transparent 1px); background-size: 22px 22px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 42%); mask-image: linear-gradient(180deg, #000 0%, transparent 42%);
+  transition: opacity .5s ease; }
+.rank.is-detail::before { opacity: 0; }
+
+/* ---- 모션 최소화 선호 시 인터랙션 정지(최종 상태 즉시 표시) ---- */
+@media (prefers-reduced-motion: reduce) {
+  .t-live-dot { animation: none; }
+  .why-card__icon path[stroke], .why-card__icon circle[stroke] { stroke-dashoffset: 0; transition: none; }
+  .why-card__icon rect { opacity: 1; transition: none; }
+  .t-rail-path { animation: none; }
+  .hero__cardwrap { animation: none; }
+  .t-plane { animation: none; }
+  .t-bgshift { opacity: 0 !important; }
+}
