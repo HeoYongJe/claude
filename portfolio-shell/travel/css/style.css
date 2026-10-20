@@ -89,7 +89,11 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 히어로 (2026-10-20: 하늘 배경 영상·블롭 글로우 제거 — 평평한 배경 + 타이포 중심) ---- */
 .hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: var(--bg); }
 .hero { min-height: 100svh; }   /* 지원 브라우저: 주소창 수축 시 레이아웃 점프 제거 */
-.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 96px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+/* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 배경에 깔아 질감만 더함(메인 텍스트·카드 시선 방해 금지) */
+.hero__watermark { position: absolute; inset: 0; z-index: 0; display: flex; align-items: center; justify-content: center;
+  margin: 0; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
+  color: #111111; opacity: .03; white-space: nowrap; pointer-events: none; user-select: none; }
+.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
 .hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.15; letter-spacing: -.02em; margin-top: 24px; color: var(--ink); }
@@ -119,7 +123,8 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 랭킹 섹션 ---- */
 /* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
 /* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1080+24 정렬선) */
-.rank { position: relative; overflow: hidden; padding: 96px 0 88px; background: transparent; }
+/* 지그재그(Zebra) 섹션 배경 — 스크롤 시 섹션 경계가 색으로 또렷하게 구분되도록 교차 적용 */
+.rank { position: relative; overflow: hidden; padding: 132px 0; background: #F3F4F6; }
 .rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
@@ -239,7 +244,7 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- WHY (서비스 소개) ---- */
 /* 섹션 간격은 아래 섹션(rank)의 상단 패딩이 담당 — why 하단 패딩을 없애 이중 여백(간격 불일치) 제거 */
-.why { padding: 96px 0 0; background: transparent; }
+.why { padding: 132px 0; background: #FFFFFF; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 .why-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
@@ -254,7 +259,7 @@ ul, ol { list-style: none; padding: 0; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
 /* ---- 인기 여행지 (랭킹 아래): 배경 티커 1줄 + 정지 타일 3개 ---- */
-.t-pop { padding: 96px 0 104px; background: transparent; }
+.t-pop { padding: 132px 0 140px; background: #FFFFFF; }
 .t-pop__inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
 .t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
