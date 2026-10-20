@@ -81,6 +81,14 @@
     `data-speed`(각각 0.15 / 0.2)로 적용. 이 두 섹션은 보통 문서 흐름으로 스크롤되므로(내부에 sticky 핀/비주얼만
     있고 섹션 자체는 sticky 아님) 뷰포트 안에서 위치가 바뀌어 이 공식이 정상 작동함(실측: scrollY 1400에서
     `.manifesto__bg`가 `translateY(-7.6px)`로 변함 — 확인됨).
+    ⚠️ **버그(2026-10-20, 사용자가 스크린샷으로 지적):** 처음엔 `.manifesto__bg`에 직접 `inset:-10%`만 주고
+    클리핑을 안 했는데(섹션 자체에 `overflow:hidden`을 주면 형제인 `.manifesto__pin`의 sticky가 깨져서
+    일부러 뺐었음), 그 결과 **매니페스토가 아직 뷰포트에 들어오기도 전인데 배경(-10% 위로 확장 + 패럴럭스
+    오프셋)이 히어로 영역까지 새어나와 겹쳐 보이는 가로 이음새**가 생겼음(실측: `manifestoRect.top=950`로
+    아직 안 보여야 하는데 `mbgRect.top=557`로 이미 보이고 있었음). **`.manifesto__bgclip`/`.showcase__bgclip`
+    이라는 전용 래퍼를 배경 바로 위에 추가**해서 `overflow:hidden`은 그 래퍼에만 주고(배경의 형제가 아니라
+    배경만의 부모), sticky 요소(`.manifesto__pin`/`.showcase__visual`)는 그 래퍼 **밖의 형제**로 유지해
+    sticky를 안 깨뜨리면서 배경만 섹션 경계 안에 가둠.
   - `.hero__bg`: `.hero` 자체가 sticky로 고정돼 있어 뷰포트 기준 위치가 안 바뀌므로 같은 공식이 성립하지 않음
     (실측 결과 `translateY(0px)` 고정 — 패럴럭스 없음을 직접 확인하고 교체). 대신 **히어로 progress에 직접
     바인딩해 배경을 전경보다 훨씬 느리게 확대**(배경 `scale(1→1.15)` vs 전경 `scale(1→1.9)`) — "배경은 거의

@@ -43,7 +43,11 @@
 
   <!-- ============ MANIFESTO (핀드 줌텍스트 — 섹션이 길고, 안쪽 텍스트는 sticky로 고정된 채 scale) ============ -->
   <section class="manifesto" data-manifesto>
-    <div class="manifesto__bg" data-speed="0.15" aria-hidden="true"></div>
+    <!-- 배경 전용 클립 래퍼 — overflow:hidden을 .manifesto 본체가 아니라 여기에만 둬서
+         sticky인 .manifesto__pin(형제 요소)은 안 깨지면서 배경만 섹션 밖으로 안 새게 가둔다 -->
+    <div class="manifesto__bgclip" aria-hidden="true">
+      <div class="manifesto__bg" data-speed="0.15"></div>
+    </div>
     <div class="manifesto__pin">
       <div class="container">
         <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
@@ -67,7 +71,10 @@
 
   <!-- ============ PRODUCT SHOWCASE (sticky) ============ -->
   <section class="showcase" id="showcase">
-    <div class="showcase__bg" data-speed="0.2" aria-hidden="true"></div>
+    <!-- 배경 전용 클립 래퍼 — .showcase__visual(형제, sticky)은 안 건드리고 배경만 가둠 -->
+    <div class="showcase__bgclip" aria-hidden="true">
+      <div class="showcase__bg" data-speed="0.2"></div>
+    </div>
     <div class="showcase__inner">
       <div class="showcase__visual">
         <!-- PLACEHOLDER: 실제 제품(신발) 목업 이미지로 교체 — 지금은 추상 그래픽 -->

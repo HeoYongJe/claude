@@ -85,6 +85,10 @@ button, input { font: inherit; }
    섹션을 220vh로 늘려 스크롤 공간을 만들고, 안쪽 텍스트는 sticky로 뷰포트 중앙에 고정된 채
    그 구간 스크롤 진행률만큼 JS가 scale을 키움(0.5→1.15) — 큰 스크롤텔링 연출. */
 .manifesto { background: var(--paper); height: 220vh; position: relative; }
+/* 배경 클립 래퍼: overflow:hidden은 여기(섹션 본체 아님)에만 둬서 .manifesto__pin의 sticky를 안 깨뜨림.
+   2026-10-20 버그 수정 — 전엔 .manifesto__bg가 클리핑 없이 inset:-10%로 커져서, 매니페스토가 아직
+   뷰포트에 들어오기도 전인데 배경만 위(히어로 영역)로 새어나와 보이는 이음새가 생겼었음. */
+.manifesto__bgclip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .manifesto__bg { position: absolute; inset: -10% -10%; background:
   radial-gradient(ellipse at 70% 30%, rgba(215,255,62,.10), transparent 55%);
 }
@@ -95,6 +99,7 @@ button, input { font: inherit; }
 
 /* ---- 제품 쇼케이스(스티키) ---- */
 .showcase { background: var(--ink); padding: 0 0 120px; position: relative; }
+.showcase__bgclip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .showcase__bg { position: absolute; inset: -10% -10%; background:
   radial-gradient(ellipse at 20% 60%, rgba(215,255,62,.08), transparent 50%);
 }
