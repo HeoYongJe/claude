@@ -88,13 +88,11 @@
     countEls.forEach((el) => countIO.observe(el));
   }
 
-  // ---- rAF 루프: 히어로 줌아웃 스크럽 + 매니페스토 핀드줌 스크럽 + 쇼케이스 비주얼 스크럽 ----
+  // ---- rAF 루프: 매니페스토 핀드줌 스크럽 + 쇼케이스 비주얼 스크럽 ----
+  // (히어로는 2026-10-19부터 JS 스크럽을 쓰지 않음 — 아래 "히어로 sticky 커버 전환" 참고)
   // 실제 스크롤 위치를 바로 쓰지 않고 lerp로 보간한 "스무스 스크롤 값"을 모든 스크럽 계산에 써서
   // 트랙패드·휠 스크롤의 미세한 끊김이 그대로 전달되지 않고 부드럽게 쫓아가는 느낌을 만든다
   // (가뿐 히어로 패럴럭스의 lerp(0.09) 패턴과 동일 — 2026-10-19, "스크롤 효과가 더 부드러웠으면" 피드백 반영).
-  const heroWrap = document.querySelector(".hero-wrap");
-  const heroInner = document.querySelector("[data-hero-scrub]");
-  const heroScrollEl = document.querySelector("[data-hero-scroll]");
   const manifesto = document.querySelector("[data-manifesto]");
   const manifestoText = document.querySelector("[data-manifesto-scrub]");
 
@@ -103,7 +101,6 @@
     let bounds = {};
     function measure() {
       bounds = {
-        hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcase: showcase ? { start: showcase.offsetTop, range: showcase.offsetHeight - window.innerHeight } : null,
       };
@@ -120,19 +117,12 @@
       smoothY += (realY - smoothY) * 0.06;
       if (Math.abs(realY - smoothY) < 0.05) smoothY = realY;
 
-      // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
-      if (heroInner && bounds.hero && bounds.hero.range > 0) {
-        const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
-        const scale = 1 + progress * 0.9; // 1 -> 1.9
-        const opacity = Math.max(0, 1 - progress * 1.6);
-        heroInner.style.transform = `scale(${scale.toFixed(3)})`;
-        heroInner.style.opacity = opacity.toFixed(3);
-        if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - progress * 4).toFixed(3);
-      }
-
-      // 매니페스토: 섹션(220vh) 내 sticky 구간 진행률 0→1에 텍스트 scale 0.5→1.15 바인딩
+      // 매니페스토: 섹션(220vh) 내 sticky 구간 진행률 0→1에 텍스트 scale 0.5→1.15 바인딩.
+      // range의 75% 지점에서 이미 progress=1에 도달하게 해서(÷0.75), 완전히 확대된 채로 잠깐
+      // "멈춰 있다가" sticky가 풀리며 쇼케이스가 덮어오는 구간을 만든다(2026-10-19, 급작스러운
+      // 핸드오프 대신 "확대 완료 → 정지 → 다음 섹션이 덮음" 3단 호흡을 주기 위함).
       if (manifestoText && bounds.manifesto && bounds.manifesto.range > 0) {
-        const progress = clamp01((smoothY - bounds.manifesto.start) / bounds.manifesto.range);
+        const progress = clamp01((smoothY - bounds.manifesto.start) / (bounds.manifesto.range * 0.75));
         const scale = 0.5 + progress * 0.65;
         manifestoText.style.transform = `scale(${scale.toFixed(3)})`;
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);

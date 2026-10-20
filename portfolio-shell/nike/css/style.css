@@ -51,16 +51,16 @@ button, input { font: inherit; }
 .nav__cta:hover { transform: scale(1.06); }
 .nav.is-scrolled { background: rgba(10,10,10,.85); backdrop-filter: blur(10px); padding: 14px 0; }
 
-/* ---- 히어로(스크롤 줌아웃 전환) ----
-   hero-wrap이 2배 높이를 줘서 스크롤 공간을 만들고, 그 구간 동안 .hero는 sticky로 뷰포트에 고정된 채
-   JS가 .hero__inner를 scale+fade로 스크러빙 → "다음 섹션을 뚫고 지나가는" 느낌. */
-.hero-wrap { height: 200vh; position: relative; }
-.hero { position: sticky; top: 0; height: 100vh; height: 100svh; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
+/* ---- 히어로(sticky 스택 커버 전환, 2026-10-19 — 줌아웃 스크럽 대신) ----
+   .hero는 바운드 없는 sticky라 scroll-behavior상 "제자리에 영원히 고정"됨. 뒤따르는 .manifesto가
+   불투명 배경 + sticky pin으로 화면에 들어오면서 자연스럽게 히어로 위를 덮고 올라오는 느낌을 만든다
+   (JS 없이 순수 sticky+문서 순서 페인트만으로 동작 — background-attachment 커버 효과의 요청 반영). */
+.hero { position: sticky; top: 0; z-index: 1; height: 100vh; height: 100svh; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
 .hero__bg { position: absolute; inset: 0; background:
   radial-gradient(ellipse at 30% 20%, rgba(215,255,62,.14), transparent 55%),
   radial-gradient(ellipse at 75% 75%, rgba(215,255,62,.08), transparent 50%);
 }
-.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity; backface-visibility: hidden; }
+.hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
@@ -82,14 +82,14 @@ button, input { font: inherit; }
 /* ---- 매니페스토(핀드 줌텍스트) ----
    섹션을 220vh로 늘려 스크롤 공간을 만들고, 안쪽 텍스트는 sticky로 뷰포트 중앙에 고정된 채
    그 구간 스크롤 진행률만큼 JS가 scale을 키움(0.5→1.15) — 큰 스크롤텔링 연출. */
-.manifesto { background: var(--paper); height: 220vh; position: relative; }
+.manifesto { background: var(--paper); height: 220vh; position: relative; z-index: 2; }
 .manifesto__pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; }
 .manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; transform-origin: left center; will-change: transform; backface-visibility: hidden; }
 .manifesto__text em { font-style: normal; color: var(--volt); -webkit-text-stroke: .5px var(--ink); }
 
 /* ---- 제품 쇼케이스(스티키) ---- */
-.showcase { background: var(--ink); padding: 0 0 120px; }
+.showcase { background: var(--ink); padding: 0 0 120px; position: relative; z-index: 3; }
 .showcase__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 .showcase__visual { position: sticky; top: 96px; aspect-ratio: 1 / 1; border-radius: 24px; }
 .ph-visual--shoe { border-radius: 24px; display: flex; align-items: center; justify-content: center; }
@@ -173,10 +173,8 @@ button, input { font: inherit; }
   .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
   .spec-card, .lb-tile, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
   .ph-visual--shoe svg { transform: none !important; }
-  /* 스크롤 스크러빙·핀드줌 전부 끔 — sticky 해제하고 정상 문서 흐름으로 */
-  .hero-wrap { height: auto; }
+  /* 스크롤 스크러빙·핀드줌·sticky 커버 전부 끔 — 정상 문서 흐름으로 */
   .hero { position: relative; }
-  .hero__inner { transform: none !important; opacity: 1 !important; }
   .manifesto { height: auto; padding: 120px 0; }
   .manifesto__pin { position: relative; height: auto; }
   .manifesto__text { transform: none !important; }
