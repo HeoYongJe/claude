@@ -1,6 +1,6 @@
 // travel — 바닐라 JS.
-// 부드러운 스크롤(lerp) · 로컬 패럴럭스 · 항로 레일 · 히어로 페이드/틸트 ·
-// 랭킹 강세/약세 토글 · 나라 클릭 시 상세뷰(슬라이드 전환).
+// 부드러운 스크롤(lerp) · 히어로 페이드 · 랭킹 강세/약세 토글 · 나라 클릭 시 상세뷰(슬라이드 전환).
+// 2026-10-20: 네오 브루탈리즘 리뉴얼로 항로 레일·배경 영상·블롭 패럴럭스·배경 블루시프트를 제거.
 
 (function () {
   const root = document.getElementById("twrap");
@@ -32,54 +32,25 @@
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
 
   // ---- 요소 참조 ----
-  const layers = [...root.querySelectorAll("[data-speed]")];
   const prog = root.querySelector(".t-progress");
   const hero = root.querySelector(".t-hero");
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
   const navEl = document.querySelector(".nav");
-  const railTrail = root.querySelector(".t-rail-trail");
-  const railEl = root.querySelector(".t-rail");
-  const planeWrap = root.querySelector(".t-planewrap");
-  const rankSecEl = document.getElementById("rank");
-  const bgShiftEl = root.querySelector(".t-bgshift");
-  const railLen = 784;
 
-  // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
-
-  // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
+  // ---- 연속 이징 렌더 루프(관성 스크롤 느낌 — 진행 바 + 히어로 페이드) ----
   const render = () => {
-    // ── 1) 읽기(레이아웃 유발) 모두 먼저 — 쓰기 뒤에 읽으면 강제 동기 레이아웃(thrash)이 남 ──
     const y = window.pageYOffset;
     const vh = window.innerHeight;
     const max = Math.max(1, document.documentElement.scrollHeight - vh);
-    const vc = vh / 2;
-    const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
-    const railH = railEl ? railEl.clientHeight : 0;
-    const rankBottom = (railEl && rankSecEl) ? rankSecEl.getBoundingClientRect().bottom : 0;
 
-    // ── 2) 계산 ──
     const target = Math.min(1, Math.max(0, y / max));
     state.sm += (target - state.sm) * 0.09;
     if (Math.abs(target - state.sm) < 0.0002) state.sm = target;
     const gp = state.sm;
     const sy = gp * max;
 
-    // ── 3) 쓰기(합성 위주) 모두 나중 ──
-    layers.forEach((l, i) => {
-      l.style.transform = `translate3d(0, ${(-offs[i] * parseFloat(l.dataset.speed)).toFixed(1)}px, 0)`;
-    });
     if (prog) prog.style.transform = "scaleX(" + gp.toFixed(4) + ")";
-    if (bgShiftEl) bgShiftEl.style.opacity = gp.toFixed(3); // B4: 스크롤 진행률로 배경 미세 블루(전용 요소 — 전체 트리 리캘크 없음)
-
-    if (railTrail && planeWrap) {
-      // 아래(792)에서 위로 채워지는 점선 + 채워진 선의 끝을 따라 위로 올라가는 비행기(스크롤 역방향)
-      const y2 = 792 - gp * 784;
-      railTrail.setAttribute("y2", y2.toFixed(1));
-      const topPx = (y2 / 800) * railH;
-      // top(레이아웃) 대신 transform(합성)으로 이동 — 스크롤 중 프레임 레이아웃 제거.
-      planeWrap.style.transform = `translate(-50%,-50%) translateY(${topPx.toFixed(1)}px)`;
-    }
 
     if (hero && heroInner) {
       const t = Math.min(1, sy / vh);
@@ -88,39 +59,14 @@
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
     }
-    // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
+    // nav: 스크롤하면 하단 보더가 살짝 두꺼워짐
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
-    // 항로 레일: Hero~랭킹(상세뷰 포함)까지 표시. 섹션을 완전히 지나면(푸터쪽) 페이드아웃.
-    if (railEl) railEl.style.opacity = (rankBottom < vh * 0.4) ? "0" : "1";
     requestAnimationFrame(render);
   };
   render();
 
   // (히어로 카드 마우스 틸트 효과 제거 — 뒤틀림 없이 정적으로 둔다)
-
-  // ---- 카드/버튼 호버 ----
-  root.querySelectorAll(".t-rcard").forEach((el) => {
-    el.addEventListener("mouseenter", () => {
-      el.style.boxShadow = "0 24px 50px -24px rgba(15,23,42,.28)";
-      el.style.transform = "translateY(-6px)";
-      el.style.borderColor = "#0E4AEB";
-    });
-    el.addEventListener("mouseleave", () => {
-      el.style.boxShadow = "none";
-      el.style.transform = "none";
-      el.style.borderColor = "#EEF1F6";
-    });
-  });
-  root.querySelectorAll(".t-cta, .t-cta-light").forEach((el) => {
-    el.addEventListener("mouseenter", () => {
-      if (el.classList.contains("t-cta")) el.style.background = "#0b3bc0";
-      else el.style.transform = "translateY(-3px)";
-    });
-    el.addEventListener("mouseleave", () => {
-      if (el.classList.contains("t-cta")) el.style.background = "#0E4AEB";
-      else el.style.transform = "none";
-    });
-  });
+  // 카드/버튼 호버는 전부 CSS `:hover`/`:active`(하드 섀도우 눌림 효과)로 처리 — JS 인라인 스타일 없음.
 
   // 국기(flagcdn) 이미지.
   const flagImg = (code, w, h) =>
@@ -138,8 +84,8 @@
 
   // ── 증감 수치 색: 방향(오름/내림)만 담당 (좋다/나쁘다 의미는 텍스트 라벨로) ──
   // 화면에 보이는 부호 기준: 오름(+, ▲) = 빨강 / 내림(−, ▼) = 파랑. 예외 없이 모든 지표에 동일 적용.
-  const DIR_UP = "#EF4444", DIR_DOWN = "#0E4AEB";
-  const DIR_UP_TINT = "#FEF2F2", DIR_DOWN_TINT = "#EAF1FF";
+  const DIR_UP = "#FF2A5F", DIR_DOWN = "#005AEB";
+  const DIR_UP_TINT = "#FFE4EC", DIR_DOWN_TINT = "#E2EBFC";
   const dirColor = (isUp) => (isUp ? DIR_UP : DIR_DOWN);
   const dirTint = (isUp) => (isUp ? DIR_UP_TINT : DIR_DOWN_TINT);
 
@@ -233,10 +179,9 @@
       : descHtml("일주일 전 환율과 비교해 원화가 강해진 순으로 매겼어요.", "체감 물가는 카드와 상세에서 함께 확인하세요.");
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
-      // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
-      t.style.background = on ? "#fff" : "transparent";
-      t.style.color = on ? "#0F172A" : "#64748B";
-      t.style.boxShadow = on ? "0 1px 3px rgba(15,23,42,.10)" : "none";
+      // 활성 = 블랙 pill + 옐로우 텍스트(CTA 톤), 비활성 = 투명 + 잉크 텍스트.
+      t.style.background = on ? "#111111" : "transparent";
+      t.style.color = on ? "#DFFF00" : "#111111";
       t.setAttribute("aria-selected", on ? "true" : "false");
     });
     const grid = root.querySelector(".t-rankgrid");
@@ -1086,21 +1031,6 @@
     ents.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("is-revealed"); io.unobserve(en.target); } });
   }, { threshold: 0.15 });
   root.querySelectorAll("[data-reveal]").forEach((el) => io.observe(el));
-
-  // ---- 히어로 배경 영상 ----
-  (function heroVideo() {
-    const v = document.querySelector(".hero__video-el");
-    if (!v) return;
-    // 모바일(≤560px)·모션최소화: 영상 대신 하늘 배경색 폴백(데이터·배터리·성능). autoplay 해제 후 종료.
-    if (matchMedia("(max-width: 560px)").matches || matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      // 영상 다운로드도 막고 포스터(sky-poster.jpg)만 노출 — 데이터·배터리 절약
-      v.removeAttribute("autoplay"); v.preload = "none"; try { v.pause(); } catch (e) {} return;
-    }
-    // 루프 경계 opacity 페이드는 제거함: 영상 위에 흰 가독성 그라디언트가 있어 opacity를 낮추면
-    // 흰 배경이 비쳐 '하얗게 깜빡'였음. 느린 구름 영상은 네이티브 루프의 하드컷이 흰 깜빡임보다 훨씬 덜 거슬린다.
-    v.style.opacity = "1";
-    v.play().catch(() => {});
-  })();
 
   // 접속 즉시 스냅샷으로 렌더(빈 화면·placeholder 방지) → 백그라운드로 라이브 최신값 갱신.
   if (SNAPSHOT) { try { applyRanking(SNAPSHOT); } catch (e) { console.warn("스냅샷 적용 실패", e); } }
