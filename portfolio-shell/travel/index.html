@@ -124,6 +124,11 @@
         <svg class="rc-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline class="rc-line" points="0,40 40,38 80,32 120,26 160,20 200,12 240,6" fill="none" stroke="#0E4AEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline class="rc-area" points="0,48 0,40 40,38 80,32 120,26 160,20 200,12 240,6 240,48" fill="#0E4AEB" opacity=".07" stroke="none"></polyline></svg>
         <div class="rcard__foot"><span class="rc-cut">체감물가 −22%</span><span class="rc-link">도시 보기 →</span></div>
       </article>
+      <!-- 2/3위는 별도 래퍼로 묶어 세로로 쌓는다(nested flex) — 1위와 함께 같은 grid row를 span하게 하면
+           CSS Grid가 spanning 요소의 콘텐츠 높이를 row 트랙 계산에서 제외해 1위 카드가 짧게 잡히고
+           내용이 겹쳐 잘리는 버그가 있었음(2026-10-20). 래퍼를 둬서 grid는 2열만 책임지고, 각 열의
+          높이는 그 열 자신의 콘텐츠(1위 카드 하나 vs 2+3위 묶음)로만 자연스럽게 정해지게 함. -->
+      <div class="t-rankgrid__side">
       <article class="t-rcard" data-slot="1" data-reveal="">
         <div class="rcard__top"><span class="rc-num">2</span><span class="rc-badge">▲ 11.4%</span></div>
         <h3 class="rc-name">튀르키예</h3>
@@ -138,6 +143,7 @@
         <svg class="rc-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline class="rc-line" points="0,38 40,37 80,34 120,31 160,27 200,23 240,18" fill="none" stroke="#0E4AEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline class="rc-area" points="0,48 0,38 40,37 80,34 120,31 160,27 200,23 240,18 240,48" fill="#0E4AEB" opacity=".07" stroke="none"></polyline></svg>
         <div class="rcard__foot"><span class="rc-cut">체감물가 −45%</span><span class="rc-link">도시 보기 →</span></div>
       </article>
+      </div>
     </div>
 
     <aside class="t-summary" data-reveal="">

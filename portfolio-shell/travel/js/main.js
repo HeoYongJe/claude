@@ -88,9 +88,6 @@
   const DIR_UP_TINT = "#FFE4EC", DIR_DOWN_TINT = "#E2EBFC";
   const dirColor = (isUp) => (isUp ? DIR_UP : DIR_DOWN);
   const dirTint = (isUp) => (isUp ? DIR_UP_TINT : DIR_DOWN_TINT);
-  // 블랙 배경(랭킹 섹션) 위에 "맨몸"으로 놓이는 텍스트 전용 — 접근성 규칙(블랙 위엔 레드/블루 금지,
-  // 화이트·옐로우만)에 따라 오름=옐로우 / 내림=화이트로 매핑. 흰 카드 안의 숫자는 평소 dirColor를 그대로 쓴다.
-  const dirColorOnDark = (isUp) => (isUp ? "#DFFF00" : "#ffffff");
 
   // ── B1: 수치 카운트업(뷰포트 진입/토글 시 0→최종값 .6s easeOut). 겹침·NaN 방지, reduced-motion이면 즉시 최종값 ──
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -151,7 +148,7 @@
     if (!note) {
       note = document.createElement("div");
       note.className = "t-rank-empty";
-      note.style.cssText = "display:none;color:rgba(255,255,255,.6);font-size:16px;padding:40px 0;text-align:center;";
+      note.style.cssText = "display:none;color:var(--muted);font-size:16px;padding:40px 0;text-align:center;";
       const grid = root.querySelector(".t-rankgrid");
       grid.parentNode.insertBefore(note, grid.nextSibling);
     }
@@ -182,9 +179,9 @@
       : descHtml("일주일 전 환율과 비교해 원화가 강해진 순으로 매겼어요.", "체감 물가는 카드와 상세에서 함께 확인하세요.");
     root.querySelectorAll(".t-rtab").forEach((t) => {
       const on = t.dataset.mode === mode;
-      // 활성 = 블랙 pill + 옐로우 텍스트(CTA 톤), 비활성 = 투명 + 잉크 텍스트.
+      // 활성 = 블랙 pill + 흰 텍스트(CTA 톤), 비활성 = 투명 + 잉크 텍스트.
       t.style.background = on ? "#111111" : "transparent";
-      t.style.color = on ? "#DFFF00" : "#111111";
+      t.style.color = on ? "#ffffff" : "#111111";
       t.setAttribute("aria-selected", on ? "true" : "false");
     });
     const grid = root.querySelector(".t-rankgrid");
@@ -443,15 +440,14 @@
     // num이 없으면(랭킹 밖 인기국: 유럽·베트남 등) 순위 대신 '인기 여행지'로 표기.
     rankEl.textContent = (d.num == null) ? "인기 여행지"
       : (strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`);
-    // 2026-10-20 3차: 상세뷰 head는 랭킹 섹션(블랙 배경) 위에 카드 없이 맨몸으로 놓인다 — 흰/반투명 톤으로.
-    rankEl.style.color = "#fff";        // 순위는 방향색 아님 → 중립
-    rankEl.style.background = "rgba(255,255,255,.14)";
+    rankEl.style.color = "var(--muted)";        // 순위는 방향색 아님 → 중립
+    rankEl.style.background = "var(--surface)";
 
     // 상단 대표 숫자 = 최근 일주일 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
       fxVal.textContent = d.badge || "준비 중";
-      fxVal.style.color = (d.changePct == null) ? "rgba(255,255,255,.6)" : dirColorOnDark(d.changePct >= 0);
+      fxVal.style.color = (d.changePct == null) ? "var(--muted)" : dirColor(d.changePct >= 0);
     }
     // head에도 익숙한 시세("100엔 = 917원") 표기
     const headKrw = detail.querySelector(".detail__krwper");
