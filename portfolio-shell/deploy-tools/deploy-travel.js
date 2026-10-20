@@ -9,7 +9,8 @@ const cfg = require("../deploy.config.js");
 const LOCAL_ROOT = path.join(__dirname, "..", "travel");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/travel";
 
-const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js", "js/cityImages.js", "js/currencyCountryMap.js", "js/rankingSnapshot.js", "manifest.webmanifest", "assets/icons/favicon.svg", "assets/icons/icon-192.png", "assets/icons/icon-512.png", "assets/icons/icon-maskable-512.png", "assets/hero/sky.mp4", "assets/hero/sky-poster.jpg"];
+// 2026-10-20: 재시작하며 히어로 배경 영상(sky.mp4/sky-poster.jpg)을 다시 제거해 FILES에서도 뺌.
+const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js", "js/cityImages.js", "js/currencyCountryMap.js", "js/rankingSnapshot.js", "manifest.webmanifest", "assets/icons/favicon.svg", "assets/icons/icon-192.png", "assets/icons/icon-512.png", "assets/icons/icon-maskable-512.png"];
 
 (async () => {
   const client = new ftp.Client(20000);
@@ -21,7 +22,6 @@ const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js
     await client.ensureDir(REMOTE_DIR + "/css");
     await client.ensureDir(REMOTE_DIR + "/js");
     await client.ensureDir(REMOTE_DIR + "/assets/icons");
-    await client.ensureDir(REMOTE_DIR + "/assets/hero");
     console.log(`원격 폴더 준비: ${REMOTE_DIR}`);
 
     for (const rel of FILES) {
