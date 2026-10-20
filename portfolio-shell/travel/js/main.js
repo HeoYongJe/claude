@@ -515,6 +515,7 @@
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
     const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
+    const idxBig = detail.querySelector(".d-savecard__big"); // 대표 숫자를 감싸는 블록(방향색은 이 블록 전체에)
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const basis = detail.querySelector(".d-savecard__basis"); // 계산 방식 설명(장바구니 총액 기준)
@@ -525,6 +526,9 @@
       const tied = d.savePct === 0; // 장바구니 합계가 서울과 사실상 같음(품목별 %는 서로 달라도 상쇄된 경우 포함)
       const cheaper = d.savePct > 0;
       idx.textContent = Math.abs(d.savePct);
+      // 카드가 화이트로 바뀌면서(2026-10-20) 대표 숫자도 사이트 전체의 "오름=빨강/내림=블루" 규칙을 그대로 따름 —
+      // 비쌈(물가 부담)=오름=빨강, 쌈(절약)=내림=블루, 동일=중립.
+      if (idxBig) idxBig.style.color = tied ? "var(--muted)" : dirColor(!cheaper);
       label.textContent = tied ? "서울 대비 체감 물가" : (cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담");
       desc.textContent = tied
         ? `${d.name}${josaEunNeun(d.name)} 서울과 체감 물가 총액이 거의 같아요.`
