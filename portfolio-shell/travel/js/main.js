@@ -88,6 +88,9 @@
   const DIR_UP_TINT = "#FFE4EC", DIR_DOWN_TINT = "#E2EBFC";
   const dirColor = (isUp) => (isUp ? DIR_UP : DIR_DOWN);
   const dirTint = (isUp) => (isUp ? DIR_UP_TINT : DIR_DOWN_TINT);
+  // 블랙 배경(랭킹 섹션) 위에 "맨몸"으로 놓이는 텍스트 전용 — 접근성 규칙(블랙 위엔 레드/블루 금지,
+  // 화이트·옐로우만)에 따라 오름=옐로우 / 내림=화이트로 매핑. 흰 카드 안의 숫자는 평소 dirColor를 그대로 쓴다.
+  const dirColorOnDark = (isUp) => (isUp ? "#DFFF00" : "#ffffff");
 
   // ── B1: 수치 카운트업(뷰포트 진입/토글 시 0→최종값 .6s easeOut). 겹침·NaN 방지, reduced-motion이면 즉시 최종값 ──
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -148,7 +151,7 @@
     if (!note) {
       note = document.createElement("div");
       note.className = "t-rank-empty";
-      note.style.cssText = "display:none;color:#94A3B8;font-size:16px;padding:40px 0;text-align:center;";
+      note.style.cssText = "display:none;color:rgba(255,255,255,.6);font-size:16px;padding:40px 0;text-align:center;";
       const grid = root.querySelector(".t-rankgrid");
       grid.parentNode.insertBefore(note, grid.nextSibling);
     }
@@ -205,8 +208,6 @@
       const color = dirColor((d.changePct || 0) >= 0);
       const num = rcard.querySelector(".rc-num");
       num.textContent = d.num;
-      num.style.color = "#94A3B8";
-      num.style.background = "#F1F5F9";
       const badge = rcard.querySelector(".rc-badge");
       badge.textContent = d.badge;
       badge.style.color = color;
@@ -229,7 +230,7 @@
           // 서울과 체감물가가 사실상 같을 때 — "0%"라는 숫자 대신 "동일"로, 중립색(방향이 없으니 빨강/파랑 둘 다 아님).
           cut.textContent = "체감물가 동일";
           cut.style.color = "var(--muted)";
-          cut.style.background = "#F1F5F9";
+          cut.style.background = "var(--surface)";
         } else {
           // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
           const up = d.savePct < 0; // savePct<0 이면 화면엔 "+"(비쌈)로 표기 → 오름
@@ -442,14 +443,15 @@
     // num이 없으면(랭킹 밖 인기국: 유럽·베트남 등) 순위 대신 '인기 여행지'로 표기.
     rankEl.textContent = (d.num == null) ? "인기 여행지"
       : (strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`);
-    rankEl.style.color = "#475569";        // 순위는 방향색 아님 → 중립
-    rankEl.style.background = "#F1F5F9";
+    // 2026-10-20 3차: 상세뷰 head는 랭킹 섹션(블랙 배경) 위에 카드 없이 맨몸으로 놓인다 — 흰/반투명 톤으로.
+    rankEl.style.color = "#fff";        // 순위는 방향색 아님 → 중립
+    rankEl.style.background = "rgba(255,255,255,.14)";
 
     // 상단 대표 숫자 = 최근 일주일 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
       fxVal.textContent = d.badge || "준비 중";
-      fxVal.style.color = (d.changePct == null) ? "#475569" : dirColor(d.changePct >= 0);
+      fxVal.style.color = (d.changePct == null) ? "rgba(255,255,255,.6)" : dirColorOnDark(d.changePct >= 0);
     }
     // head에도 익숙한 시세("100엔 = 917원") 표기
     const headKrw = detail.querySelector(".detail__krwper");
