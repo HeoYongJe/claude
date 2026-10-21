@@ -36,7 +36,11 @@
 }
 
 * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-html { scroll-behavior: smooth; overscroll-behavior-y: none; }   /* 웹앱 당겨서-새로고침 오작동 방지 */
+/* overflow-x는 html에 둔다(2026-10-21) — #twrap(div)에 두면 overflow-x만 지정해도 overflow-y가
+   자동으로 auto로 계산돼(스펙 규칙) #twrap이 별도 스크롤 컨테이너가 되고, 그 안의 .hero(position:sticky)가
+   실제 문서 스크롤이 아니라 그 div 기준으로 계산되면서 전혀 고정되지 않는 버그가 있었음.
+   html/body의 overflow는 브라우저가 뷰포트 자체에 적용해 별도 스크롤 컨테이너를 만들지 않아 sticky가 정상 동작. */
+html { scroll-behavior: smooth; overscroll-behavior-y: none; overflow-x: hidden; }   /* 웹앱 당겨서-새로고침 오작동 방지 */
 body { margin: 0; font-family: "Pretendard", -apple-system, sans-serif; color: var(--ink); background: var(--bg); }
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-dark); }
@@ -50,7 +54,6 @@ ul, ol { list-style: none; padding: 0; }
 @keyframes t-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes t-float2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
 
-#twrap { overflow-x: hidden; }
 .container { max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
 
 /* ---- 텍스트 역할 ---- */
@@ -96,7 +99,10 @@ ul, ol { list-style: none; padding: 0; }
 .nav__link { color: var(--muted); }
 
 /* ---- 히어로 (2026-10-20: 하늘 배경 영상·블롭 글로우 제거 — 평평한 배경 + 타이포 중심) ---- */
-.hero { position: relative; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: var(--bg); }
+/* 2026-10-21: 스크롤 시 히어로(+GAPPUN 워터마크)는 제자리에 고정돼 있고 다음 섹션(.why)이 그 위로
+   슬라이드돼 덮는 효과. <main>이 sticky 기준 컨테이너라 페이지 전체 스크롤 동안 고정됨(아래 섹션들이
+   전부 불투명 배경이라 덮인 뒤로는 안 보임) — position:sticky는 문서 흐름을 그대로 유지해 레이아웃엔 영향 없음. */
+.hero { position: sticky; top: 0; z-index: 0; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: var(--bg); }
 .hero { min-height: 100svh; }   /* 지원 브라우저: 주소창 수축 시 레이아웃 점프 제거 */
 /* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 배경 맨 아래쪽에 깔아 질감만 더함(메인 텍스트·카드 시선 방해 금지) */
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
@@ -254,7 +260,8 @@ ul, ol { list-style: none; padding: 0; }
 .t-summary { transition-delay: .25s; }
 
 /* ---- WHY (서비스 소개) ---- */
-.why { padding: 132px 0; background: #FFFFFF; }
+/* position+z-index로 sticky 히어로 위를 확실히 덮도록 명시(2026-10-21, 위 .hero 주석 참고) */
+.why { position: relative; z-index: 1; padding: 132px 0; background: #FFFFFF; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 .why-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; }

@@ -128,6 +128,17 @@
     `transparent` 배경(바디 그라데이션에 기대던 방식)은 섹션별 명시적 색상으로 교체. **각 섹션 위아래 패딩도
     120px 이상으로 확대**(`why`/`rank` 132px, `.t-pop` 132px/140px)해 색 블록 자체가 여유 있게 숨쉬도록 함
     (모바일 560px 이하는 기존처럼 72px 전후로 축소 유지 — 좁은 화면에서 120px+는 과함).
+  · **히어로 스크롤 커버 효과(2026-10-21 추가):** 스크롤해도 히어로(GAPPUN 워터마크 포함)가 제자리에 고정돼
+    있고, 다음 섹션(`.why`)이 그 위로 슬라이드돼 덮으며 넘어가는 연출 요청 — `.hero { position: sticky; top:0;
+    z-index:0 }` + `.why { position: relative; z-index:1 }`. `.hero`의 sticky 기준 컨테이너는 `<main>`(전체
+    섹션을 감싸는 블록)이라 페이지 스크롤 내내 고정되고, 이후 섹션들이 전부 불투명 배경(위 지그재그 참고)이라
+    덮인 뒤로는 안 보임. **버그 하나 발견·수정**: `#twrap`(페이지 최상위 div, `overflow-x:hidden`으로 가로
+    스크롤 방지용)에 두면 CSS 스펙상 overflow-x만 지정해도 overflow-y가 자동으로 `auto`로 계산돼 그 div가
+    별도 스크롤 컨테이너가 되고, `.hero`의 sticky가 실제 문서 스크롤이 아니라 그 div 기준으로 계산되면서
+    전혀 고정되지 않는 문제가 있었음(div 자신은 내용만큼 자동으로 커서 실제로는 절대 안 스크롤되니 sticky가
+    트리거될 일이 없음). **`overflow-x:hidden`을 `#twrap`에서 `html`로 옮겨 해결** — html/body의 overflow는
+    브라우저가 별도 스크롤 컨테이너를 만들지 않고 뷰포트 자체에 적용하는 특별 규칙이 있어 sticky가 정상
+    동작함(`#twrap` 룰 자체는 삭제).
   <details><summary>구 기록(2026-08, 하늘 영상 시절 — 역사 참고용, 지금 상태 아님)</summary>
 
   배경 = **루프 배경 영상**(`.hero__video` — 밝은 하늘 영상 `assets/hero/sky.mp4`, `object-fit:cover` +
