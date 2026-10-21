@@ -150,7 +150,9 @@ ul, ol { list-style: none; padding: 0; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: -.01em; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
 /* 2026-10-21: 컨테이너 1200px 확장에 맞춰 타이틀도 64→80px로 키움(여백이 너무 비어 보인다는 피드백) */
-.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 80px; line-height: 1.02; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
+/* 2026-10-22: eyebrow("최근 일주일...") 배지를 삭제하고 그 문구를 desc에 합치면서 타이틀이 칼럼의
+   첫 요소가 됨 — margin-top(구 eyebrow와의 간격용)도 제거해 타이틀이 칼럼 맨 위에 바로 오도록. */
+.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 80px; line-height: 1.02; letter-spacing: -.03em; word-spacing: -.12em; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
 /* 900~1150px(2열 레이아웃 유지 구간)에서는 80px 타이틀이 좁아진 칼럼 폭에 3줄로 깨짐(실측: 1024px에서
    "여행지"가 분리) — 이 구간만 64px(구 데스크톱 크기)로 낮춰 2줄 유지(2026-10-21). 베이스 규칙 바로 다음에
@@ -158,11 +160,9 @@ ul, ol { list-style: none; padding: 0; }
 @media (max-width: 1150px) and (min-width: 901px) { .hero__title { font-size: 64px; } }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
-/* margin-top:39px = eyebrow 줄 높이 + 타이틀 margin-top(20px) — 카드 상단을 eyebrow가 아니라 타이틀
-   시작선에 맞추기 위한 보정(위 .hero__grid 주석 참고). 2026-10-21 컬러 리뉴얼로 eyebrow가 배지(34px,
-   패딩+보더)에서 일반 텍스트(실측 ~19px)로 바뀌며 54→39px 재측정(실측 diff=39.3px). 900px 이하(1열)에서는
-   0으로 해제. */
-.hero__cardwrap { animation: t-float 6s ease-in-out infinite; margin-top: 39px; }
+/* 2026-10-22: eyebrow 삭제로 타이틀이 칼럼 첫 요소가 되면서 보정 필요 없어짐(구 39px → 0) —
+   align-items:flex-start만으로 카드 상단이 이제 타이틀 시작선과 바로 맞음(§7 .hero__grid 주석 참고). */
+.hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
 /* 2026-10-21: "SCROLL ↓" 문구 대신 1px 세로선이 아래로 흐르는 미니멀 애니메이션으로 교체(지침서 —
    포트폴리오에 문구형 스크롤 유도는 투머치하다는 지적). 장식용이라 index.html에서 aria-hidden 처리. */
 .hero__scroll { position: absolute; z-index: 10; bottom: 36px; left: 50%; transform: translateX(-50%);
@@ -623,7 +623,6 @@ ul, ol { list-style: none; padding: 0; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
   .d-tip:first-child { border-top: none; padding-left: 0; }
   .hero__grid { grid-template-columns: 1fr; gap: 40px; }
-  .hero__cardwrap { margin-top: 0; }   /* 1열 스택에서는 위 54px 보정 불필요(gap만으로 간격 처리) */
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
   .t-modal__grid { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }
