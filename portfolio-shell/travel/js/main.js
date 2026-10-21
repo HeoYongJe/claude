@@ -94,16 +94,15 @@
   // (히어로 카드 마우스 틸트 효과 제거 — 뒤틀림 없이 정적으로 둔다)
 
   // ---- 카드/버튼 호버 ----
+  // 2026-10-22: hover 시 포인트 컬러 보더가 과하다는 지적으로 제거 — 뜨는 느낌(그림자+리프트)만 유지.
   root.querySelectorAll(".t-rcard").forEach((el) => {
     el.addEventListener("mouseenter", () => {
       el.style.boxShadow = "0 24px 50px -24px rgba(17,17,17,.24)";
       el.style.transform = "translateY(-6px)";
-      el.style.borderColor = "#E76F51";
     });
     el.addEventListener("mouseleave", () => {
       el.style.boxShadow = "none";
       el.style.transform = "none";
-      el.style.borderColor = "#E2E8F0";
     });
   });
   // 2026-10-21: 이제 .t-cta--hero/--secondary/--nav 전부 캡슐형(반투명 잉크 배경)이라 CSS :hover만으로

@@ -225,7 +225,12 @@ ul, ol { list-style: none; padding: 0; }
 .rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
 .rc-rate2 { font-size: 14px; color: var(--muted2); margin-top: 3px; }
 /* 2026-10-21: 스파크라인 추세(오르는지 내리는지)를 직관적으로 읽기 어렵다는 피드백 —
-   아주 옅은 가로 가이드라인(중간값 기준)과 시작/끝 날짜 라벨을 추가. */
+   아주 옅은 가로 가이드라인(중간값 기준)과 시작/끝 날짜 라벨을 추가.
+   2026-10-22: 시작 라벨 "일주일 전"은 오표기였음을 발견·수정 — lib/ranking.js seriesMetrics()가 실제로
+   모으는 시계열은 "최근 약 3개월, 주 1회 간격(최대 13개 시점)"이라 스파크라인은 3개월 추세를 그림
+   (배지의 ▲/▼%·강세/약세 탭 분류만 최근 1주일 비교). 그래서 "이번 주엔 약세인데 그래프는 올라가 보인다"처럼
+   보일 수 있는데, 버그가 아니라 **두 지표가 서로 다른 기간을 보여주기 때문**(배지=1주, 그래프=3개월) —
+   시작 라벨을 "3개월 전"으로 고쳐 실제 기간과 맞춤. */
 .rc-sparkwrap { margin-top: 18px; position: relative; }
 .rc-spark { width: 100%; height: 44px; display: block; position: relative; z-index: 1; }
 .rc-sparkwrap::before { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 1px;
