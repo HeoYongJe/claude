@@ -106,9 +106,9 @@
       el.style.borderColor = "#E2E8F0";
     });
   });
-  // .t-cta--hero/.t-cta--secondary(캡슐형 CTA)는 CSS :hover만으로 처리(반투명 잉크 배경 + 원형 아이콘
-  // 딥 컬러) — 여기선 제외. 둘 다 제외되는 .t-cta--nav만 플랫 accent 채움 유지라 JS 핸들러 필요.
-  root.querySelectorAll(".t-cta:not(.t-cta--hero):not(.t-cta--secondary), .t-cta-light").forEach((el) => {
+  // 2026-10-21: 이제 .t-cta--hero/--secondary/--nav 전부 캡슐형(반투명 잉크 배경)이라 CSS :hover만으로
+  // 처리 — 플랫 accent 채움 버튼이 더 안 남아서 이 핸들러는 사실상 .t-cta-light(현재 미사용)만 남음.
+  root.querySelectorAll(".t-cta:not(.t-cta--hero):not(.t-cta--secondary):not(.t-cta--nav), .t-cta-light").forEach((el) => {
     el.addEventListener("mouseenter", () => {
       if (el.classList.contains("t-cta")) el.style.background = "#D65A3D";
       else el.style.transform = "translateY(-3px)";
@@ -512,6 +512,7 @@
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
     const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
+    const idxBig = detail.querySelector(".d-savecard__big"); // 대표 숫자를 감싸는 블록(방향색은 이 블록 전체에)
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const basis = detail.querySelector(".d-savecard__basis"); // 계산 방식 설명(장바구니 총액 기준)
@@ -520,9 +521,9 @@
       const tied = d.savePct === 0; // 장바구니 합계가 서울과 사실상 같음(품목별 %는 서로 달라도 상쇄된 경우 포함)
       const cheaper = d.savePct > 0;
       idx.textContent = Math.abs(d.savePct);
-      // 2026-10-21: 지침서 요청으로 사이트의 방향색 규칙(오름=빨강/내림=파랑) 대신 "항상 포인트 컬러"로 — 이
-      // 카드만 예외(design.md §2 "지침서와 충돌한 지점" 참고, 사용자 확인 완료). CSS 기본값(var(--accent))을
-      // 그대로 쓰면 되니 JS에서 색을 더 건드리지 않음.
+      // 2026-10-21 재변경: "항상 포인트 컬러"로 했더니 좋은 건지 나쁜 건지 구분이 안 간다는 피드백으로
+      // 사이트의 방향색 규칙으로 되돌림 — 비쌈(물가 부담)=오름=빨강, 쌈(절약)=내림=파랑, 동일=중립(muted).
+      if (idxBig) idxBig.style.color = tied ? "var(--muted)" : dirColor(!cheaper);
       label.textContent = tied ? "서울 대비 체감 물가" : (cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담");
       desc.textContent = tied
         ? `${d.name}${josaEunNeun(d.name)} 서울과 체감 물가 총액이 거의 같아요.`

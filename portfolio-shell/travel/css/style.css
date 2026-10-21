@@ -71,7 +71,10 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 버튼 ---- */
 .t-cta { background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; transition: background .15s; }
-.t-cta--nav { font-size: 14px; padding: 10px 18px; border-radius: 12px; }
+/* 2026-10-21: 히어로 CTA(.t-cta--hero)와 같은 캡슐 셸로 통일 — 아이콘(화살표)만 뺌(네비는 좁은 공간이라). */
+.t-cta--nav { background: rgba(30,41,59,.05); color: var(--ink); font-size: 14px; font-weight: 700;
+  padding: 10px 20px; border-radius: 999px; transition: background .2s ease; }
+.t-cta--nav:hover { background: rgba(30,41,59,.09); }
 /* 캡슐형 CTA(2026-10-21, 지침서 기반 "토스 스타일 하이브리드") — 반투명 잉크 배경 칩 + 우측 원형
    포인트 컬러 아이콘. .t-cta 베이스(배경=accent 단색 채움, 글자=흰색)를 이 버튼만 재정의 — 이 화면에서
    가장 강조되는 Primary 버튼이라 차별화. */
@@ -206,20 +209,23 @@ ul, ol { list-style: none; padding: 0; }
 .t-rankgrid[data-count="1"] { grid-template-columns: 1fr; }
 .t-rankgrid[data-count="2"] { grid-template-columns: repeat(2,1fr); }
 .t-rcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 28px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
-.rcard__top { display: flex; justify-content: flex-end; align-items: center; }
+/* 2026-10-21: 세리프 큰 숫자 레이아웃을 시도했다가 "갑자기 명조체가 나오니 이상하다"는 피드백으로 되돌림 —
+   작은 원형 칩 숫자 + 뱃지 한 줄 구조로 복귀(Fraunces 폰트 로드도 index.html에서 제거). */
+.rcard__top { display: flex; justify-content: space-between; align-items: center; }
+.rc-num { font-size: 14px; font-weight: 800; color: var(--muted2); background: #F1F5F9; width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
 .rc-badge { font-size: 18px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
-/* 순위 숫자 — 작은 원형 칩 대신 매거진 레이아웃처럼 큰 세리프 숫자를 좌측에 배치(2026-10-21, 지침서 기반).
-   Fraunces(세리프, 가벼운 weight)를 숫자 전용으로 로드(index.html) — Black Han Sans/Unbounded와 같은 패턴:
-   용도 하나에만 쓰는 특수 폰트. */
-.rcard__main { display: flex; align-items: flex-start; gap: 18px; margin-top: 10px; }
-.rc-num { flex: none; font-family: "Fraunces", Georgia, serif; font-weight: 340; font-size: 2.75rem; line-height: 1;
-  color: var(--ink); font-variant-numeric: lining-nums; letter-spacing: -.02em; }
-.rcard__info { margin-top: 6px; }
-.rc-name { font-size: 26px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+.rc-name { font-size: 26px; font-weight: 800; margin-top: 22px; display: flex; align-items: center; gap: 10px; }
 .rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(30,41,59,.08); }
 .rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
 .rc-rate2 { font-size: 14px; color: var(--muted2); margin-top: 3px; }
-.rc-spark { width: 100%; height: 44px; margin-top: 18px; display: block; }
+/* 2026-10-21: 스파크라인 추세(오르는지 내리는지)를 직관적으로 읽기 어렵다는 피드백 —
+   아주 옅은 가로 가이드라인(중간값 기준)과 시작/끝 날짜 라벨을 추가. */
+.rc-sparkwrap { margin-top: 18px; position: relative; }
+.rc-spark { width: 100%; height: 44px; display: block; position: relative; z-index: 1; }
+.rc-sparkwrap::before { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 1px;
+  background: var(--border); opacity: .6; }
+.rc-spark__axis { display: flex; justify-content: space-between; margin-top: 6px; }
+.rc-spark__date { font-size: 14px; font-weight: 600; color: var(--muted2); }
 /* 스파크라인 그리기 애니메이션: 초기엔 감춰두고 화면 진입 시 채운다 */
 .rc-line { transition: stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1); }
 .rcard__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
@@ -470,7 +476,8 @@ ul, ol { list-style: none; padding: 0; }
 /* 품목: 아이콘 + 이름 + [서울/현지 두 막대+금액] + 큰 % */
 .d-items { margin-top: 22px; }
 .d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
-.d-item + .d-item { margin-top: 24px; }
+/* 2026-10-21: 품목 사이가 카드 여백에 비해 붙어 보인다는 피드백 — 24→32px로 확대 */
+.d-item + .d-item { margin-top: 32px; }
 .d-item__icon { display: flex; align-items: center; justify-content: center; color: var(--accent); }
 .d-item__icon svg { width: 24px; height: 24px; display: block; }
 .d-item__name { font-size: 15px; font-weight: 800; }
@@ -486,13 +493,13 @@ ul, ol { list-style: none; padding: 0; }
 .d-empty { font-size: 14px; color: var(--muted); padding: 8px 0; }
 
 /* 절약 카드 — 2026-10-20: 포인트 컬러(오렌지) 단색 채움 폐기, 다른 카드와 동일한 화이트+보더로.
-   2026-10-21(지침서): 대표 숫자는 나라 바꿀 때마다 "드라마틱하게" 바뀌는 게 핵심 지표라 — 기존
-   오름=빨강/내림=파랑 방향색 규칙의 예외로 **항상 포인트 컬러** + 큰 폰트(지침서 요청, design.md §2
-   "지침서와 충돌한 지점" 참고, 사용자 확인 완료). */
+   2026-10-21: 대표 숫자를 44→60px로 확대(나라 바꿀 때마다 눈에 띄게). 색은 "항상 포인트 컬러"로
+   한번 바꿨다가, "좋은 건지 나쁜 건지 구분이 안 간다"는 피드백으로 **사이트의 방향색 규칙으로 되돌림**
+   (main.js에서 `.d-savecard__big`에 방향색 적용 — 비쌈=빨강/쌈=파랑/동일=중립, design.md §2 참고). */
 .d-savecard { background: #fff; color: var(--ink); border: 1px solid var(--border); border-radius: 20px; padding: 28px 26px; }
 .d-savecard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
-/* 대표(대형) 숫자 = 서울 대비 체감 절약/부담률. 44→60px로 확대, 색은 항상 포인트 컬러(방향색 예외) */
-.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 8px; color: var(--accent); }
+/* 대표(대형) 숫자 = 서울 대비 체감 절약/부담률. 색은 main.js가 방향색으로 덮어씀(기본값은 Ink) */
+.d-savecard__big { display: flex; align-items: baseline; gap: 4px; margin-top: 8px; color: var(--ink); }
 .d-savecard__big b { font-size: 60px; font-weight: 800; line-height: 1; letter-spacing: -.02em; color: inherit; }
 .d-savecard__pct { font-size: 20px; font-weight: 800; color: inherit; }
 /* 보조 텍스트 = 서울 대비 체감 절약/부담 % (작게) */
@@ -625,7 +632,7 @@ ul, ol { list-style: none; padding: 0; }
   .d-item__name { grid-area: name; }
   .d-item__pct { grid-area: pct; }
   .d-item__cmp { grid-area: cmp; }
-  .d-item + .d-item { margin-top: 18px; }
+  .d-item + .d-item { margin-top: 26px; }
   /* 상세 헤더: 대표 환율숫자 조금 축소, 카드 패딩 축소 */
   .detail__name { font-size: 26px; }
   .detail__fx-val { font-size: 24px; }
