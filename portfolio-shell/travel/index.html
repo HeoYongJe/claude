@@ -12,8 +12,8 @@
 <!-- 히어로 타이틀 전용(Black Han Sans) + 히어로 배경 워터마크 전용(Unbounded 900) — 그 외는 전부 Pretendard -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Unbounded:wght@900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261021k">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Unbounded:wght@900&family=Fraunces:opsz,wght@9..144,300..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=20261021l">
 </head>
 <body>
 
@@ -75,7 +75,7 @@
       </div>
     </div>
 
-    <p class="hero__scroll">SCROLL ↓</p>
+    <span class="hero__scroll" aria-hidden="true"></span>
   </section>
 
   <!-- ============ WHY (서비스 소개) — Hero 다음, 랭킹 앞 ============ -->
@@ -132,25 +132,40 @@
 
     <div class="t-rankgrid">
       <article class="t-rcard" data-slot="0" data-reveal="">
-        <div class="rcard__top"><span class="rc-num">1</span><span class="rc-badge">▲ 6.2%</span></div>
-        <h3 class="rc-name">일본</h3>
-        <p class="rc-rate">1,000원 = ¥106</p>
+        <div class="rcard__top"><span class="rc-badge">▲ 6.2%</span></div>
+        <div class="rcard__main">
+          <span class="rc-num">1</span>
+          <div class="rcard__info">
+            <h3 class="rc-name">일본</h3>
+            <p class="rc-rate">1,000원 = ¥106</p>
+          </div>
+        </div>
         <svg class="rc-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline class="rc-line" points="0,40 40,38 80,32 120,26 160,20 200,12 240,6" fill="none" stroke="#0E4AEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline class="rc-area" points="0,48 0,40 40,38 80,32 120,26 160,20 200,12 240,6 240,48" fill="#0E4AEB" opacity=".07" stroke="none"></polyline></svg>
-        <div class="rcard__foot"><span class="rc-cut">체감물가 −22%</span><span class="rc-link">도시 보기 →</span></div>
+        <div class="rcard__foot"><span class="rc-cut">체감물가 −22%</span><span class="rc-link">도시 보기 <span aria-hidden="true">→</span></span></div>
       </article>
       <article class="t-rcard" data-slot="1" data-reveal="">
-        <div class="rcard__top"><span class="rc-num">2</span><span class="rc-badge">▲ 11.4%</span></div>
-        <h3 class="rc-name">튀르키예</h3>
-        <p class="rc-rate">1,000원 = 29.8₺</p>
+        <div class="rcard__top"><span class="rc-badge">▲ 11.4%</span></div>
+        <div class="rcard__main">
+          <span class="rc-num">2</span>
+          <div class="rcard__info">
+            <h3 class="rc-name">튀르키예</h3>
+            <p class="rc-rate">1,000원 = 29.8₺</p>
+          </div>
+        </div>
         <svg class="rc-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline class="rc-line" points="0,42 40,40 80,36 120,28 160,20 200,10 240,4" fill="none" stroke="#0E4AEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline class="rc-area" points="0,48 0,42 40,40 80,36 120,28 160,20 200,10 240,4 240,48" fill="#0E4AEB" opacity=".07" stroke="none"></polyline></svg>
-        <div class="rcard__foot"><span class="rc-cut">체감물가 −31%</span><span class="rc-link">도시 보기 →</span></div>
+        <div class="rcard__foot"><span class="rc-cut">체감물가 −31%</span><span class="rc-link">도시 보기 <span aria-hidden="true">→</span></span></div>
       </article>
       <article class="t-rcard" data-slot="2" data-reveal="">
-        <div class="rcard__top"><span class="rc-num">3</span><span class="rc-badge">▲ 3.1%</span></div>
-        <h3 class="rc-name">베트남</h3>
-        <p class="rc-rate">1,000원 = 18,900₫</p>
+        <div class="rcard__top"><span class="rc-badge">▲ 3.1%</span></div>
+        <div class="rcard__main">
+          <span class="rc-num">3</span>
+          <div class="rcard__info">
+            <h3 class="rc-name">베트남</h3>
+            <p class="rc-rate">1,000원 = 18,900₫</p>
+          </div>
+        </div>
         <svg class="rc-spark" viewBox="0 0 240 48" preserveAspectRatio="none" aria-hidden="true"><polyline class="rc-line" points="0,38 40,37 80,34 120,31 160,27 200,23 240,18" fill="none" stroke="#0E4AEB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline><polyline class="rc-area" points="0,48 0,38 40,37 80,34 120,31 160,27 200,23 240,18 240,48" fill="#0E4AEB" opacity=".07" stroke="none"></polyline></svg>
-        <div class="rcard__foot"><span class="rc-cut">체감물가 −45%</span><span class="rc-link">도시 보기 →</span></div>
+        <div class="rcard__foot"><span class="rc-cut">체감물가 −45%</span><span class="rc-link">도시 보기 <span aria-hidden="true">→</span></span></div>
       </article>
     </div>
 
@@ -160,7 +175,7 @@
         <div><div class="stat__label">최근 일주일 원화 강세</div><div class="stat__val">18개국</div></div>
         <div><div class="stat__label">평균 체감물가 절감</div><div class="stat__val stat__val--down">−28%</div></div>
       </div>
-      <button class="t-cta t-cta--summary" type="button">전체 랭킹 보기 →</button>
+      <button class="t-cta t-cta--summary t-cta--secondary" type="button">전체 랭킹 보기<span class="t-cta--secondary__icon" aria-hidden="true">→</span></button>
     </aside>
     </div><!-- /t-rankview -->
 
@@ -233,7 +248,7 @@
           <p class="t-pop__eyebrow"><span class="t-live-dot" aria-hidden="true"></span>여행객이 자주 찾는 나라 · 매일 갱신</p>
           <h2 class="t-pop__title">익숙한 여행지, 지금은 얼마나 가뿐할까</h2>
         </div>
-        <button type="button" class="t-pop__all" data-pop-all>인기 여행국 전체 보기 <span aria-hidden="true">→</span></button>
+        <button type="button" class="t-pop__all t-cta--secondary" data-pop-all>인기 여행국 전체 보기<span class="t-cta--secondary__icon" aria-hidden="true">→</span></button>
       </div>
 
       <!-- 배경 티커: 장식. 클릭·포커스 대상 아님 -->
@@ -291,6 +306,6 @@
 <script src="js/countryDetail.js?v=20261018a"></script>
 <script src="js/cityImages.js?v=20261018a"></script>
 <script src="js/rankingSnapshot.js?v=20261018a"></script>
-<script src="js/main.js?v=20261021b"></script>
+<script src="js/main.js?v=20261021c"></script>
 </body>
 </html>

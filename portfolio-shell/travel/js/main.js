@@ -106,8 +106,9 @@
       el.style.borderColor = "#E2E8F0";
     });
   });
-  // .t-cta--hero(캡슐형 CTA)는 CSS :hover만으로 처리(반투명 잉크 배경 + 원형 아이콘 딥 컬러) — 여기선 제외.
-  root.querySelectorAll(".t-cta:not(.t-cta--hero), .t-cta-light").forEach((el) => {
+  // .t-cta--hero/.t-cta--secondary(캡슐형 CTA)는 CSS :hover만으로 처리(반투명 잉크 배경 + 원형 아이콘
+  // 딥 컬러) — 여기선 제외. 둘 다 제외되는 .t-cta--nav만 플랫 accent 채움 유지라 JS 핸들러 필요.
+  root.querySelectorAll(".t-cta:not(.t-cta--hero):not(.t-cta--secondary), .t-cta-light").forEach((el) => {
     el.addEventListener("mouseenter", () => {
       if (el.classList.contains("t-cta")) el.style.background = "#D65A3D";
       else el.style.transform = "translateY(-3px)";
@@ -256,8 +257,6 @@
       const color = dirColor((d.changePct || 0) >= 0);
       const num = rcard.querySelector(".rc-num");
       num.textContent = d.num;
-      num.style.color = "#94A3B8";
-      num.style.background = "#F1F5F9";
       const badge = rcard.querySelector(".rc-badge");
       badge.textContent = d.badge;
       badge.style.color = color;
@@ -513,7 +512,6 @@
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
     const idx = detail.querySelector(".d-index");          // 대표 숫자: 절약률(절댓값)
-    const idxBig = detail.querySelector(".d-savecard__big"); // 대표 숫자를 감싸는 블록(방향색은 이 블록 전체에)
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const basis = detail.querySelector(".d-savecard__basis"); // 계산 방식 설명(장바구니 총액 기준)
@@ -522,9 +520,9 @@
       const tied = d.savePct === 0; // 장바구니 합계가 서울과 사실상 같음(품목별 %는 서로 달라도 상쇄된 경우 포함)
       const cheaper = d.savePct > 0;
       idx.textContent = Math.abs(d.savePct);
-      // 카드가 화이트로 바뀌면서(2026-10-20) 대표 숫자도 사이트 전체의 "오름=빨강/내림=블루" 규칙을 그대로 따름 —
-      // 비쌈(물가 부담)=오름=빨강, 쌈(절약)=내림=블루, 동일=중립.
-      if (idxBig) idxBig.style.color = tied ? "var(--muted)" : dirColor(!cheaper);
+      // 2026-10-21: 지침서 요청으로 사이트의 방향색 규칙(오름=빨강/내림=파랑) 대신 "항상 포인트 컬러"로 — 이
+      // 카드만 예외(design.md §2 "지침서와 충돌한 지점" 참고, 사용자 확인 완료). CSS 기본값(var(--accent))을
+      // 그대로 쓰면 되니 JS에서 색을 더 건드리지 않음.
       label.textContent = tied ? "서울 대비 체감 물가" : (cheaper ? "서울 대비 체감 절약" : "서울 대비 물가 부담");
       desc.textContent = tied
         ? `${d.name}${josaEunNeun(d.name)} 서울과 체감 물가 총액이 거의 같아요.`
