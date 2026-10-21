@@ -108,10 +108,10 @@ ul, ol { list-style: none; padding: 0; }
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
   margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
   color: #111111; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
-.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
-.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.09; letter-spacing: -.03em; margin-top: 20px; color: var(--ink); }
+.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.09; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 24px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
