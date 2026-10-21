@@ -23,9 +23,6 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  // 예상 절약 금액 기준: 1인 7일 여행 기본 지출 가정 × 체감 절약률.
-  const BASELINE_7D = 700000;
-
   const state = { rmode: "strong", sm: 0 };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
@@ -519,8 +516,6 @@
     const label = detail.querySelector(".d-save-label");
     const desc = detail.querySelector(".d-save-desc");
     const basis = detail.querySelector(".d-savecard__basis"); // 계산 방식 설명(장바구니 총액 기준)
-    const save = detail.querySelector(".d-save");           // 예상 절약/추가지출 금액
-    const saveCap = detail.querySelector(".d-save-caption"); // 예상 절약/추가지출 라벨
     const warn = detail.querySelector(".d-savecard__warn");
     if (d.savePct != null) {
       const tied = d.savePct === 0; // 장바구니 합계가 서울과 사실상 같음(품목별 %는 서로 달라도 상쇄된 경우 포함)
@@ -536,11 +531,6 @@
           ? `같은 돈으로 ${d.name}에서 더 여유롭게 여행할 수 있어요.`
           : `${d.name}${josaEunNeun(d.name)} 서울보다 물가가 높은 편이에요.`;
       if (basis) basis.hidden = false;
-      const amt = Math.round((BASELINE_7D * d.savePct) / 100 / 1000) * 1000;
-      // 비싼 나라는 '절약'이 아니라 '추가 지출'로 라벨·값을 정합적으로 표기(문구 깨짐 방지).
-      if (saveCap) saveCap.textContent = tied ? "예상 차액" : (cheaper ? "예상 절약(추정)" : "예상 추가 지출(추정)");
-      save.textContent = amt > 0 ? `약 ${amt.toLocaleString("ko-KR")}원`
-        : amt < 0 ? `약 ${(-amt).toLocaleString("ko-KR")}원` : "서울과 비슷";
       // 환율은 유리하나 현지 물가가 비싼 나라: 경고 라벨 노출(숨기지 않음)
       if (warn) {
         if (!cheaper && !tied) { warn.hidden = false; warn.textContent = "환율은 유리하나 현지 물가는 높은 편이에요."; }
@@ -551,8 +541,6 @@
       label.textContent = "서울 대비 체감 절약";
       desc.textContent = "물가 데이터가 없어요.";
       if (basis) basis.hidden = true;
-      if (saveCap) saveCap.textContent = "예상 절약(추정)";
-      save.textContent = "—";
       if (warn) warn.hidden = true;
     }
 
