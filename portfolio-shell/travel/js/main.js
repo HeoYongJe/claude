@@ -520,7 +520,9 @@
     if (d.savePct != null) {
       const tied = d.savePct === 0; // 장바구니 합계가 서울과 사실상 같음(품목별 %는 서로 달라도 상쇄된 경우 포함)
       const cheaper = d.savePct > 0;
-      idx.textContent = Math.abs(d.savePct);
+      // 2026-10-22: 색만으로는 좋은 건지 나쁜 건지 헷갈린다는 피드백으로 +/− 부호 추가 — 사이트 전체 표기
+      // 규칙과 동일(pctText 참고): 쌈(절약)=− / 비쌈(부담)=+ / 동일=부호 없음.
+      idx.textContent = (tied ? "" : (cheaper ? "−" : "+")) + Math.abs(d.savePct);
       // 2026-10-21 재변경: "항상 포인트 컬러"로 했더니 좋은 건지 나쁜 건지 구분이 안 간다는 피드백으로
       // 사이트의 방향색 규칙으로 되돌림 — 비쌈(물가 부담)=오름=빨강, 쌈(절약)=내림=파랑, 동일=중립(muted).
       if (idxBig) idxBig.style.color = tied ? "var(--muted)" : dirColor(!cheaper);
