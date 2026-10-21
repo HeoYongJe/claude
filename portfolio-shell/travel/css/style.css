@@ -158,7 +158,7 @@ ul, ol { list-style: none; padding: 0; }
    "여행지"가 분리) — 이 구간만 64px(구 데스크톱 크기)로 낮춰 2줄 유지(2026-10-21). 베이스 규칙 바로 다음에
    둬야 캐스케이드 순서상 이긴다(파일 맨 아래 900px 이하 블록과는 별개로 여기 둠). */
 @media (max-width: 1150px) and (min-width: 901px) { .hero__title { font-size: 64px; } }
-.hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
+.hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 535px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
 /* 2026-10-22: eyebrow 삭제로 타이틀이 칼럼 첫 요소가 되면서 보정 필요 없어짐(구 39px → 0) —
    align-items:flex-start만으로 카드 상단이 이제 타이틀 시작선과 바로 맞음(§7 .hero__grid 주석 참고). */
