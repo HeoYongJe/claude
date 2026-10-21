@@ -2,30 +2,33 @@
    travel — 스타일 시트 (인라인 스타일을 전부 여기로 분리)
    색/간격은 :root 토큰과 컴포넌트 클래스로만 관리한다.
 
-   2026-10-20 — "261020백업"(하늘 영상+블루 브랜드) 이후 재시작. 새 컨셉:
-   구조색 Ink #111111 + 배경 #F3F4F6 투 톤 위에, 포인트 컬러 일렉트릭 오렌지 #FF5400을
-   CTA·링크·배지 등 "강조가 필요한 자리"에만 선택적으로 쓴다(과거 블루처럼 전면에 깔지 않음).
-   히어로의 하늘 배경 영상(sky.mp4)과 블롭 글로우는 제거, 평평한 배경으로 교체.
-   오름(▲)=빨강/내림(▼)=블루 방향색 규칙은 그대로 유지(포인트 컬러와는 별개 — main.js DIR_UP/DIR_DOWN).
+   2026-10-21 — "라운지 미드나잇 / 에어 오트밀" 컬러 리뉴얼(지침서 기반, 이전 오렌지+Ink/#F3F4F6
+   조합은 git 태그 gappun-20261021-lounge-backup으로 백업). 컨셉: 글로벌 감성 여행 매거진·고급
+   공항 라운지. 배경 #FDFCFA(완전 흰색 아닌 웜톤 아이보리) + 텍스트 #1E293B(묵직한 다크 네이비) +
+   포인트 #E76F51(톤다운된 선셋 테라코타, 쨍한 오렌지 금지) + 보조텍스트/보더 #64748B·#E2E8F0.
+   --muted2·--surface·--border-strong은 지침서에 없는 기존 2단계 위계용 토큰이라, 같은 Cloud Gray
+   계열(Tailwind slate) 안에서 한 톤씩만 비켜 보간했다(새 색상군을 들여오지 않음).
+   오름(▲)=빨강/내림(▼)=블루 방향색 규칙은 사용자 확인 후 그대로 유지(포인트 컬러와는 별개,
+   디테일/랭킹 등 모든 지표에 예외 없이 적용 — 히어로 카드의 환율 상승률 배지도 포함).
    타이틀 폰트(Black Han Sans)는 히어로 h1 한 곳에만 적용, 나머지는 전부 Pretendard.
 
-   2026-10-20 추가 — 전체 타이포그래피 위계 정리: 폰트 최소 크기를 14px로 통일(11.5~13.5px였던
+   2026-10-20 — 전체 타이포그래피 위계 정리: 폰트 최소 크기를 14px로 통일(11.5~13.5px였던
    모든 메타·배지·캡션 텍스트를 14px로 상향, 구분은 weight·color로만). 아이콘 칩 크기도 44px로 통일
-   (d-tip__icon이 40px로 따로 놀던 것 수정). 절약 카드(.d-savecard)는 포인트 컬러(오렌지) 단색 채움을
+   (d-tip__icon이 40px로 따로 놀던 것 수정). 절약 카드(.d-savecard)는 포인트 컬러 단색 채움을
    버리고 다른 카드와 동일한 화이트+보더로 — 포인트 컬러는 카드 배경이 아니라 숫자·배지 같은 작은
    강조 지점에만 쓴다는 원칙을 이 카드에도 동일하게 적용.
    ========================================================================== */
 
 :root {
-  --accent: #FF5400;       /* 포인트 컬러(일렉트릭 오렌지) — CTA·링크·활성 상태·배지 텍스트 등 강조 지점에만 */
-  --accent-dark: #CC4300;  /* 포인트 컬러 hover/active */
-  --ink: #111111;
-  --muted: #6B7280;
-  --muted2: #9CA3AF;
-  --bg: #F3F4F6;           /* 페이지 배경 */
-  --surface: #F3F4F6;      /* 카드 안쪽 칩/뱃지 배경(카드=흰색, 그 위의 한 톤 더 어두운 중립면) */
-  --border: #E5E7EB;
-  --border-strong: #D1D5DB;
+  --accent: #E76F51;       /* 포인트 컬러(선셋 테라코타) — CTA·링크·활성 상태·배지 텍스트 등 강조 지점에만 */
+  --accent-dark: #D65A3D;  /* 포인트 컬러 hover/active */
+  --ink: #1E293B;          /* 라운지 미드나잇 */
+  --muted: #64748B;        /* 가뿐 클라우드 그레이(보조 텍스트) */
+  --muted2: #94A3B8;       /* muted보다 한 단계 더 옅은 보조 텍스트(같은 slate 계열) */
+  --bg: #FDFCFA;           /* 에어 오트밀 — 페이지 배경(완전 흰색 아님, 웜톤 아이보리) */
+  --surface: #F1F5F9;      /* 카드 안쪽 칩/뱃지 배경(카드=순백 #fff, 그 위의 한 톤 더 어두운 중립면) */
+  --border: #E2E8F0;       /* 가뿐 클라우드 그레이(경계선) */
+  --border-strong: #CBD5E1;
   --warn: #B45309;         /* 경고(비쌈/주의) 전용 — 오름/내림 방향색과 별개 */
   --warn-tint: #FEF3C7;
   --warn-border: #FDE68A;
@@ -69,16 +72,17 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 버튼 ---- */
 .t-cta { background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; transition: background .15s; }
 .t-cta--nav { font-size: 14px; padding: 10px 18px; border-radius: 12px; }
-/* 히어로 메인 CTA만 좀 더 "디자인스럽게" — 포인트 컬러 글로우 그림자 + hover 시 살짝 뜨는 느낌 + 화살표 슬라이드.
-   radius/색은 §버튼 규칙(12–14px, 포인트 컬러 CTA 전용) 그대로, 그림자·모션만 추가(2026-10-21). */
-.t-cta--hero { font-size: 16px; font-weight: 800; padding: 15px 28px; border-radius: 14px;
-  display: inline-flex; align-items: center; gap: 8px;
-  box-shadow: 0 16px 32px -14px rgba(255,84,0,.65), 0 2px 6px rgba(17,17,17,.06);
-  transition: background .15s, transform .15s, box-shadow .15s; }
-.t-cta--hero::after { content: "→"; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
-.t-cta--hero:hover { transform: translateY(-2px); box-shadow: 0 20px 38px -14px rgba(255,84,0,.75), 0 4px 10px rgba(17,17,17,.08); }
-.t-cta--hero:hover::after { transform: translateX(4px); }
-.t-cta--hero:active { transform: translateY(0); box-shadow: 0 10px 20px -12px rgba(255,84,0,.55); }
+/* 캡슐형 CTA(2026-10-21, 지침서 기반 "토스 스타일 하이브리드") — 반투명 잉크 배경 칩 + 우측 원형
+   포인트 컬러 아이콘. .t-cta 베이스(배경=accent 단색 채움, 글자=흰색)를 이 버튼만 재정의 —
+   .t-cta--nav/--summary는 그대로 플랫 accent 채움 유지(이 버튼만 "메인 CTA"라 차별화). */
+.t-cta--hero { background: rgba(30,41,59,.05); color: var(--ink); font-size: 16px; font-weight: 700;
+  padding: 6px 6px 6px 26px; border-radius: 999px; display: inline-flex; align-items: center; gap: 16px;
+  transition: background .2s ease; }
+.t-cta--hero__icon { flex: none; width: 40px; height: 40px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; background: var(--accent); color: #fff; font-size: 16px;
+  transition: background .2s ease; }
+.t-cta--hero:hover { background: rgba(30,41,59,.09); }
+.t-cta--hero:hover .t-cta--hero__icon { background: var(--accent-dark); }
 .t-cta--summary { font-size: 15px; padding: 13px 22px; border-radius: 12px; }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
@@ -90,11 +94,11 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 항로 레일: 평소 거의 안보이는 항로 + 비행기, 스크롤 시 은은한 오렌지 점선이 아래→위로 채워짐 ---- */
 .t-rail { position: fixed; top: 92px; right: 40px; width: 44px; height: calc(100vh - 116px); z-index: 45; pointer-events: none; transition: opacity .4s ease; }
 .t-rail svg { width: 100%; height: 100%; overflow: visible; }
-.t-rail-path { stroke: rgba(255,84,0,.14); animation: t-dashflow 2.6s linear infinite; }          /* 스크롤 전 거의 안보이는 항로 */
-.t-rail-trail { stroke: rgba(255,84,0,.55); stroke-width: 2.5; stroke-dasharray: 1.5 8; stroke-linecap: round; }  /* 채워지는 은은한 오렌지 점선 */
+.t-rail-path { stroke: rgba(231,111,81,.14); animation: t-dashflow 2.6s linear infinite; }          /* 스크롤 전 거의 안보이는 항로 */
+.t-rail-trail { stroke: rgba(231,111,81,.55); stroke-width: 2.5; stroke-dasharray: 1.5 8; stroke-linecap: round; }  /* 채워지는 은은한 오렌지 점선 */
 .t-planewrap { position: absolute; top: 0; left: 22px; transform: translate(-50%,-50%); will-change: transform; }
-.t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(255,84,0,.16), rgba(255,84,0,0) 70%); }
-.t-plane { position: relative; width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 6px 10px rgba(255,84,0,.28)); animation: t-planebob 3s ease-in-out infinite; }
+.t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(231,111,81,.16), rgba(231,111,81,0) 70%); }
+.t-plane { position: relative; width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 6px 10px rgba(231,111,81,.28)); animation: t-planebob 3s ease-in-out infinite; }
 .t-plane svg { display: block; }
 /* 1200px 이하(태블릿·모바일)에서는 항로 레일 숨김(콘텐츠 방해) — 컨테이너 폭(1200)과 맞춤 */
 @media (max-width: 1200px) { .t-rail { display: none; } }
@@ -118,30 +122,39 @@ ul, ol { list-style: none; padding: 0; }
 /* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 배경 맨 아래쪽에 깔아 질감만 더함(메인 텍스트·카드 시선 방해 금지) */
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
   margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
-  color: #111111; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
+  color: #1E293B; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
 /* align-items:flex-start(2026-10-21, 구 center) — 카드 상단을 타이틀("지금 원화로") 시작선에 맞춤.
    카드 쪽 margin-top(.hero__cardwrap)으로 eyebrow 배지 높이만큼 내려서 맞춘다(아래 주석 참고). */
 .hero__grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: flex-start; }
-.hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
+/* 2026-10-21: 지침서 "크기를 줄이고 색상을 muted로" 반영 — 사이트 전역 14px 최소크기 규칙(design.md §3)은
+   유지하되(더 못 줄임), 배지형(흰 배경+보더+accent색) 대신 weight·color만으로 서브 정보 톤을 낮춤. */
+.hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: -.01em; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
 /* 2026-10-21: 컨테이너 1200px 확장에 맞춰 타이틀도 64→80px로 키움(여백이 너무 비어 보인다는 피드백) */
 .hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 80px; line-height: 1.02; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
+/* 900~1150px(2열 레이아웃 유지 구간)에서는 80px 타이틀이 좁아진 칼럼 폭에 3줄로 깨짐(실측: 1024px에서
+   "여행지"가 분리) — 이 구간만 64px(구 데스크톱 크기)로 낮춰 2줄 유지(2026-10-21). 베이스 규칙 바로 다음에
+   둬야 캐스케이드 순서상 이긴다(파일 맨 아래 900px 이하 블록과는 별개로 여기 둠). */
+@media (max-width: 1150px) and (min-width: 901px) { .hero__title { font-size: 64px; } }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
-/* margin-top:54px = eyebrow 배지 높이(34px) + 타이틀 margin-top(20px) — 카드 상단을 eyebrow가 아니라
-   타이틀 시작선에 맞추기 위한 보정(위 .hero__grid 주석 참고). 900px 이하(1열)에서는 0으로 해제. */
-.hero__cardwrap { animation: t-float 6s ease-in-out infinite; margin-top: 54px; }
+/* margin-top:39px = eyebrow 줄 높이 + 타이틀 margin-top(20px) — 카드 상단을 eyebrow가 아니라 타이틀
+   시작선에 맞추기 위한 보정(위 .hero__grid 주석 참고). 2026-10-21 컬러 리뉴얼로 eyebrow가 배지(34px,
+   패딩+보더)에서 일반 텍스트(실측 ~19px)로 바뀌며 54→39px 재측정(실측 diff=39.3px). 900px 이하(1열)에서는
+   0으로 해제. */
+.hero__cardwrap { animation: t-float 6s ease-in-out infinite; margin-top: 39px; }
 .hero__scroll { position: absolute; z-index: 10; bottom: 32px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: .1em; }
 
 /* 환율 카드(오늘의 추천) — 하늘 영상이 없어졌으니 반투명 블러 대신 평범한 흰 카드 + 그림자 */
-.t-fxcard { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: 0 30px 60px -28px rgba(17,17,17,.18); }
+/* 2026-10-21: 지침서 지정 소프트 섀도우로 교체(구 0 30px 60px -28px rgba(,.18) — 더 진하고 번지는 톤) */
+.t-fxcard { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: 0 10px 30px rgba(30,41,59,.03); }
 .fxcard__top { display: flex; justify-content: space-between; align-items: center; }
 .fxcard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .t-hero-badge { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); background: var(--surface); padding: 6px 11px; border-radius: 999px; }
 .t-hero-name { font-size: 32px; font-weight: 800; margin-top: 18px; letter-spacing: -.02em; }
 .fxcard__convert { display: flex; align-items: center; gap: 16px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.fxcard__cap { font-size: 14px; color: var(--muted2); font-weight: 600; }
+.fxcard__cap { font-size: 14px; color: var(--muted); font-weight: 600; }
 .fxcard__amt { font-size: 22px; font-weight: 400; }         /* 보내는 금액: normal */
 .fxcard__arrow { font-size: 20px; color: var(--accent); }
 .t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); }   /* 받는 금액: 잉크 + 굵게(방향색 제거) */
@@ -155,7 +168,7 @@ ul, ol { list-style: none; padding: 0; }
 /* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
 /* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1200+24 정렬선) */
 /* 지그재그(Zebra) 섹션 배경 — 스크롤 시 섹션 경계가 색으로 또렷하게 구분되도록 교차 적용 */
-.rank { position: relative; overflow: hidden; padding: 132px 0; background: #F3F4F6; }
+.rank { position: relative; overflow: hidden; padding: 132px 0; background: var(--bg); }
 .rank__inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
@@ -169,7 +182,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-rank-basis { font-size: 14px; font-weight: 700; color: var(--muted); }
 /* 기준일 앞 라이브 펄스(실데이터일 때만 표시 — setBasis에서 토글) */
 .t-live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--accent); margin-right: 7px; vertical-align: 1px; animation: t-pulse 2.4s ease-in-out infinite; }
-@keyframes t-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(255,84,0,.28); } 50% { box-shadow: 0 0 0 5px rgba(255,84,0,0); } }
+@keyframes t-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(231,111,81,.28); } 50% { box-shadow: 0 0 0 5px rgba(231,111,81,0); } }
 .rtabs { display: flex; gap: 6px; background: var(--surface); border: 1px solid var(--border); padding: 0px; margin-bottom: 8px; border-radius: 12px; }
 .t-rtab { cursor: pointer; font-size: 14px; font-weight: 700; padding: 12px 16px; border-radius: 9px; background: transparent; color: var(--muted); transition: all .15s; }
 
@@ -178,10 +191,10 @@ ul, ol { list-style: none; padding: 0; }
 .t-rankgrid[data-count="2"] { grid-template-columns: repeat(2,1fr); }
 .t-rcard { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 28px; cursor: pointer; transition: box-shadow .2s, transform .2s, border-color .2s; }
 .rcard__top { display: flex; justify-content: space-between; align-items: center; }
-.rc-num { font-size: 14px; font-weight: 800; color: var(--muted2); background: #F1F1F3; width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+.rc-num { font-size: 14px; font-weight: 800; color: var(--muted2); background: #F1F5F9; width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
 .rc-badge { font-size: 18px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 .rc-name { font-size: 26px; font-weight: 800; margin-top: 22px; display: flex; align-items: center; gap: 10px; }
-.rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(17,17,17,.08); }
+.rc-name img { width: 30px; height: 22px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 0 1px rgba(30,41,59,.08); }
 .rc-rate { font-size: 15px; color: var(--muted); margin-top: 8px; }
 .rc-rate2 { font-size: 14px; color: var(--muted2); margin-top: 3px; }
 .rc-spark { width: 100%; height: 44px; margin-top: 18px; display: block; }
@@ -330,7 +343,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop-tile { display: flex; }
 .t-pop-tile__btn { flex: 1; display: flex; flex-direction: column; gap: 0; text-align: left; cursor: pointer; font: inherit;
   background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px;
-  box-shadow: 0 14px 30px -22px rgba(17,17,17,.2); transition: transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s, border-color .2s; }
+  box-shadow: 0 14px 30px -22px rgba(30,41,59,.2); transition: transform .2s cubic-bezier(.2,.7,.2,1), box-shadow .2s, border-color .2s; }
 /* 뱃지 = 카드 주제(제목). 카드 최상단 eyebrow 위치 + 아이콘으로 '분류'임을 명확히(국가 특징으로 오해 방지) */
 .t-pop-tile__badge { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px;
   font-size: 14px; font-weight: 800; letter-spacing: -.01em; color: var(--accent);
@@ -339,7 +352,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop-tile__badge svg { width: 15px; height: 15px; flex: none; }
 .t-pop-tile__id { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .t-pop-tile__idname { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(17,17,17,.08); flex: none; }
+.t-pop-tile__flag { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(30,41,59,.08); flex: none; }
 .t-pop-tile__name { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--ink); }
 /* 환율 변동 뱃지 — 추천 랭킹 카드(.rc-badge)와 톤 통일 */
 .t-pop-tile__fx { flex: none; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -361,8 +374,8 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop-tile__cta { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 800; color: var(--accent); }
 
 @media (hover: hover) {
-  .t-pop-tile__btn:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: 0 22px 40px -24px rgba(17,17,17,.24); }
-  .t-pop__all:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -14px rgba(255,84,0,.4); }
+  .t-pop-tile__btn:hover { transform: translateY(-3px); border-color: var(--border-strong); box-shadow: 0 22px 40px -24px rgba(30,41,59,.24); }
+  .t-pop__all:hover { transform: translateY(-1px); box-shadow: 0 10px 20px -14px rgba(231,111,81,.4); }
   .t-pop__ticker:hover .t-pop__track { animation-play-state: paused; }
 }
 .t-pop-tile__btn:active { transform: scale(.985); }
@@ -407,7 +420,7 @@ ul, ol { list-style: none; padding: 0; }
 .detail__head { align-items: flex-start; }
 .detail__headL { display: flex; flex-direction: column; gap: 12px; }
 .detail__country { display: flex; align-items: center; gap: 12px; }
-.detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(17,17,17,.08); display: block; }
+.detail__flag img { width: 40px; height: 30px; object-fit: cover; border-radius: 6px; box-shadow: 0 0 0 1px rgba(30,41,59,.08); display: block; }
 .detail__name { font-size: 30px; font-weight: 800; letter-spacing: -.02em; }
 .detail__rank { font-size: 14px; font-weight: 700; color: var(--muted); background: var(--surface); padding: 6px 12px; border-radius: 999px; }
 /* 대표 숫자 = 일주일 전 대비 환율 변동, 좌측 정렬(라벨+값 한 줄) */
@@ -480,7 +493,7 @@ ul, ol { list-style: none; padding: 0; }
 /* 추천 도시: 이미지 썸네일(위) + 이름 + 지수. img 없으면 그라데이션 폴백 */
 /* hover: 이름/지수는 그대로, 이미지(썸네일)만 살짝 올라가며 확대 + 그림자 */
 .d-city__thumb { position: relative; width: 100%; height: 110px; border-radius: 10px; overflow: hidden; background: #eee; cursor: pointer; transition: transform .25s ease, box-shadow .25s ease; }
-.d-city__thumb:hover { transform: translateY(-5px); box-shadow: 0 16px 30px -16px rgba(17,17,17,.3); }
+.d-city__thumb:hover { transform: translateY(-5px); box-shadow: 0 16px 30px -16px rgba(30,41,59,.3); }
 .d-city__thumb img { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
 /* 이미지 없음/로드 실패 시 드러나는 폴백: 도시 아이콘 + '이미지 준비중' */
 .d-city__ph { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
@@ -516,12 +529,12 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 전체 랭킹(추적 통화 국가) 팝업 ---- */
 .t-modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .t-modal[hidden] { display: none; }
-.t-modal__overlay { position: absolute; inset: 0; background: rgba(17,17,17,.5); backdrop-filter: blur(3px); animation: t-fade .2s ease; }
+.t-modal__overlay { position: absolute; inset: 0; background: rgba(30,41,59,.5); backdrop-filter: blur(3px); animation: t-fade .2s ease; }
 /* 패널 = flex column. 높이를 head / tools / body로 나누고 body에만 스크롤을 준다.
    position:sticky 대신 이 방식을 쓴 이유: 모달처럼 부모에 overflow가 걸린 구조에서는
    sticky가 기준 컨테이너를 못 잡아 안 붙는 경우가 있다. flex는 그 변수가 없다.
    dvh — 모바일에서 주소창이 접히고 펼쳐질 때 vh가 튀는 문제를 피한다. */
-.t-modal__panel { position: relative; width: 100%; max-width: 640px; max-height: min(82dvh, 780px); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 22px; box-shadow: 0 40px 90px -30px rgba(17,17,17,.45); animation: t-pop .22s cubic-bezier(.2,.7,.2,1); }
+.t-modal__panel { position: relative; width: 100%; max-width: 640px; max-height: min(82dvh, 780px); display: flex; flex-direction: column; overflow: hidden; background: #fff; border-radius: 22px; box-shadow: 0 40px 90px -30px rgba(30,41,59,.45); animation: t-pop .22s cubic-bezier(.2,.7,.2,1); }
 @keyframes t-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes t-pop { from { opacity: 0; transform: translateY(16px) scale(.98); } to { opacity: 1; transform: none; } }
 /* 고정 영역 1 — 타이틀 + 닫기 */
@@ -536,7 +549,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-msort { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 4px; gap: 4px; }
 .t-msort__btn { border: 0; background: transparent; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--muted); padding: 9px 16px; border-radius: 999px; transition: background .15s, color .15s; }
 .t-msort__btn:hover { color: var(--ink); }
-.t-msort__btn[aria-pressed="true"] { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(17,17,17,.1); }
+.t-msort__btn[aria-pressed="true"] { background: #fff; color: var(--accent); box-shadow: 0 1px 3px rgba(30,41,59,.1); }
 .t-msort__note { font-size: 14px; color: var(--muted2); margin-left: auto; }
 
 /* 스크린리더 전용 */
@@ -547,7 +560,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-modal__close:hover { background: #E9E9EC; color: var(--ink); }
 .t-modal__grid { display: grid; grid-template-columns: 1fr; gap: 10px; }  /* 1열: 환율 뱃지 밑 환산이 길어 2열에선 국가명이 잘려서 */
 .t-mcountry { display: flex; align-items: center; gap: 10px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 14px; background: #fff; text-align: left; transition: border-color .15s, box-shadow .15s, transform .15s; }
-.t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(17,17,17,.08); flex: none; }
+.t-mcountry img { width: 26px; height: 19px; object-fit: cover; border-radius: 3px; box-shadow: 0 0 0 1px rgba(30,41,59,.08); flex: none; }
 .t-mcountry__rank { flex: none; width: 22px; font-size: 14px; font-weight: 800; color: var(--muted2); text-align: center; }
 .t-mcountry__main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .t-mcountry__name { font-size: 15px; font-weight: 800; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -556,7 +569,7 @@ ul, ol { list-style: none; padding: 0; }
 /* 환산(1,000원 = @)을 뱃지 밑에 우측 정렬 — 국가명 밑에서 잘리던 문제 해결 */
 .t-mcountry__rate { font-size: 14px; font-weight: 600; color: var(--muted); white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
 .t-mcountry.is-rank { cursor: pointer; }
-.t-mcountry.is-rank:hover { border-color: var(--accent); box-shadow: 0 10px 24px -14px rgba(17,17,17,.25); transform: translateY(-2px); }
+.t-mcountry.is-rank:hover { border-color: var(--accent); box-shadow: 0 10px 24px -14px rgba(30,41,59,.25); transform: translateY(-2px); }
 
 /* ---- 반응형 ---- */
 @media (max-width: 900px) {
@@ -627,7 +640,7 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- B5: rank 섹션 배경 도트 질감(색면 없이 정체성), 상단만 페이드 / 상세뷰에선 숨김 ---- */
 .rank::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background-image: radial-gradient(rgba(17,17,17,.05) 1px, transparent 1px); background-size: 22px 22px;
+  background-image: radial-gradient(rgba(30,41,59,.05) 1px, transparent 1px); background-size: 22px 22px;
   -webkit-mask-image: linear-gradient(180deg, #000 0%, transparent 42%); mask-image: linear-gradient(180deg, #000 0%, transparent 42%);
   transition: opacity .5s ease; }
 .rank.is-detail::before { opacity: 0; }

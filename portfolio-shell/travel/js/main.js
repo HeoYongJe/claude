@@ -98,21 +98,22 @@
     el.addEventListener("mouseenter", () => {
       el.style.boxShadow = "0 24px 50px -24px rgba(17,17,17,.24)";
       el.style.transform = "translateY(-6px)";
-      el.style.borderColor = "#FF5400";
+      el.style.borderColor = "#E76F51";
     });
     el.addEventListener("mouseleave", () => {
       el.style.boxShadow = "none";
       el.style.transform = "none";
-      el.style.borderColor = "#E5E7EB";
+      el.style.borderColor = "#E2E8F0";
     });
   });
-  root.querySelectorAll(".t-cta, .t-cta-light").forEach((el) => {
+  // .t-cta--hero(캡슐형 CTA)는 CSS :hover만으로 처리(반투명 잉크 배경 + 원형 아이콘 딥 컬러) — 여기선 제외.
+  root.querySelectorAll(".t-cta:not(.t-cta--hero), .t-cta-light").forEach((el) => {
     el.addEventListener("mouseenter", () => {
-      if (el.classList.contains("t-cta")) el.style.background = "#CC4300";
+      if (el.classList.contains("t-cta")) el.style.background = "#D65A3D";
       else el.style.transform = "translateY(-3px)";
     });
     el.addEventListener("mouseleave", () => {
-      if (el.classList.contains("t-cta")) el.style.background = "#FF5400";
+      if (el.classList.contains("t-cta")) el.style.background = "#E76F51";
       else el.style.transform = "none";
     });
   });
@@ -197,7 +198,7 @@
     if (!note) {
       note = document.createElement("div");
       note.className = "t-rank-empty";
-      note.style.cssText = "display:none;color:#9CA3AF;font-size:16px;padding:40px 0;text-align:center;";
+      note.style.cssText = "display:none;color:#94A3B8;font-size:16px;padding:40px 0;text-align:center;";
       const grid = root.querySelector(".t-rankgrid");
       grid.parentNode.insertBefore(note, grid.nextSibling);
     }
@@ -230,7 +231,7 @@
       const on = t.dataset.mode === mode;
       // 흰 배경 섹션: 활성 = 흰 pill + 잉크 텍스트 + 옅은 그림자, 비활성 = 투명 + muted.
       t.style.background = on ? "#fff" : "transparent";
-      t.style.color = on ? "#111111" : "#6B7280";
+      t.style.color = on ? "#1E293B" : "#64748B";
       t.style.boxShadow = on ? "0 1px 3px rgba(17,17,17,.10)" : "none";
       t.setAttribute("aria-selected", on ? "true" : "false");
     });
@@ -255,8 +256,8 @@
       const color = dirColor((d.changePct || 0) >= 0);
       const num = rcard.querySelector(".rc-num");
       num.textContent = d.num;
-      num.style.color = "#9CA3AF";
-      num.style.background = "#F1F1F3";
+      num.style.color = "#94A3B8";
+      num.style.background = "#F1F5F9";
       const badge = rcard.querySelector(".rc-badge");
       badge.textContent = d.badge;
       badge.style.color = color;
@@ -279,7 +280,7 @@
           // 서울과 체감물가가 사실상 같을 때 — "0%"라는 숫자 대신 "동일"로, 중립색(방향이 없으니 빨강/파랑 둘 다 아님).
           cut.textContent = "체감물가 동일";
           cut.style.color = "var(--muted)";
-          cut.style.background = "#F1F1F3";
+          cut.style.background = "#F1F5F9";
         } else {
           // 체감물가: 화면 표기 부호 기준. 저렴(−, 내림)=파랑 / 비쌈(+, 오름)=빨강.
           const up = d.savePct < 0; // savePct<0 이면 화면엔 "+"(비쌈)로 표기 → 오름
@@ -492,14 +493,14 @@
     // num이 없으면(랭킹 밖 인기국: 유럽·베트남 등) 순위 대신 '인기 여행지'로 표기.
     rankEl.textContent = (d.num == null) ? "인기 여행지"
       : (strong ? `환율 이득 ${d.num}위` : `원화 약세 ${d.num}위`);
-    rankEl.style.color = "#6B7280";        // 순위는 방향색 아님 → 중립
-    rankEl.style.background = "#F1F1F3";
+    rankEl.style.color = "#64748B";        // 순위는 방향색 아님 → 중립
+    rankEl.style.background = "#F1F5F9";
 
     // 상단 대표 숫자 = 최근 일주일 대비 환율 변동 (방향 색: 오름=빨강 / 내림=파랑). 데이터 없으면 '준비 중'(중립색).
     const fxVal = detail.querySelector(".detail__fx-val");
     if (fxVal) {
       fxVal.textContent = d.badge || "준비 중";
-      fxVal.style.color = (d.changePct == null) ? "#6B7280" : dirColor(d.changePct >= 0);
+      fxVal.style.color = (d.changePct == null) ? "#64748B" : dirColor(d.changePct >= 0);
     }
     // head에도 익숙한 시세("100엔 = 917원") 표기
     const headKrw = detail.querySelector(".detail__krwper");
