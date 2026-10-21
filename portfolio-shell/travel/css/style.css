@@ -101,11 +101,11 @@ ul, ol { list-style: none; padding: 0; }
 /* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 배경 맨 아래쪽에 깔아 질감만 더함(메인 텍스트·카드 시선 방해 금지) */
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
   margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
-  color: #111111; opacity: .03; white-space: nowrap; pointer-events: none; user-select: none; }
+  color: #111111; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
 .hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
-.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.15; letter-spacing: -.02em; margin-top: 24px; color: var(--ink); }
+.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.09; letter-spacing: -.03em; margin-top: 20px; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 24px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
@@ -166,7 +166,9 @@ ul, ol { list-style: none; padding: 0; }
 /* 스파크라인 그리기 애니메이션: 초기엔 감춰두고 화면 진입 시 채운다 */
 .rc-line { transition: stroke-dashoffset .9s cubic-bezier(.2,.7,.2,1); }
 .rcard__foot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-.rc-cut { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); background: var(--surface); padding: 7px 13px; border-radius: 999px; }
+/* line-height: 1 고정 — "−"(U+2212, 체감물가 음수 표기)가 Pretendard에 없어 폴백 폰트로 렌더링되는데,
+   그 폴백 폰트의 줄 높이(ascent/descent)가 더 커서 line-height:normal이면 −일 때만 pill이 더 높아 보임(2026-10-21). */
+.rc-cut { font-size: 14px; font-weight: 700; letter-spacing: -.01em; line-height: 1; color: var(--accent); background: var(--surface); padding: 7px 13px; border-radius: 999px; }
 .rc-link { font-size: 14px; font-weight: 700; color: var(--muted); }
 /* 랭킹 카드 인사이트 한 줄 — 비쌀 때만 뜨는 경고가 아니라 늘 뜨는 요약(2026-10-18, 경고 전용 .rc-warn에서 확장).
    체감물가 상태 3종: 비쌈=경고(앰버) / 동일=중립(회색) / 쌈=이득(포인트 컬러). */
@@ -477,7 +479,7 @@ ul, ol { list-style: none; padding: 0; }
 /* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘.
    아이콘 칩은 .d-food__icon과 동일한 44px/radius 12로 통일(2026-10-20 전엔 40px/11이라 위계가 안 맞았음). */
 .d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
-.d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border-strong); }
+.d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border); }
 .d-tip:first-child { border-left: none; padding-left: 0; }
 .d-tip__icon { flex: none; display: inline-flex; width: 44px; height: 44px; border-radius: 12px; background: var(--surface); align-items: center; justify-content: center; color: var(--accent); }
 .d-tip__icon svg { width: 22px; height: 22px; display: block; }
