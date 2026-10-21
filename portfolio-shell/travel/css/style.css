@@ -119,7 +119,9 @@ ul, ol { list-style: none; padding: 0; }
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
   margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
   color: #111111; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
-.hero__grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+/* align-items:flex-start(2026-10-21, 구 center) — 카드 상단을 타이틀("지금 원화로") 시작선에 맞춤.
+   카드 쪽 margin-top(.hero__cardwrap)으로 eyebrow 배지 높이만큼 내려서 맞춘다(아래 주석 참고). */
+.hero__grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: flex-start; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
 /* 2026-10-21: 컨테이너 1200px 확장에 맞춰 타이틀도 64→80px로 키움(여백이 너무 비어 보인다는 피드백) */
@@ -127,7 +129,9 @@ ul, ol { list-style: none; padding: 0; }
 .hero__title em { color: var(--accent); font-style: normal; }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
-.hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
+/* margin-top:54px = eyebrow 배지 높이(34px) + 타이틀 margin-top(20px) — 카드 상단을 eyebrow가 아니라
+   타이틀 시작선에 맞추기 위한 보정(위 .hero__grid 주석 참고). 900px 이하(1열)에서는 0으로 해제. */
+.hero__cardwrap { animation: t-float 6s ease-in-out infinite; margin-top: 54px; }
 .hero__scroll { position: absolute; z-index: 10; bottom: 32px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: .1em; }
 
 /* 환율 카드(오늘의 추천) — 하늘 영상이 없어졌으니 반투명 블러 대신 평범한 흰 카드 + 그림자 */
@@ -561,6 +565,7 @@ ul, ol { list-style: none; padding: 0; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
   .d-tip:first-child { border-top: none; padding-left: 0; }
   .hero__grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero__cardwrap { margin-top: 0; }   /* 1열 스택에서는 위 54px 보정 불필요(gap만으로 간격 처리) */
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
   .t-modal__grid { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }
