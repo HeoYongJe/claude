@@ -67,7 +67,16 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 버튼 ---- */
 .t-cta { background: var(--accent); color: #fff; font-weight: 700; cursor: pointer; transition: background .15s; }
 .t-cta--nav { font-size: 14px; padding: 10px 18px; border-radius: 12px; }
-.t-cta--hero { font-size: 16px; padding: 15px 26px; border-radius: 14px; }
+/* 히어로 메인 CTA만 좀 더 "디자인스럽게" — 포인트 컬러 글로우 그림자 + hover 시 살짝 뜨는 느낌 + 화살표 슬라이드.
+   radius/색은 §버튼 규칙(12–14px, 포인트 컬러 CTA 전용) 그대로, 그림자·모션만 추가(2026-10-21). */
+.t-cta--hero { font-size: 16px; font-weight: 800; padding: 15px 28px; border-radius: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 16px 32px -14px rgba(255,84,0,.65), 0 2px 6px rgba(17,17,17,.06);
+  transition: background .15s, transform .15s, box-shadow .15s; }
+.t-cta--hero::after { content: "→"; transition: transform .2s cubic-bezier(.2,.7,.2,1); }
+.t-cta--hero:hover { transform: translateY(-2px); box-shadow: 0 20px 38px -14px rgba(255,84,0,.75), 0 4px 10px rgba(17,17,17,.08); }
+.t-cta--hero:hover::after { transform: translateX(4px); }
+.t-cta--hero:active { transform: translateY(0); box-shadow: 0 10px 20px -12px rgba(255,84,0,.55); }
 .t-cta--summary { font-size: 15px; padding: 13px 22px; border-radius: 12px; }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
@@ -111,9 +120,9 @@ ul, ol { list-style: none; padding: 0; }
 .hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
-.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.09; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
+.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.04; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
-.hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 24px; max-width: 440px; }
+.hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
 .hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
 .hero__scroll { position: absolute; z-index: 10; bottom: 32px; left: 50%; transform: translateX(-50%); font-size: 14px; font-weight: 600; color: var(--muted); letter-spacing: .1em; }
@@ -289,7 +298,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop__title { margin: 10px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.025em; color: var(--ink); }
 
 .t-pop__all { flex: none; display: inline-flex; align-items: center; gap: 7px;
-  font-size: 14px; font-weight: 800; color: var(--accent);
+  font-size: 14px; font-weight: 800; color: var(--ink);
   background: #fff; border: 1px solid var(--border-strong); border-radius: 10px;
   padding: 12px 18px; cursor: pointer; transition: transform .18s, box-shadow .18s; }
 
@@ -402,8 +411,8 @@ ul, ol { list-style: none; padding: 0; }
 .detail__rateline { display: flex; align-items: baseline; gap: 8px; margin-top: 6px; }
 .detail__rate-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .detail__krwper { font-size: 17px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
-.t-detail-back { font-size: 15px; font-weight: 700; color: var(--accent); }
-.t-detail-back:hover { color: var(--accent-dark); }
+.t-detail-back { font-size: 15px; font-weight: 700; color: var(--ink); }
+.t-detail-back:hover { color: var(--accent); }
 
 /* 공통 카드: 흰 면 + 테두리. 절약 카드도 2026-10-20부터 동일한 화이트+보더 카드로 통일
    (포인트 컬러는 카드 전체를 채우는 용도가 아니라 숫자·배지 같은 작은 강조 지점에만 쓴다는 원칙). */
