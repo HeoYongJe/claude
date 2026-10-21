@@ -250,7 +250,9 @@ ul, ol { list-style: none; padding: 0; }
 .cta__title { font-size: 48px; font-weight: 800; letter-spacing: -.02em; }
 
 /* ---- 푸터 ---- */
-.footer { max-width: 1080px; margin: 0 auto; padding: 32px 24px; font-size: 14px; color: var(--muted2); display: flex; justify-content: space-between; }
+/* position:relative 필수(2026-10-21, 위 .t-pop 주석과 동일 이유) — 배경색은 body(--bg)와 같아 평소엔
+   안 보이지만, 같은 스택 버그로 GAPPUN 텍스트가 겹쳐 보일 수 있어 다른 섹션들과 동일하게 방어. */
+.footer { position: relative; max-width: 1080px; margin: 0 auto; padding: 32px 24px; font-size: 14px; color: var(--muted2); display: flex; justify-content: space-between; }
 
 /* ---- 등장 애니메이션(스크롤 진입 시 페이드업) ---- */
 [data-reveal] { opacity: 0; transform: translateY(36px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
@@ -276,7 +278,9 @@ ul, ol { list-style: none; padding: 0; }
 .why-card__desc { font-size: 15px; line-height: 1.65; color: var(--muted); margin-top: 12px; }
 
 /* ---- 인기 여행지 (랭킹 아래): 배경 티커 1줄 + 정지 타일 3개 ---- */
-.t-pop { padding: 132px 0 140px; background: #FFFFFF; }
+/* position:relative 필수(2026-10-21) — sticky인 .hero는 position이 없는(static) 형제보다 항상 위에
+   그려지는 스택 규칙이 있어서, 이게 없으면 GAPPUN 워터마크가 이 섹션 위를 덮어버림(§7 .hero 주석 참고). */
+.t-pop { position: relative; padding: 132px 0 140px; background: #FFFFFF; }
 .t-pop__inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 
 .t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }

@@ -139,6 +139,15 @@
     트리거될 일이 없음). **`overflow-x:hidden`을 `#twrap`에서 `html`로 옮겨 해결** — html/body의 overflow는
     브라우저가 별도 스크롤 컨테이너를 만들지 않고 뷰포트 자체에 적용하는 특별 규칙이 있어 sticky가 정상
     동작함(`#twrap` 룰 자체는 삭제).
+    **버그 2(같은 날 추가 발견):** 배포 직후 "스크롤 끝까지 내리면 인기 여행지 섹션이 사라지고, GAPPUN이
+    2섹션(why) 이후에도 3·4섹션(rank·t-pop) 배경까지 계속 비친다"는 리포트 — 원인은 **스택 순서(stacking
+    order) 규칙**: `position`이 없는(`static`) 형제 요소는 `position`이 있는(sticky·relative 등) 요소보다
+    **항상 아래 레이어에 그려진다**(DOM 순서와 무관). `.why`·`.rank`는 이미 `position: relative`가 있어
+    `.hero`(sticky)를 document-order로 올바르게 덮었지만, **`.t-pop`과 `.footer`는 `position`이 없어서
+    sticky인 `.hero`가 이 둘의 "아래 레이어" 위에 그려져 그대로 비쳤던 것.** `.t-pop`·`.footer`에
+    `position: relative` 추가로 해결 — `elementFromPoint`로 스크롤 전 구간(0→끝)에서 항상 올바른 섹션이
+    최상단에 그려지는지 확인 완료. **교훈: `.hero`를 sticky로 만든 뒤로는, 그 아래 추가되는 모든 섹션은
+    `position: relative`(또는 그 이상)가 기본값이어야 함** — 안 그러면 이 버그가 또 생김.
   <details><summary>구 기록(2026-08, 하늘 영상 시절 — 역사 참고용, 지금 상태 아님)</summary>
 
   배경 = **루프 배경 영상**(`.hero__video` — 밝은 하늘 영상 `assets/hero/sky.mp4`, `object-fit:cover` +
