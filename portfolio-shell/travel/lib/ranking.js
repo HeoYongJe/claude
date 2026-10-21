@@ -180,11 +180,17 @@ function seriesMetrics(series, currentDate, meta, unitMult) {
   const maxR = Math.max(...rateVals);
   const is3moLow = current <= minR + 1e-9;
   const n = series.length;
+  // 스파크라인은 3개월치 데이터를 그대로 쓰되(와글거림 모양은 그대로), 전체 기울기(첫 점 vs 마지막 점)는
+  // 배지와 같은 기준(changePct 부호)에 맞춤 — 강세(원화 유리)=올라가는 선 / 약세=내려가는 선이 항상
+  // 배지 방향과 일치하도록 보장(2026-10-22, "데이터는 유지하되 방향만 배지와 맞춰달라"는 요청).
+  let ys = series.map((s) => (maxR === minR ? 24 : 4 + ((s.rate - minR) / (maxR - minR)) * 40));
+  const strong = changePct >= 0;
+  const lastHigherThanFirst = ys[n - 1] < ys[0]; // SVG는 y가 작을수록 위쪽
+  if (strong !== lastHigherThanFirst) ys = ys.map((y) => 48 - y); // 세로 반전(모양 유지, 기울기만 뒤집음)
   const line = series
     .map((s, i) => {
       const x = ((i / (n - 1)) * 240).toFixed(0);
-      const y = maxR === minR ? 24 : (4 + ((s.rate - minR) / (maxR - minR)) * 40).toFixed(0);
-      return `${x},${y}`;
+      return `${x},${ys[i].toFixed(0)}`;
     })
     .join(" ");
   const mult = unitMult || 1;
@@ -252,13 +258,19 @@ async function buildRanking() {
     const maxR = Math.max(...rateVals);
     const is3moLow = current <= minR + 1e-9;
 
-    // 스파크라인: 환율이 낮을수록(유리) 위로 → 강세는 상승선, 약세는 하락선
+    // 스파크라인: 환율이 낮을수록(유리) 위로 → 강세는 상승선, 약세는 하락선.
+    // 2026-10-22: 위 의도대로라면 강세=상승/약세=하락이어야 하는데, 3개월 데이터의 min/max가 "일주일
+    // 전 대비"(changePct) 방향과 항상 일치하진 않아 가끔 반대로 보이는 문제가 있었음 — 데이터(와글거림
+    // 모양)는 그대로 쓰되, 전체 기울기(첫 점 vs 마지막 점)만 changePct 부호에 맞춰 강제(세로 반전).
     const n = series.length;
+    let ys = series.map((s) => (maxR === minR ? 24 : 4 + ((s.rate - minR) / (maxR - minR)) * 40));
+    const strong = changePct >= 0;
+    const lastHigherThanFirst = ys[n - 1] < ys[0];
+    if (strong !== lastHigherThanFirst) ys = ys.map((y) => 48 - y);
     const line = series
       .map((s, i) => {
         const x = ((i / (n - 1)) * 240).toFixed(0);
-        const y = maxR === minR ? 24 : (4 + ((s.rate - minR) / (maxR - minR)) * 40).toFixed(0);
-        return `${x},${y}`;
+        return `${x},${ys[i].toFixed(0)}`;
       })
       .join(" ");
 
