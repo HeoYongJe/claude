@@ -54,7 +54,9 @@ ul, ol { list-style: none; padding: 0; }
 @keyframes t-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes t-float2 { 0%,100% { transform: translateY(0); } 50% { transform: translateY(10px); } }
 
-.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
+/* 콘텐츠 최대 폭 1200px(2026-10-21, 구 1080px) — 타이틀을 키우니 1080에서 좌우가 너무 타이트해져서,
+   흔히 쓰는 데스크톱 컨테이너 폭인 1200으로 확장(§7 히어로 타이포 주석도 같이 참고). */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; width: 100%; }
 
 /* ---- 텍스트 역할 ---- */
 .kicker { font-size: 14px; font-weight: 700; color: var(--accent); }
@@ -94,14 +96,14 @@ ul, ol { list-style: none; padding: 0; }
 .t-plane-glow { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; transform: translate(-50%,-50%); background: radial-gradient(circle, rgba(255,84,0,.16), rgba(255,84,0,0) 70%); }
 .t-plane { position: relative; width: 28px; height: 28px; color: var(--accent); filter: drop-shadow(0 6px 10px rgba(255,84,0,.28)); animation: t-planebob 3s ease-in-out infinite; }
 .t-plane svg { display: block; }
-/* 1080px 이하(태블릿·모바일)에서는 항로 레일 숨김(콘텐츠 방해) */
-@media (max-width: 1080px) { .t-rail { display: none; } }
+/* 1200px 이하(태블릿·모바일)에서는 항로 레일 숨김(콘텐츠 방해) — 컨테이너 폭(1200)과 맞춤 */
+@media (max-width: 1200px) { .t-rail { display: none; } }
 
 /* ---- 네비 ---- */
 /* 최상단(히어로 위)에서는 배경 없음, 스크롤하면 반투명 배경이 생김 (.is-scrolled는 main.js에서 토글) */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease, backdrop-filter .3s ease; }
 .nav.is-scrolled { background: rgba(255,255,255,.8); backdrop-filter: blur(14px); border-bottom-color: var(--border); }
-.nav__inner { max-width: 1080px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
+.nav__inner { max-width: 1200px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
 .nav__brand { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
 .nav__right { display: flex; align-items: center; gap: 28px; }
 .nav__links { display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: var(--muted); }
@@ -117,10 +119,11 @@ ul, ol { list-style: none; padding: 0; }
 .hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
   margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
   color: #111111; opacity: .025; white-space: nowrap; pointer-events: none; user-select: none; }
-.hero__grid { position: relative; z-index: 10; max-width: 1080px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
+.hero__grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; }
 .hero__eyebrow { display: inline-block; font-size: 14px; font-weight: 700; color: var(--accent); background: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 999px; }
 /* 2026-10-20: 히어로 타이틀만 Black Han Sans(다른 곳은 전부 Pretendard 유지) */
-.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 64px; line-height: 1.04; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
+/* 2026-10-21: 컨테이너 1200px 확장에 맞춰 타이틀도 64→80px로 키움(여백이 너무 비어 보인다는 피드백) */
+.hero__title { font-family: "Black Han Sans", "Pretendard", sans-serif; font-weight: 400; font-size: 80px; line-height: 1.02; letter-spacing: -.03em; word-spacing: -.12em; margin-top: 20px; color: var(--ink); }
 .hero__title em { color: var(--accent); font-style: normal; }
 .hero__desc { font-size: 18px; line-height: 1.6; color: var(--muted); margin-top: 15px; max-width: 440px; }
 .hero__actions { display: flex; gap: 14px; margin-top: 36px; }
@@ -146,10 +149,10 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 랭킹 섹션 ---- */
 /* 콘텐츠 많은 섹션은 100vh 강제 대신 자연 높이 + 넉넉한 상하 패딩(상단 여백 과다 문제 해결) */
-/* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1080+24 정렬선) */
+/* 좌우 여백은 rank__inner에서(다른 섹션 .container/.hero__grid/.nav__inner과 동일한 1200+24 정렬선) */
 /* 지그재그(Zebra) 섹션 배경 — 스크롤 시 섹션 경계가 색으로 또렷하게 구분되도록 교차 적용 */
 .rank { position: relative; overflow: hidden; padding: 132px 0; background: #F3F4F6; }
-.rank__inner { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 0 24px; width: 100%; }
+.rank__inner { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px; width: 100%; }
 .rank__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 32px; flex-wrap: wrap; }
 .rank__headL { max-width: 620px; }
 /* PC에서 탭(강세/약세) 전환 때마다 설명 줄바꿈이 1줄↔2줄로 들쭉날쭉하고, 폭 기반 자동 줄바꿈이라
@@ -261,7 +264,7 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 푸터 ---- */
 /* position:relative 필수(2026-10-21, 위 .t-pop 주석과 동일 이유) — 배경색은 body(--bg)와 같아 평소엔
    안 보이지만, 같은 스택 버그로 GAPPUN 텍스트가 겹쳐 보일 수 있어 다른 섹션들과 동일하게 방어. */
-.footer { position: relative; max-width: 1080px; margin: 0 auto; padding: 32px 24px; font-size: 14px; color: var(--muted2); display: flex; justify-content: space-between; }
+.footer { position: relative; max-width: 1200px; margin: 0 auto; padding: 32px 24px; font-size: 14px; color: var(--muted2); display: flex; justify-content: space-between; }
 
 /* ---- 등장 애니메이션(스크롤 진입 시 페이드업) ---- */
 [data-reveal] { opacity: 0; transform: translateY(36px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
@@ -290,7 +293,7 @@ ul, ol { list-style: none; padding: 0; }
 /* position:relative 필수(2026-10-21) — sticky인 .hero는 position이 없는(static) 형제보다 항상 위에
    그려지는 스택 규칙이 있어서, 이게 없으면 GAPPUN 워터마크가 이 섹션 위를 덮어버림(§7 .hero 주석 참고). */
 .t-pop { position: relative; padding: 132px 0 140px; background: #FFFFFF; }
-.t-pop__inner { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.t-pop__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
 .t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
 .t-pop__eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 800; color: var(--accent); }
@@ -563,7 +566,7 @@ ul, ol { list-style: none; padding: 0; }
   .price__body { grid-template-columns: 1fr; }
   .save-card { width: 100%; }
   .flow__grid { grid-template-columns: 1fr; gap: 32px; }
-  .hero__title { font-size: 44px; }
+  .hero__title { font-size: 55px; }
   .section-title { font-size: 30px; }
   .cta__title { font-size: 32px; }
   /* A3: 터치 타겟 ≥44px */
@@ -592,7 +595,7 @@ ul, ol { list-style: none; padding: 0; }
   .d-cities { gap: 8px; }
   .d-city__thumb { height: 88px; }
   /* 히어로 타이틀 폰 크기 */
-  .hero__title { font-size: 38px; }
+  .hero__title { font-size: 47px; }
   .section-title { font-size: 26px; }
   .nav__inner { padding: 14px 18px; }
   .hero__grid { padding: 88px 18px 40px; }
