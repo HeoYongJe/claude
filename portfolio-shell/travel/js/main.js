@@ -160,15 +160,24 @@
     if (!Number.isFinite(n) || n < 0) return 1000;
     return Math.min(n, MAX_KRW_INPUT);
   };
+  // 입력창 폭을 "ch" 단위(평균 글자폭 추정)가 아니라 실제 렌더 폭(canvas measureText)으로 재야 정확함 —
+  // 쉼표(,)는 숫자보다 훨씬 좁은데 ch는 모든 글자를 같은 폭으로 가정해서, 쉼표가 많아질수록(자릿수가
+  // 늘수록, 예: "9,999,999") 실제보다 넓게 잡아 숫자와 "원" 사이에 빈 공간이 생겼었다(2026-10-22 지적).
+  const measureCtx = document.createElement("canvas").getContext("2d");
+  const textPxWidth = (el, text) => {
+    const cs = getComputedStyle(el);
+    measureCtx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    return measureCtx.measureText(text).width;
+  };
   // 입력창 하나를 계산기로 연결. 반환값(updater)을 데이터 갱신 시마다 호출해 최신 krwPer/recv로 재계산.
   function setupCalcInput(inputEl, resultEl) {
     if (!inputEl || !resultEl) return () => {};
     let krwPerStr = "", recvStr = "";
-    // 자릿수만큼 자동 확장(콤마 넣어도 안 잘리게). 포커스 중엔 다음 글자 입력할 자리로 +1ch 여유를 두지만,
-    // 포커스를 벗어나면 그 여유가 숫자와 "원" 사이의 어색한 빈 공간으로 보여서(2026-10-22 지적) 여유 없이 딱 맞춤.
+    // 실제 글자 폭만큼 자동 확장. 포커스 중엔 다음 글자 입력할 자리로 약간의 여유(px)를 두지만,
+    // 포커스를 벗어나면 여유 없이 내용 폭에 딱 맞춤(blur 상태에서 "원"과의 간격이 벌어져 보이는 것 방지).
     const resize = () => {
-      const buffer = document.activeElement === inputEl ? 1 : 0;
-      inputEl.style.width = Math.max(inputEl.value.length + buffer, 4) + "ch";
+      const buffer = document.activeElement === inputEl ? 9 : 0; // px, 숫자 한 글자 정도의 커서 여유
+      inputEl.style.width = Math.max(Math.ceil(textPxWidth(inputEl, inputEl.value) + buffer), 24) + "px";
     };
     const recompute = () => {
       resize();

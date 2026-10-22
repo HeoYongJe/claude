@@ -573,6 +573,9 @@ ul, ol { list-style: none; padding: 0; }
    좁은 절약카드(300px, §7 Row1)에서 "=" 뒤 결과가 카드 밖으로 넘치던 문제 — 아래 flex-wrap으로 결과
    전체가 통째로 다음 줄로 내려가게(글자 중간 줄바꿈 아님) 안전망 추가. */
 .d-calc { display: flex; align-items: baseline; flex-wrap: wrap; row-gap: 6px; gap: 8px; font-size: 15px; font-weight: 800; color: var(--ink); }
+/* "="와 결과 숫자를 한 덩어리(.d-calc-result)로 묶어서, 줄바꿈이 필요하면 "="만 첫 줄에 혼자 남지 않고
+   이 덩어리 전체가 통째로 다음 줄로 내려가게 함(2026-10-22 지적: "=" 가 외롭게 떨어져 보였음). */
+.d-calc-result { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
 .d-calc .d-rate { white-space: nowrap; }
 
 /* 추천 도시 — 3개 가로 정렬 */
