@@ -384,7 +384,7 @@ ul, ol { list-style: none; padding: 0; }
 .t-pop__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; }
 .t-pop__eyebrow { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 800; color: var(--accent); }
 .t-pop__eyebrow .t-live-dot { margin-right: 0; }   /* 기존 t-live-dot 재사용(펄스 포함), flex gap과 이중 여백 방지 */
-.t-pop__title { margin: 10px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.025em; color: var(--ink); }
+.t-pop__title { margin: 14px 0 0; font-size: 30px; font-weight: 800; letter-spacing: -.025em; color: var(--ink); } /* 2026-10-22: 다른 섹션의 "키커→제목" 간격(.section-title margin-top:14px)과 통일 */
 
 /* 2026-10-21: 흰 배경+보더 버튼 → Secondary 캡슐(.t-cta--secondary, 위 버튼 섹션 참고)로 교체 */
 .t-pop__all { flex: none; }
@@ -517,7 +517,7 @@ ul, ol { list-style: none; padding: 0; }
 .detail__price .dcard { margin-top: 0; }
 
 /* 품목: 아이콘 + 이름 + [서울/현지 두 막대+금액] + 큰 % */
-.d-items { margin-top: 22px; }
+.d-items { margin-top: 16px; }
 .d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
 /* 2026-10-21: 품목 사이가 카드 여백에 비해 붙어 보인다는 피드백 — 24→32px, 그래도 붙어 보인다 해서
    2026-10-22에 40px로 재확대 */
@@ -580,6 +580,9 @@ ul, ol { list-style: none; padding: 0; }
 
 /* 추천 도시 — 3개 가로 정렬 */
 .d-cities { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+/* 2026-10-22 간격 위계 통일: "추천 도시"·"대표 먹거리"는 .detail__cols에서 좌우로 나란히 놓이는데
+   제목→본문 간격이 각각 16px/8px로 달라 나란히 보면 어긋나 보였음(사용자 스크린샷 지적) — "여행 꿀팁"의
+   14px까지 포함해 같은 역할(섹션 제목 바로 아래 간격)인 세 값을 16px 하나로 통일(아래 .d-foods/.d-tips). */
 /* 추천 도시: 이미지 썸네일(위) + 이름 + 지수. img 없으면 그라데이션 폴백 */
 /* hover: 이름/지수는 그대로, 이미지(썸네일)만 살짝 올라가며 확대 + 그림자 */
 /* 2026-10-22: 클릭 핸들러 없는 순수 장식 이미지인데 cursor:pointer가 클릭 가능한 것처럼 오해를 줘서 제거 */
@@ -595,7 +598,7 @@ ul, ol { list-style: none; padding: 0; }
 .d-city__idx { font-size: 14px; font-weight: 700; color: var(--muted); margin-top: 4px; }
 .d-city__idx b { color: var(--up); }
 /* 대표 먹거리: 아이콘 + 번호·이름 + 한 줄 설명 + 가격 (세로 리스트 행) */
-.d-foods { margin-top: 8px; display: flex; flex-direction: column; }
+.d-foods { margin-top: 16px; display: flex; flex-direction: column; }
 .d-food { display: flex; align-items: center; gap: 14px; padding: 14px 2px; }
 .d-food + .d-food { border-top: 1px solid var(--border); }
 .d-food__icon { flex: none; display: inline-flex; width: 44px; height: 44px; border-radius: 12px; background: var(--surface); align-items: center; justify-content: center; color: var(--accent); }
@@ -609,7 +612,7 @@ ul, ol { list-style: none; padding: 0; }
 
 /* 여행 꿀팁 — 풀 너비 3분할(세로 라인), 모던 라인 SVG 아이콘.
    아이콘 칩은 .d-food__icon과 동일한 44px/radius 12로 통일(2026-10-20 전엔 40px/11이라 위계가 안 맞았음). */
-.d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 14px; }
+.d-tips { display: grid; grid-template-columns: repeat(3,1fr); margin-top: 16px; }
 .d-tip { display: flex; align-items: flex-start; gap: 12px; padding: 4px 22px; border-left: 1px solid var(--border); }
 .d-tip:first-child { border-left: none; padding-left: 0; }
 .d-tip__icon { flex: none; display: inline-flex; width: 44px; height: 44px; border-radius: 12px; background: var(--surface); align-items: center; justify-content: center; color: var(--accent); }
@@ -664,6 +667,21 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 반응형 ---- */
 @media (max-width: 900px) {
+  /* 2026-10-22 실기기 버그 수정: 히어로가 1열로 바뀌며 콘텐츠(타이틀+설명+버튼+환율 카드)가 세로로
+     길어져, 많은 모바일 화면(특히 인앱 브라우저처럼 주소창·하단바로 실제 보이는 높이가 더 줄어드는
+     경우)에서 히어로 전체 높이가 뷰포트보다 커짐 — `position:sticky`는 자체 내부 스크롤이 없어서,
+     스티키로 고정되는 순간 뷰포트 밖으로 밀려난 하단 부분(카드의 "받는 금액"·설명·"상세 보기" 등)이
+     영영 보이지 않고 바로 다음 섹션에 덮여버리는 문제였다(로컬 375×812 테스트에서도 히어로 실측 높이
+     894px > 뷰포트 812px로 재현 확인). 데스크톱의 "스크롤해도 제자리 고정 + 다음 섹션이 덮으며 전환"
+     연출(§7 히어로 스크롤 커버 효과)은 콘텐츠가 뷰포트보다 짧다는 전제에서만 안전하므로, 이 폭부터는
+     sticky를 끄고 일반 문서 흐름으로 돌려 카드 전체가 평범하게 스크롤되어 끝까지 보이게 함. */
+  .hero { position: relative; }
+  /* 2026-10-22 섹션 간 세로 리듬 정리: `.t-pop`은 이미 이 900px 지점부터 데스크톱 132px → 72~80px로
+     줄어드는데, `.rank`/`.why`는 전엔 560px부터만 줄어들어서 561~900px(태블릿) 구간에서 두 섹션 그룹의
+     상하 패딩이 섞여 리듬이 어긋나 보였음(`.t-pop`만 좁고 `.rank`/`.why`는 여전히 데스크톱 패딩) —
+     같은 900px 지점에서 같이 줄도록 통일. */
+  .rank { padding: 72px 0 64px; }
+  .why { padding: 72px 0; }
   .why__grid { grid-template-columns: 1fr; }
   .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
@@ -717,9 +735,7 @@ ul, ol { list-style: none; padding: 0; }
   .section-title { font-size: 26px; }
   .nav__inner { padding: 14px 18px; }
   .hero__grid { padding: 88px 18px 40px; }
-  .rank { padding: 72px 0 64px; }
   .rank__inner { padding: 0 18px; }
-  .why { padding: 72px 0; }
   /* 모달: 좌우 여백을 줄이고 높이를 더 쓴다. 패딩이 head/tools/body로 나뉘어 각각 조정 */
   .t-modal { padding: 16px; }
   .t-modal__panel { max-height: 92dvh; }
