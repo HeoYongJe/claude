@@ -132,6 +132,53 @@
     return hasJong ? "은" : "는";
   };
 
+  // ── 환율 계산기(히어로 "보내는 금액" · 상세뷰 "원화 환산" 공용, 2026-10-22) ──
+  // 서버가 raw 숫자를 따로 안 내려줘도(API·오프라인 스냅샷 공용 포맷), 이미 화면에 쓰는 krwPer 문자열
+  // ("1헤알 = 261.78원")만 파싱하면 비율을 구할 수 있어 별도 API 필드 추가 없이 클라이언트에서 계산.
+  function parseKrwPerRatio(krwPerStr) {
+    const m = krwPerStr && krwPerStr.match(/^([\d,.]+)[^\d=]*=\s*([\d,.]+)원/);
+    if (!m) return null;
+    const unitAmount = parseFloat(m[1].replace(/,/g, ""));
+    const krwAmount = parseFloat(m[2].replace(/,/g, ""));
+    return krwAmount ? unitAmount / krwAmount : null; // 외화 단위 / 1원
+  }
+  const unitSuffixFromRecv = (recv) => (recv ? recv.replace(/^[\d,.]+/, "") : "");
+  const formatForeignAmount = (amount, unit) =>
+    (amount >= 100 ? Math.round(amount).toLocaleString("ko-KR") : amount.toFixed(1)) + unit;
+  const digitsFromInput = (el) => {
+    const n = parseInt(String(el.value).replace(/[^\d]/g, ""), 10);
+    return Number.isFinite(n) && n >= 0 ? n : 1000;
+  };
+  // 입력창 하나를 계산기로 연결. 반환값(updater)을 데이터 갱신 시마다 호출해 최신 krwPer/recv로 재계산.
+  function setupCalcInput(inputEl, resultEl) {
+    if (!inputEl || !resultEl) return () => {};
+    let krwPerStr = "", recvStr = "";
+    const resize = () => { inputEl.style.width = Math.max(inputEl.value.length + 1, 4) + "ch"; }; // 자릿수만큼 자동 확장(콤마 넣어도 안 잘리게)
+    const recompute = () => {
+      resize();
+      const ratio = parseKrwPerRatio(krwPerStr);
+      if (ratio == null) { resultEl.textContent = recvStr || "—"; return; }
+      resultEl.textContent = formatForeignAmount(digitsFromInput(inputEl) * ratio, unitSuffixFromRecv(recvStr));
+    };
+    inputEl.addEventListener("input", recompute);
+    inputEl.addEventListener("click", (e) => e.stopPropagation());
+    inputEl.addEventListener("keydown", (e) => {
+      e.stopPropagation(); // 카드 전체가 클릭/Enter로 상세이동하는 핸들러와 겹치지 않게(히어로 카드)
+      if (e.key === "Enter") inputEl.blur();
+    });
+    inputEl.addEventListener("focus", () => inputEl.select());
+    inputEl.addEventListener("blur", () => {
+      inputEl.value = digitsFromInput(inputEl).toLocaleString("ko-KR"); // 자릿수 콤마 정리는 blur 시에만(타이핑 중 커서 튐 방지)
+      recompute();
+    });
+    resize();
+    return (newKrwPer, newRecv) => { krwPerStr = newKrwPer; recvStr = newRecv; recompute(); };
+  }
+  // 입력값은 나라를 바꿔도 유지(예: "50000원이면 어디가 제일 싸지?" 식으로 비교해보라는 의도) — 재렌더 시
+  // updateHero()/openDetail()가 매번 새 krwPer·recv로 updater를 호출하면 현재 입력값 기준으로 재계산됨.
+  const updateHeroCalc = setupCalcInput(root.querySelector(".t-hero-calc-input"), root.querySelector(".t-hero-recv"));
+  const updateDetailCalc = setupCalcInput(root.querySelector(".t-detail-calc-input"), root.querySelector(".d-rate"));
+
   // ── 증감 수치 색: 방향(오름/내림)만 담당 (좋다/나쁘다 의미는 텍스트 라벨로) ──
   // 화면에 보이는 부호 기준: 오름(+, ▲) = 빨강 / 내림(−, ▼) = 파랑. 예외 없이 모든 지표에 동일 적용.
   const DIR_UP = "#EF4444", DIR_DOWN = "#0E4AEB";
@@ -506,7 +553,7 @@
 
     // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
     // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.
-    detail.querySelector(".d-rate").textContent = d.rate || "환율 준비 중";
+    updateDetailCalc(d.krwPer, d.recv || "환율 준비 중"); // "원화 환산" 입력값 기준 재계산(구 d.rate 대체)
     const krwPerEl = detail.querySelector(".d-krwper");
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
@@ -729,7 +776,7 @@
       badgeEl.style.color = dirColor(up);
       badgeEl.style.background = dirTint(up);
     }
-    set(".t-hero-recv", top.recv);
+    updateHeroCalc(top.krwPer, top.recv); // "보내는 금액" 입력값 기준으로 "받는 금액" 재계산(기존 set 대체)
     set(".t-hero-desc",
       top.is3moLow ? "최근 3개월 환율 중 가장 유리해요."
         : `최근 일주일 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);

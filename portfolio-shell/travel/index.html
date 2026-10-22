@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Unbounded:wght@900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261022f">
+<link rel="stylesheet" href="css/style.css?v=20261022g">
 </head>
 <body>
 
@@ -64,7 +64,7 @@
           </div>
           <p class="t-hero-name">일본</p>
           <div class="fxcard__convert">
-            <div><div class="fxcard__cap">보내는 금액</div><div class="fxcard__amt">1,000원</div></div>
+            <div><div class="fxcard__cap">보내는 금액</div><div class="fxcard__amt"><input type="text" inputmode="numeric" class="d-calc-input t-hero-calc-input" value="1,000" aria-label="보낼 원화 금액">원</div></div>
             <div class="fxcard__arrow">→</div>
             <div><div class="fxcard__cap">받는 금액</div><div class="fxcard__amt t-hero-recv">¥106</div></div>
           </div>
@@ -207,7 +207,7 @@
           <div class="d-savecard__warn" hidden></div>
           <div class="d-savecard__div"></div>
           <div class="d-savecard__row"><span>환율 시세</span><b class="d-krwper"></b></div>
-          <div class="d-savecard__row"><span>1,000원 환산</span><b class="d-rate"></b></div>
+          <div class="d-savecard__row"><span>원화 환산</span><span class="d-calc"><input type="text" inputmode="numeric" class="d-calc-input t-detail-calc-input" value="1,000" aria-label="환산할 원화 금액">원 = <b class="d-rate"></b></span></div>
         </aside>
       </div>
 
@@ -299,6 +299,6 @@
 <script src="js/countryDetail.js?v=20261018a"></script>
 <script src="js/cityImages.js?v=20261018a"></script>
 <script src="js/rankingSnapshot.js?v=20261018a"></script>
-<script src="js/main.js?v=20261022b"></script>
+<script src="js/main.js?v=20261022d"></script>
 </body>
 </html>
