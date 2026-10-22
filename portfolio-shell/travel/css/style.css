@@ -178,25 +178,27 @@ ul, ol { list-style: none; padding: 0; }
 .fxcard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .t-hero-badge { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); background: var(--surface); padding: 6px 11px; border-radius: 999px; }
 .t-hero-name { font-size: 32px; font-weight: 800; margin-top: 18px; letter-spacing: -.02em; }
-.fxcard__convert { display: flex; align-items: center; gap: 16px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.fxcard__convert { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 10px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .fxcard__cap { font-size: 14px; color: var(--muted); font-weight: 600; }
-.fxcard__amt { font-size: 22px; font-weight: 400; }         /* 보내는 금액: normal */
+.fxcard__amt { font-size: 22px; font-weight: 400;margin-top: 8px; }         /* 보내는 금액: normal */
 .fxcard__arrow { font-size: 20px; color: var(--accent); }
-.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); }   /* 받는 금액: 잉크 + 굵게(방향색 제거) */
+.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); white-space: nowrap; }   /* 받는 금액: 잉크 + 굵게(방향색 제거). nowrap: 2026-10-22 상한 999만원 확대로 IDR 등 고비율 통화는 desktop에서도 10자리까지 나올 수 있어 줄바꿈 금지(§7 참고) */
 /* 2026-10-22: "보내는 금액"을 직접 입력해 "받는 금액"이 실시간으로 바뀌는 계산기 인터랙션(히어로 카드 +
-   상세뷰 절약카드 공용). ~~회색 박스형~~은 "패딩이 엉망이고 정렬이 깨진다"는 피드백으로 같은 날 재작업 —
-   **토스 스타일 "Seamless Typography Input"**: 배경·테두리·radius·패딩 전부 제거, 얇은 밑줄 하나로만
-   입력 가능함을 암시. 포커스 시 밑줄만 포인트 컬러로 바뀌는 게 유일한 시각 피드백.
-   **입력 숫자와 결과 숫자는 폭이 같은 크기·굵기**(히어로 22px/800 = `.t-hero-recv`와 동일,
-   상세뷰 15px/800 = `.d-rate`와 동일)로 "양팔 저울"처럼 좌우 균형을 맞춤 — 폰트도 결과 쪽과 같은
-   Pretendard로 통일(전엔 Unbounded였는데, 서로 다른 폰트로는 같은 px 값이어도 시각적 balance가 안 맞음).
-   단위(원)는 숫자보다 작고 얇게, 숫자 바로 옆에 붙임. */
+   상세뷰 절약카드 공용). ~~투명 밑줄형(Seamless Typography Input)~~은 입력 가능함이 잘 안 보인다는
+   피드백으로 재작업 — **연한 그레이 박스(`.d-calc-box`)**가 입력창+단위를 함께 감싸 "여기 입력란"임을
+   한눈에 알려주고, 포커스 시 포인트 컬러 링으로 피드백. 구 박스형(2026-10-22 초반)이 "패딩이 엉망이고
+   정렬이 깨진다"고 반려됐던 지점을 이번엔 명확히 고침: **입력창은 `text-align:left`로 좌측 정렬**하고
+   박스 좌측 패딩도 최소(8px)로 — 숫자 앞에 불필요한 빈 공간이 남지 않게. **박스 자체는 고정폭이 아니라
+   `inline-flex`로 내용(JS가 자릿수만큼 `ch`로 넓히는 입력창)에 맞춰 자동으로 늘어남** — 숫자가 늘어날수록
+   박스가 오른쪽으로만 확장되고 왼쪽 시작 위치는 고정. 단위는 "원"(한글) 대신 **"KRW"(보내는 금액)·
+   국가별 ISO 통화 코드(받는 금액, 예: BRL)**로 표기(`main.js` `COUNTRY_CCY_CODE`). */
+.d-calc-box { display: inline-flex; align-items: baseline; gap: 4px; background: var(--surface);
+  border-radius: 10px; padding: 6px 10px 6px 8px; transition: box-shadow .15s ease, background .15s ease; }
+.d-calc-box:focus-within { background: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .d-calc-input { font-size: 15px; font-weight: 800; color: var(--ink); background: transparent; border: none;
-  border-bottom: 2px solid var(--border); outline: none; padding: 0 0 2px; text-align: right;
-  transition: border-color .15s ease; }
-.d-calc-input:focus { border-bottom-color: var(--accent); }
+  outline: none; padding: 0; margin: 0; text-align: left; }
 .fxcard__amt .d-calc-input { font-size: 22px; } /* 히어로 컨텍스트: 받는 금액(22px)과 동일 크기 */
-.d-calc-unit { font-size: 16px; font-weight: 500; color: #4B5563; margin-left: 2px; }
+.d-calc-unit { font-size: 14px; font-weight: 700; color: var(--muted); } /* 사이트 전역 최소 폰트 14px 규칙 준수 */
 .d-calc-eq { color: var(--muted); font-weight: 700; }
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 /* 히어로 '오늘의 추천' 카드: 클릭 가능 */
@@ -251,8 +253,6 @@ ul, ol { list-style: none; padding: 0; }
    보장함 — 그 전엔 3개월 shape의 min/max가 1주 방향과 어긋나 가끔 반대로 보였었음. */
 .rc-sparkwrap { margin-top: 18px; position: relative; }
 .rc-spark { width: 100%; height: 44px; display: block; position: relative; z-index: 1; }
-.rc-sparkwrap::before { content: ""; position: absolute; left: 0; right: 0; top: 22px; height: 1px;
-  background: var(--border); opacity: .6; }
 .rc-spark__axis { display: flex; justify-content: space-between; margin-top: 6px; }
 .rc-spark__date { font-size: 14px; font-weight: 600; color: var(--muted2); }
 /* 스파크라인 그리기 애니메이션: 초기엔 감춰두고 화면 진입 시 채운다 */
@@ -558,8 +558,11 @@ ul, ol { list-style: none; padding: 0; }
    늘면(예: 750,000) 좁은 절약카드(300px, §7 Row1 1fr 300px)에서 여전히 "헤\n알"처럼 밀려 깨짐 → 결과는
    줄바꿈 금지로 고정하고, 이 행 자체는 라벨 위/계산 줄 아래로 세로 쌓아(.d-savecard__row--calc) 폭을
    한 줄 전체로 확보. baseline으로 숫자 크기가 달라도 텍스트 밑단이 가지런히 맞음. */
-.d-calc { display: flex; align-items: baseline; gap: 8px; font-size: 15px; font-weight: 800; color: var(--ink); }
+.d-calc { display: flex; align-items: baseline; flex-wrap: wrap; row-gap: 6px; gap: 8px; font-size: 15px; font-weight: 800; color: var(--ink); }
 .d-calc .d-rate { white-space: nowrap; }
+/* 2026-10-22: 상한이 9,999,999로 늘며 IDR처럼 환율이 높은 통화는 결과가 10자리까지 나올 수 있어,
+   좁은 절약카드(300px, §7 Row1)에서 "=" 뒤 결과가 카드 밖으로 넘치던 문제 — 위 flex-wrap으로 결과
+   전체가 통째로 다음 줄로 내려가게(글자 중간 줄바꿈 아님) 안전망 추가. */
 .d-savecard__row--calc { flex-direction: column; align-items: flex-start; gap: 8px; }
 
 /* 추천 도시 — 3개 가로 정렬 */
@@ -653,12 +656,6 @@ ul, ol { list-style: none; padding: 0; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
   .d-tip:first-child { border-top: none; padding-left: 0; }
   .hero__grid { grid-template-columns: 1fr; gap: 40px; }
-  /* 2026-10-22: 좁은 화면(모바일 1열)에서 "받는 금액" 결과가 "헤\n알"처럼 글자 중간에서 줄바꿈되던
-     문제 — 밑줄형으로 바뀌어 폭은 줄었지만 안전하게 줄바꿈 금지는 유지. */
-  .t-hero-recv { white-space: nowrap; }
-  /* 큰 금액을 입력해도(최대 9자리, maxlength) 한 줄에 다 안 들어가면 "받는 금액" 쪽이 줄바꿈으로
-     내려가게(겹치거나 가로 스크롤 생기는 대신) — 안전망. */
-  .fxcard__convert { flex-wrap: wrap; row-gap: 10px; }
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
   .t-modal__grid { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }
