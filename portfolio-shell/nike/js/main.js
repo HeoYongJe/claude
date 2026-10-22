@@ -45,18 +45,9 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 섹션 진입 시 스우시 드로잉 ----
+  // ---- 제품 쇼케이스: 스크롤 진행률에 비주얼 회전·확대 바인딩(아래 raf 루프, showcase는 bounds 측정에도 재사용) ----
   const showcase = document.querySelector(".showcase");
-  const showcaseVisual = document.querySelector(".ph-visual--shoe svg");
-  if (showcase && !reduceMotion) {
-    const showcaseIO = new IntersectionObserver(
-      (entries) => entries.forEach((entry) => showcase.classList.toggle("is-in", entry.isIntersecting)),
-      { threshold: 0.3 }
-    );
-    showcaseIO.observe(showcase);
-  } else if (showcase) {
-    showcase.classList.add("is-in");
-  }
+  const showcaseVisual = document.querySelector(".ph-visual__img");
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -135,8 +126,12 @@
         const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
         const scale = 1 + progress * 0.9; // 1 -> 1.9 (전경, 빠르게 확대)
         const opacity = Math.max(0, 1 - progress * 1.6);
+        // 2026-10-22: 입장 시 blur→선명(위 CSS [data-reveal])의 반대 방향 — 스크롤해서 다음 섹션으로
+        // 넘어가는 동안 다시 흐려지도록 진행률에 블러를 바인딩(0 -> 14px, 입장 블러 세기와 동일하게 맞춤).
+        const blur = progress * 14;
         heroInner.style.transform = `scale(${scale.toFixed(3)})`;
         heroInner.style.opacity = opacity.toFixed(3);
+        heroInner.style.filter = `blur(${blur.toFixed(1)}px)`;
         if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - progress * 4).toFixed(3);
         // 배경은 전경보다 훨씬 느리게(1 -> 1.15) — "background-attachment"처럼 배경은 거의 제자리,
         // 콘텐츠만 그 위를 빠르게 지나가는 듯한 깊이감.

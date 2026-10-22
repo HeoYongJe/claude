@@ -62,7 +62,7 @@ button, input { font: inherit; }
   radial-gradient(ellipse at 30% 20%, rgba(215,255,62,.14), transparent 55%),
   radial-gradient(ellipse at 75% 75%, rgba(215,255,62,.08), transparent 50%);
 }
-.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity; backface-visibility: hidden; }
+.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity, filter; backface-visibility: hidden; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
@@ -76,7 +76,14 @@ button, input { font: inherit; }
 /* ---- 등장 애니메이션(공통) ---- */
 [data-reveal] { opacity: 0; transform: translateY(32px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
 [data-reveal].is-revealed { opacity: 1; transform: translateY(0); }
-.hero [data-reveal] { transition-delay: .1s; }
+/* 2026-10-22: 히어로만 입장 시 블러→선명 전환 추가("타이포가 흐림 상태에서 샤악하고 나타났다가") —
+   기본 [data-reveal]의 페이드업에 filter를 더해 kicker·NIKE·tagline·sub 전부가 같은 리듬으로 흐려졌다
+   맑아지며 등장. NIKE 글자 자체는 이미 letterIn 키프레임에서 별도로 blur(6px)→0을 쓰고 있어 이중으로
+   더해지는 셈이라 더 또렷한 "샤악" 임팩트. 나가는 쪽(스크롤 시 다시 흐려짐)은 scroll-scrub 쪽
+   (js main.js heroInner.style.filter)에서 진행률에 따라 연속으로 처리 — 여긴 1회성 입장만 담당. */
+.hero [data-reveal] { filter: blur(14px); transition-delay: .1s;
+  transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), filter .9s cubic-bezier(.2,.7,.2,1); }
+.hero [data-reveal].is-revealed { filter: blur(0); }
 .hero [data-reveal]:nth-child(2) { transition-delay: .25s; }
 .hero [data-reveal]:nth-child(3) { transition-delay: .4s; }
 .hero [data-reveal]:nth-child(4) { transition-delay: .55s; }
@@ -105,10 +112,8 @@ button, input { font: inherit; }
 }
 .showcase__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 .showcase__visual { position: sticky; top: 96px; aspect-ratio: 1 / 1; border-radius: 24px; }
-.ph-visual--shoe { border-radius: 24px; display: flex; align-items: center; justify-content: center; }
-.ph-visual--shoe svg { will-change: transform; backface-visibility: hidden; }
-.ph-shoe__swoosh { stroke-dasharray: 260; stroke-dashoffset: 260; transition: stroke-dashoffset 1.4s cubic-bezier(.2,.7,.2,1); }
-.showcase.is-in .ph-shoe__swoosh { stroke-dashoffset: 0; }
+.ph-visual--shoe { border-radius: 24px; display: flex; align-items: center; justify-content: center; padding: 28px; }
+.ph-visual__img { width: 100%; height: 100%; object-fit: contain; will-change: transform; backface-visibility: hidden; }
 .showcase__features { padding-top: 140px; }
 .showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
 .showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 4vw, 44px); color: var(--text-on-dark); margin-bottom: 56px; }
@@ -177,19 +182,18 @@ button, input { font: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal] { transition: none !important; opacity: 1 !important; transform: none !important; }
+  [data-reveal] { transition: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
   .hero__scroll span { animation: none; }
-  .ph-shoe__swoosh { transition: none; stroke-dashoffset: 0; }
   html { scroll-behavior: auto; }
   .grain { display: none; }
   .marquee__track { animation: none; }
   .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
   .spec-card, .lb-tile, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
-  .ph-visual--shoe svg { transform: none !important; }
+  .ph-visual__img { transform: none !important; }
   /* 스크롤 스크러빙·핀드줌·배경 패럴럭스 전부 끔 — 정상 문서 흐름으로 */
   .hero-wrap { height: auto; }
   .hero { position: relative; }
-  .hero__inner { transform: none !important; opacity: 1 !important; }
+  .hero__inner { transform: none !important; opacity: 1 !important; filter: none !important; }
   .manifesto { height: auto; padding: 120px 0; }
   .manifesto__pin { position: relative; height: auto; }
   .manifesto__text { transform: none !important; }
