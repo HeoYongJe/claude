@@ -208,7 +208,7 @@ ul, ol { list-style: none; padding: 0; }
   (`inset 0 -6px 8px -5px`: 오프셋을 음수로 줘서 그림자 중심을 박스 아래 바깥으로 보내고, 블러로 안쪽
    하단만 부드럽게 어두워지게 — 평평한 채우기보다 "오목하게 눌린 칸"이라는 느낌을 은은하게 줌). */
 .d-calc-box { display: inline-flex; align-items: baseline; background: var(--surface);
-  border-radius: 10px; padding: 6px 10px 6px 8px; box-shadow: inset 0 -6px 8px -5px rgba(15,23,42,.14);
+  border-radius: 10px; padding: 6px 10px 6px 8px; box-shadow: inset 0 -6px 8px -5px rgba(15, 23, 38, .05);
   transition: box-shadow .15s ease, background .15s ease; }
 .d-calc-box:focus-within { background: #fff; box-shadow: inset 0 -6px 8px -5px rgba(15,23,42,.14), 0 0 0 2px var(--accent); }
 .d-calc-input { font-size: 15px; font-weight: 800; color: var(--ink); background: transparent; border: none;
