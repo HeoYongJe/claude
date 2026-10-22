@@ -69,19 +69,25 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT SHOWCASE (상단 3D 틸트 스테이지 → 텍스트 콘텐츠) ============ -->
+  <!-- ============ PRODUCT SHOWCASE (상단 3D 모델 스테이지 → 세로 라인 → 텍스트, 한 흐름) ============ -->
   <section class="showcase" id="showcase">
-    <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발이 3D로 방향을 틀며 정면을 향하고,
-         아래 라인이 그어지고, 배경 그라데이션이 번짐. 핀이 풀려야 아래 콘텐츠가 자연스럽게 등장. -->
+    <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발 3D 모델이 회전하며 정면을 향하고,
+         신발이 자리 잡은 뒤에야(후반부) 배경 그라데이션이 번지며 아래 세로 라인이 쭉 그어짐 —
+         핀이 풀려야 아래 콘텐츠가 자연스럽게 등장(신발→라인→텍스트가 한 세트로 이어지는 흐름). -->
     <div class="showcase__stage-wrap" data-showcase-stage-wrap>
       <div class="showcase__stage">
         <!-- 배경 전용 클립 래퍼 — 형제인 스테이지의 sticky는 안 건드리고 배경만 가둠 -->
         <div class="showcase__bgclip" aria-hidden="true">
-          <div class="showcase__bg" data-speed="0.2" data-showcase-bg></div>
+          <div class="showcase__bg" data-showcase-bg></div>
         </div>
-        <div class="showcase__visual">
-          <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-tilt>
+        <div class="showcase__visual is-loading">
+          <!-- PLACEHOLDER였던 .showcase__shoe(이미지)는 3D 모델(assets/models/sneaker.glb)로 교체 —
+               js/showcase3d.js(three.js)가 이 canvas에 렌더링하고, 회전은 main.js가 넘겨주는
+               스크롤 진행률에 바인딩(window.__setShowcaseProgress). is-loading은 모델(약 22MB) 로드
+               중 은은한 펄스로 "로딩 중"을 알리고, 로드 완료 시 JS가 제거. -->
+          <canvas class="showcase__canvas" data-showcase-canvas aria-label="신발 3D 모델"></canvas>
         </div>
+        <!-- 세로 라인: hero__scroll의 반복 애니메이션과 달리 1회성 — 스크롤 진행률에 따라 위→아래로 쭉 그려짐 -->
         <div class="showcase__line" data-showcase-line aria-hidden="true"></div>
       </div>
     </div>
@@ -180,5 +186,16 @@
   </footer>
 
   <script src="js/main.js"></script>
+  <!-- 쇼케이스 3D(신발 glb) 전용 — three.js는 ES 모듈 배포만 안정적으로 유지되는 버전대라 importmap으로 로드.
+       main.js(classic script)와는 window.__setShowcaseProgress로만 통신(§5 Motion 참고). -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/showcase3d.js"></script>
 </body>
 </html>

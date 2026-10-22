@@ -106,30 +106,43 @@ button, input { font: inherit; }
 .manifesto__text em { font-style: normal; color: var(--volt); -webkit-text-stroke: .5px var(--ink); }
 
 /* ---- 제품 쇼케이스 ----
-   2026-10-22 전면 재구성: 기존엔 좌(스티키 비주얼)/우(스크롤 피처 리스트) 2단 구성이었는데, "사이드by사이드로
-   단순하게 들어가는 게 아니라 섹션 상단에 신발이 크게 임팩트 있게 있고, 스크롤에 따라 3D로 방향을 틀고,
-   아래 라인이 생기고, 배경 그라데이션이 펼쳐진 다음 텍스트가 등장"하는 걸로 요청 — hero-wrap과 같은
-   패턴(래퍼가 추가 스크롤 높이를 주고 안쪽 .showcase__stage만 그 구간 동안 sticky)으로 **전용 스테이지**를
-   따로 둠. 스테이지가 핀 풀리며 끝나야 비로소 아래 .showcase__content(피처 리스트)가 뷰포트에 들어오므로,
-   "신발 연출이 먼저 끝나고 그다음 텍스트" 순서가 스크롤 길이로 자연스럽게 보장됨(별도 타이밍 로직 불필요). */
+   2026-10-22 전면 재구성(3차): "신발이 더 커야 한다 — 화면에서 메인처럼. 그라데이션은 위→아래, 신발
+   연출이 끝나야 시작되면서 텍스트가 올라온다. 신발과 텍스트는 한 세트인데 지금은 스테이지/콘텐츠가
+   두 섹션처럼 분리돼 보인다. 라인은 가로가 아니라 세로(hero__scroll 느낌, 단 반복 아니고 스크롤값
+   그대로 쭉 그려짐)"는 피드백 반영.
+   - 신발 사진(nike_s.png) → 실제 3D 모델(assets/models/sneaker.glb, three.js)로 교체. 회전은
+     js/showcase3d.js가 소유, 여기 CSS는 그 모듈이 그리는 <canvas>의 자리·크기만 잡아줌.
+   - "두 섹션처럼 분리돼 보인다" 문제는, 배경 그라데이션이 스테이지 안에만 갇혀 있고 .showcase__content는
+     그냥 단색 블랙이라 경계에서 색이 뚝 끊겨서 생긴 것 — 스테이지 쪽 그라데이션을 "후반부 하단에만"
+     모이도록(아래 .showcase__bg) 만들고, .showcase__content 맨 위에도 같은 톤의 짧은 페이드를 둬서
+     스테이지 하단에서 콘텐츠 상단으로 색이 자연스럽게 이어지도록(물리적으로 하나의 엘리먼트는 아니지만
+     색 연속성으로 이음새를 가림 — 스테이지를 감싼 sticky 때문에 실제로 하나의 엘리먼트로 두 섹션에
+     걸치게 하려면 .showcase 자체가 포지션 컨텍스트가 돼야 하는데, 그러면 .showcase__stage-wrap의
+     offsetTop 측정 기준이 바뀌어 스크롤 진행률이 깨짐 — 전에 겪은 버그라 그 구조는 피함). */
 .showcase { background: var(--ink); }
 .showcase__stage-wrap { position: relative; height: 180vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }
 .showcase__bgclip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-/* 평소엔 opacity 0(은은하게 숨어있다가) 스테이지 진행률에 따라 js에서 올려 "펼쳐지는" 느낌을 냄 */
-.showcase__bg { position: absolute; inset: -10% -10%; opacity: 0; background:
-  radial-gradient(ellipse at 30% 35%, rgba(215,255,62,.24), transparent 55%),
-  radial-gradient(ellipse at 72% 70%, rgba(215,255,62,.12), transparent 50%);
+/* 위→아래 그라데이션, 하단(신발이 자리 잡는 영역)에만 모이게 — 초반엔 안 보이다가(opacity 0) 신발
+   회전이 끝나갈 때쯤 js에서 opacity를 올려 "펼쳐지는" 느낌을 냄. */
+.showcase__bg { position: absolute; inset: 0; opacity: 0;
+  background: linear-gradient(180deg, transparent 0%, transparent 45%, rgba(215,255,62,.16) 78%, rgba(215,255,62,.22) 100%);
 }
-/* 작은 패딩 카드에 가두지 않고 어두운 배경 위에 신발이 크게 떠 있는 느낌 — perspective로 3D 틸트 공간을 줌 */
-.showcase__visual { position: relative; z-index: 1; width: min(620px, 70vw); perspective: 1400px; }
-.showcase__shoe { width: 100%; height: auto; display: block; margin: 0 auto;
-  filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); will-change: transform; backface-visibility: hidden; }
-.showcase__line { position: relative; z-index: 1; margin-top: 44px; width: min(460px, 56vw); height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
-  transform: scaleX(0); transform-origin: center; opacity: 0; }
-.showcase__content { padding: 96px 0 120px; }
+/* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 크게 떠 있는 느낌 */
+.showcase__visual { position: relative; z-index: 1; width: min(900px, 90vw); height: min(640px, 64vh); }
+.showcase__visual.is-loading { animation: showcasePulse 1.6s ease-in-out infinite; border-radius: 50%; }
+@keyframes showcasePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(215,255,62,0); } 50% { box-shadow: 0 0 80px 10px rgba(215,255,62,.06); } }
+.showcase__canvas { width: 100%; height: 100%; display: block; filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); }
+/* 세로 라인(히어로 하단 스크롤 힌트와 같은 톤) — 단, 그쪽은 반복 루프 애니메이션이고 이건 반복 없이
+   스크롤 진행률 그대로 위→아래로 "쭉" 늘어나기만 함(1회성, main.js에서 scaleY 바인딩). */
+.showcase__line { position: relative; z-index: 1; margin-top: 8px; width: 1px; height: 120px;
+  background: linear-gradient(var(--volt), transparent);
+  transform: scaleY(0); transform-origin: top; opacity: 0; }
+/* 스테이지 하단 그라데이션과 같은 톤으로 짧게 시작해, 스테이지→콘텐츠 사이 색이 뚝 끊기지 않고
+   이어지는 것처럼 보이게(위 섹션 주석 참고) */
+.showcase__content { padding: 0 0 120px; background: linear-gradient(180deg, rgba(215,255,62,.14) 0%, transparent 260px); }
+.showcase__content .container { padding-top: 64px; }
 .showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
 .showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 4.4vw, 48px); color: var(--text-on-dark); max-width: 640px; margin-bottom: 72px; }
 /* 자유로운 느낌: 정형적인 1열 리스트 대신 2열 + 짝수 아이템만 세로로 내려 쓴 비대칭 스태거드 그리드,
@@ -190,8 +203,9 @@ button, input { font: inherit; }
 /* ---- 반응형(900px) ---- */
 @media (max-width: 900px) {
   .showcase__stage-wrap { height: 140vh; }
-  .showcase__visual { width: min(480px, 82vw); }
-  .showcase__content { padding: 72px 0 80px; }
+  .showcase__visual { width: min(560px, 88vw); height: min(420px, 50vh); }
+  .showcase__content { padding-bottom: 80px; }
+  .showcase__content .container { padding-top: 48px; }
   .showcase__title { margin-bottom: 48px; }
   .feature-list { grid-template-columns: 1fr; row-gap: 40px; }
   .feature-item:nth-child(even) { margin-top: 0; }
@@ -210,7 +224,6 @@ button, input { font: inherit; }
   .marquee__track { animation: none; }
   .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
   .spec-card, .lb-tile, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
-  .showcase__shoe { transform: none !important; }
   /* 스크롤 스크러빙·핀드줌·배경 패럴럭스 전부 끔 — 정상 문서 흐름으로 */
   .hero-wrap { height: auto; }
   .hero { position: relative; }
@@ -221,7 +234,7 @@ button, input { font: inherit; }
   .showcase__stage-wrap { height: auto; }
   .showcase__stage { position: relative; height: auto; padding: 96px 0; }
   .showcase__bg { opacity: .9 !important; }
-  .showcase__line { transform: scaleX(1) !important; opacity: 1 !important; }
+  .showcase__line { transform: scaleY(1) !important; opacity: 1 !important; }
   .lb-tile[data-reveal] { clip-path: none !important; transition: none !important; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }

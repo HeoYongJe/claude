@@ -8,7 +8,7 @@ const cfg = require("../deploy.config.js");
 const LOCAL_ROOT = path.join(__dirname, "..", "nike");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/nike";
 
-const FILES = ["index.html", "css/style.css", "js/main.js", "assets/img/nike_s.png"];
+const FILES = ["index.html", "css/style.css", "js/main.js", "js/showcase3d.js", "assets/models/sneaker.glb"];
 
 (async () => {
   const client = new ftp.Client(20000);
@@ -20,6 +20,7 @@ const FILES = ["index.html", "css/style.css", "js/main.js", "assets/img/nike_s.p
     await client.ensureDir(REMOTE_DIR + "/css");
     await client.ensureDir(REMOTE_DIR + "/js");
     await client.ensureDir(REMOTE_DIR + "/assets/img");
+    await client.ensureDir(REMOTE_DIR + "/assets/models");
     console.log(`원격 폴더 준비: ${REMOTE_DIR}`);
 
     for (const rel of FILES) {

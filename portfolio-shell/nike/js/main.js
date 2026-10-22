@@ -45,9 +45,10 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률에 3D 틸트·라인·배경 블룸 바인딩 ----
+  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률에 3D 회전(js/showcase3d.js)·
+  //      세로 라인·배경 그라데이션 바인딩. 3D 회전 자체는 별도 모듈(showcase3d.js)이 소유하고,
+  //      여기선 window.__setShowcaseProgress로 같은 진행률 값만 넘겨 동기화한다. ----
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
-  const showcaseTilt = document.querySelector("[data-showcase-tilt]");
   const showcaseLine = document.querySelector("[data-showcase-line]");
   const showcaseBg = document.querySelector("[data-showcase-bg]");
 
@@ -150,19 +151,21 @@
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
-      // 쇼케이스 스테이지: 신발이 -34deg에서 정면(0deg)으로 3D 틸트, 그 뒤를 따라 아래 라인이 그어지고
-      // 배경 그라데이션이 번짐 — 전부 같은 진행률(0~1) 하나에 구간만 다르게 걸어서 "틸트가 먼저 거의
-      // 끝나갈 때쯤 라인이 생기는" 순서가 자연스럽게 나오게 함.
-      if (showcaseTilt && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
+      // 쇼케이스 스테이지: "신발이 자리 잡고 나서야 배경이 번지고, 그다음 세로 라인이 쭉 그어지고,
+      // 그 뒤로 텍스트가 올라온다"는 하나의 흐름 — 전부 같은 진행률(0~1) 하나를 구간만 다르게 나눠 씀.
+      // 회전 자체(3D 모델)는 showcase3d.js가 소유 — 여기선 매 프레임 같은 progress만 넘겨 동기화.
+      if (bounds.showcaseStage && bounds.showcaseStage.range > 0) {
         const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
-        const rotateY = -34 + progress * 34; // -34deg(측면) -> 0deg(정면)
-        const scale = 0.86 + progress * 0.14; // 0.86 -> 1
-        showcaseTilt.style.transform = `rotateY(${rotateY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-        if (showcaseBg) showcaseBg.style.opacity = Math.min(1, progress * 1.3).toFixed(3);
+        if (window.__setShowcaseProgress) window.__setShowcaseProgress(progress);
+        // 신발 회전이 어느 정도 끝나가는 후반부(0.5)부터 배경 그라데이션이 번지기 시작 —
+        // "신발 스크롤링이 끝나면 그라데이션이 시작된다"는 요청대로 먼저 겹치지 않게 지연.
+        if (showcaseBg) showcaseBg.style.opacity = clamp01((progress - 0.5) / 0.5).toFixed(3);
         if (showcaseLine) {
-          const lineProgress = clamp01((progress - 0.45) / 0.55); // 틸트 후반부에야 라인이 생기도록 지연
-          showcaseLine.style.transform = `scaleX(${lineProgress.toFixed(3)})`;
-          showcaseLine.style.opacity = lineProgress.toFixed(3);
+          // 배경이 번지기 시작한 조금 뒤부터, 세로선이 위→아래로 쭉 늘어나며 등장(반복 애니메이션 아님 —
+          // hero__scroll의 루프와 달리 스크롤 값 자체가 그려지는 길이).
+          const lineProgress = clamp01((progress - 0.62) / 0.38);
+          showcaseLine.style.transform = `scaleY(${lineProgress.toFixed(3)})`;
+          showcaseLine.style.opacity = Math.min(1, lineProgress * 3).toFixed(3);
         }
       }
 
