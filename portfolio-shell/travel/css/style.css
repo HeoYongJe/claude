@@ -178,11 +178,6 @@ ul, ol { list-style: none; padding: 0; }
 .fxcard__label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .t-hero-badge { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--accent); background: var(--surface); padding: 6px 11px; border-radius: 999px; }
 .t-hero-name { font-size: 32px; font-weight: 800; margin-top: 18px; letter-spacing: -.02em; }
-.fxcard__convert { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; row-gap: 10px; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.fxcard__cap { font-size: 14px; color: var(--muted); font-weight: 600; }
-.fxcard__amt { font-size: 22px; font-weight: 400;margin-top: 8px; }         /* 보내는 금액: normal */
-.fxcard__arrow { font-size: 20px; color: var(--accent); }
-.t-hero-recv { font-size: 22px; font-weight: 800; color: var(--ink); white-space: nowrap; }   /* 받는 금액: 잉크 + 굵게(방향색 제거). nowrap: 2026-10-22 상한 999만원 확대로 IDR 등 고비율 통화는 desktop에서도 10자리까지 나올 수 있어 줄바꿈 금지(§7 참고) */
 /* 2026-10-22: "보내는 금액"을 직접 입력해 "받는 금액"이 실시간으로 바뀌는 계산기 인터랙션(히어로 카드 +
    상세뷰 절약카드 공용). ~~투명 밑줄형(Seamless Typography Input)~~은 입력 가능함이 잘 안 보인다는
    피드백으로 재작업 — **연한 그레이 박스(`.d-calc-box`)**가 입력창+단위를 함께 감싸 "여기 입력란"임을
@@ -190,15 +185,30 @@ ul, ol { list-style: none; padding: 0; }
    정렬이 깨진다"고 반려됐던 지점을 이번엔 명확히 고침: **입력창은 `text-align:left`로 좌측 정렬**하고
    박스 좌측 패딩도 최소(8px)로 — 숫자 앞에 불필요한 빈 공간이 남지 않게. **박스 자체는 고정폭이 아니라
    `inline-flex`로 내용(JS가 자릿수만큼 `ch`로 넓히는 입력창)에 맞춰 자동으로 늘어남** — 숫자가 늘어날수록
-   박스가 오른쪽으로만 확장되고 왼쪽 시작 위치는 고정. 단위는 "원"(한글) 대신 **"KRW"(보내는 금액)·
-   국가별 ISO 통화 코드(받는 금액, 예: BRL)**로 표기(`main.js` `COUNTRY_CCY_CODE`). */
-.d-calc-box { display: inline-flex; align-items: baseline; gap: 4px; background: var(--surface);
+   박스가 오른쪽으로만 확장되고 왼쪽 시작 위치는 고정.
+   **캡션/단위 역할 재지정(같은 날 재작업)**: 캡션("보내는 금액"/"받는 금액")은 짧은 공식 통화 코드
+   ("KRW"/나라별 ISO 코드, 예: JPY)로, 금액 옆 단위는 원래대로 한글 통화명("원"/"엔")을 작게 회색으로.
+   **2행 그리드로 캡션 줄과 금액 줄을 명시적으로 분리**(`.fxcard__convert`) — 이전엔 `align-items:center`로
+   두 칼럼을 통째로 가운데 정렬했는데, 박스가 평문 텍스트보다 패딩만큼 더 높아 두 칼럼의 전체 높이가
+   달라지고, 그 결과 "KRW"/"JPY" 캡션 줄이 서로 다른 y좌표에 놓이는 문제가 있었음(세로 정렬이 안 맞는다는
+   피드백의 원인) — 캡션 2개를 grid 1행에, 박스·화살표·결과 3개를 grid 2행에 명시적으로 배치해 각 행이
+   항상 같은 기준선에 놓이도록 구조적으로 보장. */
+.fxcard__convert { display: grid; grid-template-columns: auto auto minmax(0,1fr); column-gap: 16px; row-gap: 8px;
+  align-items: center; margin-top: 20px; padding: 18px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.fxcard__cap { font-size: 14px; color: var(--muted); font-weight: 600; grid-row: 1; }
+.fxcard__cap--send { grid-column: 1; }
+.fxcard__cap--recv { grid-column: 3; }
+.fxcard__amt { font-size: 22px; font-weight: 400; grid-row: 2; }
+.fxcard__amt--send { grid-column: 1; }
+.fxcard__arrow { grid-column: 2; grid-row: 2; font-size: 20px; color: var(--accent); align-self: center; }
+.t-hero-recv { grid-column: 3; grid-row: 2; font-size: 22px; font-weight: 800; color: var(--ink); white-space: nowrap; }   /* 받는 금액: 잉크 + 굵게(방향색 제거). nowrap: 2026-10-22 상한 999만원 확대로 IDR 등 고비율 통화는 desktop에서도 10자리까지 나올 수 있어 줄바꿈 금지(§7 참고) */
+.d-calc-box { display: inline-flex; align-items: baseline; background: var(--surface);
   border-radius: 10px; padding: 6px 10px 6px 8px; transition: box-shadow .15s ease, background .15s ease; }
 .d-calc-box:focus-within { background: #fff; box-shadow: 0 0 0 2px var(--accent); }
 .d-calc-input { font-size: 15px; font-weight: 800; color: var(--ink); background: transparent; border: none;
   outline: none; padding: 0; margin: 0; text-align: left; }
 .fxcard__amt .d-calc-input { font-size: 22px; } /* 히어로 컨텍스트: 받는 금액(22px)과 동일 크기 */
-.d-calc-unit { font-size: 14px; font-weight: 700; color: var(--muted); } /* 사이트 전역 최소 폰트 14px 규칙 준수 */
+.d-calc-unit { font-size: 14px; font-weight: 700; color: var(--muted); margin-left: 3px; } /* 사이트 전역 최소 폰트 14px 규칙 준수 */
 .d-calc-eq { color: var(--muted); font-weight: 700; }
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 /* 히어로 '오늘의 추천' 카드: 클릭 가능 */
@@ -551,19 +561,19 @@ ul, ol { list-style: none; padding: 0; }
 .d-savecard__warn[hidden] { display: none; }
 /* 2026-10-22: 위 .d-savecard__basis의 점선 구분선과 스타일 통일(구 실선) */
 .d-savecard__div { height: 0; border-top: 1px dashed var(--border); margin: 26px 0; }
-.d-savecard__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--muted); }
-.d-savecard__row + .d-savecard__row { margin-top: 12px; }
+/* 2026-10-22: "환율 시세"·"원화 환산" 두 행을 같은 레이아웃(라벨 위 / 값 아래, 좌측 정렬)으로 통일.
+   전엔 "환율 시세"만 label-value가 한 줄(space-between, 값이 카드 오른쪽 끝)이고 "원화 환산"은
+   입력창 때문에 라벨 위/계산 아래로 세로 쌓는 별도 레이아웃(.d-savecard__row--calc)이라, 두 행의 값
+   시작 위치가 서로 달라 "줄이 안 맞는다"는 피드백으로 이어짐 — 이제 두 행 모두 이 기본 규칙 하나로
+   라벨·값이 항상 카드 좌측 기준선에 맞춰짐(.d-savecard__row--calc 전용 오버라이드는 더 이상 불필요). */
+.d-savecard__row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; font-size: 14px; color: var(--muted); }
+.d-savecard__row + .d-savecard__row { margin-top: 16px; }
 .d-savecard__row b { font-size: 15px; font-weight: 800; color: var(--ink); }
-/* [입력창]+[원]+[=]+[결과] 가로 정렬(2026-10-22, 명시 요청) — 박스형보다 폭은 줄었지만, 입력 자릿수가
-   늘면(예: 750,000) 좁은 절약카드(300px, §7 Row1 1fr 300px)에서 여전히 "헤\n알"처럼 밀려 깨짐 → 결과는
-   줄바꿈 금지로 고정하고, 이 행 자체는 라벨 위/계산 줄 아래로 세로 쌓아(.d-savecard__row--calc) 폭을
-   한 줄 전체로 확보. baseline으로 숫자 크기가 달라도 텍스트 밑단이 가지런히 맞음. */
+/* 2026-10-22: 상한이 9,999,999로 늘며 IDR처럼 환율이 높은 통화는 결과가 10자리까지 나올 수 있어,
+   좁은 절약카드(300px, §7 Row1)에서 "=" 뒤 결과가 카드 밖으로 넘치던 문제 — 아래 flex-wrap으로 결과
+   전체가 통째로 다음 줄로 내려가게(글자 중간 줄바꿈 아님) 안전망 추가. */
 .d-calc { display: flex; align-items: baseline; flex-wrap: wrap; row-gap: 6px; gap: 8px; font-size: 15px; font-weight: 800; color: var(--ink); }
 .d-calc .d-rate { white-space: nowrap; }
-/* 2026-10-22: 상한이 9,999,999로 늘며 IDR처럼 환율이 높은 통화는 결과가 10자리까지 나올 수 있어,
-   좁은 절약카드(300px, §7 Row1)에서 "=" 뒤 결과가 카드 밖으로 넘치던 문제 — 위 flex-wrap으로 결과
-   전체가 통째로 다음 줄로 내려가게(글자 중간 줄바꿈 아님) 안전망 추가. */
-.d-savecard__row--calc { flex-direction: column; align-items: flex-start; gap: 8px; }
 
 /* 추천 도시 — 3개 가로 정렬 */
 .d-cities { margin-top: 16px; display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
@@ -672,6 +682,16 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- 모바일(폰) 세부: 380px 기준 ---- */
 @media (max-width: 560px) {
+  /* 999만원 상한 + IDR처럼 환율이 높은 통화가 겹치면 결과가 10자리까지 나오는데, 좁은 폰 폭에서는
+     3열 그리드(캡션 2개+박스+화살표+결과)로 욱여넣을 공간이 부족해 카드 밖으로 넘침 — 보내는/받는
+     금액 전체를 세로 1열로 쌓아 결과가 카드 전체 폭(≈300px)을 온전히 쓸 수 있게 함. */
+  .fxcard__convert { grid-template-columns: 1fr; row-gap: 10px; }
+  .fxcard__cap--send, .fxcard__amt--send, .fxcard__arrow, .fxcard__cap--recv, .t-hero-recv { grid-column: 1; }
+  .fxcard__cap--send { grid-row: 1; }
+  .fxcard__amt--send { grid-row: 2; }
+  .fxcard__arrow { grid-row: 3; margin: 2px 0; }
+  .fxcard__cap--recv { grid-row: 4; }
+  .t-hero-recv { grid-row: 5; }
   /* 주요 품목 물가: [아이콘·이름·%] 한 줄 + 비교 막대는 아래 풀너비(고정폭 그리드 넘침 방지) */
   .d-item { grid-template-columns: 28px 1fr auto; grid-template-areas: "icon name pct" "cmp cmp cmp"; column-gap: 10px; row-gap: 10px; }
   .d-item__icon { grid-area: icon; }

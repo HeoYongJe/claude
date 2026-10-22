@@ -142,9 +142,9 @@
     const krwAmount = parseFloat(m[2].replace(/,/g, ""));
     return krwAmount ? unitAmount / krwAmount : null; // 외화 단위 / 1원
   }
-  // 받는 금액 단위 표기(2026-10-22, 문구 수정): 데이터의 recv 문자열("3.8헤알")에 박힌 한글 통화명 대신,
-  // 나라 코드(d.code, 국기용으로 이미 쓰는 그 2자리 코드) 기준으로 공식 ISO 통화 코드를 표기.
-  // 파싱 실패 등으로 매핑이 없는 나라는 기존처럼 recv의 한글 단위로 폴백.
+  // "KRW"/"받는 금액" 캡션에 쓸 공식 ISO 통화 코드. 나라 코드(d.code, 국기용으로 이미 쓰는 2자리 코드)
+  // 기준으로 매핑 — 금액 옆 단위는 여전히 recv 문자열의 한글 통화명("루피아" 등)을 쓰고, 이 코드는
+  // 캡션 한 줄에만 쓴다(2026-10-22 재지시: "KRW/IDR은 캡션, 금액 옆엔 원/루피아처럼 작게 회색으로").
   const COUNTRY_CCY_CODE = {
     us: "USD", jp: "JPY", eu: "EUR", gb: "GBP", ca: "CAD", ch: "CHF", hk: "HKD",
     au: "AUD", nz: "NZD", sg: "SGD", cn: "CNY", th: "THB", tw: "TWD", id: "IDR",
@@ -153,25 +153,25 @@
     il: "ILS", ro: "RON",
   };
   const unitSuffixFromRecv = (recv) => (recv ? recv.replace(/^[\d,.]+/, "") : "");
-  const formatForeignAmount = (amount, unit) =>
-    (amount >= 100 ? Math.round(amount).toLocaleString("ko-KR") : amount.toFixed(1)) + unit;
+  const formatAmountOnly = (amount) => (amount >= 100 ? Math.round(amount).toLocaleString("ko-KR") : amount.toFixed(1));
   const MAX_KRW_INPUT = 9999999; // "보내는 금액" 상한(2026-10-22 지침)
   const digitsFromInput = (el) => {
     const n = parseInt(String(el.value).replace(/[^\d]/g, ""), 10);
     if (!Number.isFinite(n) || n < 0) return 1000;
     return Math.min(n, MAX_KRW_INPUT);
   };
-  // 입력창 하나를 계산기로 연결. 반환값(updater)을 데이터 갱신 시마다 호출해 최신 krwPer/recv/국가코드로 재계산.
+  // 입력창 하나를 계산기로 연결. 반환값(updater)을 데이터 갱신 시마다 호출해 최신 krwPer/recv로 재계산.
   function setupCalcInput(inputEl, resultEl) {
     if (!inputEl || !resultEl) return () => {};
-    let krwPerStr = "", recvStr = "", ccyCode = "";
+    let krwPerStr = "", recvStr = "";
     const resize = () => { inputEl.style.width = Math.max(inputEl.value.length + 1, 4) + "ch"; }; // 자릿수만큼 자동 확장(콤마 넣어도 안 잘리게)
     const recompute = () => {
       resize();
       const ratio = parseKrwPerRatio(krwPerStr);
       if (ratio == null) { resultEl.textContent = recvStr || "—"; return; }
-      const unit = ccyCode ? " " + ccyCode : unitSuffixFromRecv(recvStr);
-      resultEl.textContent = formatForeignAmount(digitsFromInput(inputEl) * ratio, unit);
+      // 결과 = 굵은 숫자 + 작은 회색 단위(.d-calc-unit) — 입력창 옆 "원"과 같은 스타일로 통일.
+      const amountStr = formatAmountOnly(digitsFromInput(inputEl) * ratio);
+      resultEl.innerHTML = `${esc(amountStr)}<span class="d-calc-unit">${esc(unitSuffixFromRecv(recvStr))}</span>`;
     };
     inputEl.addEventListener("input", recompute);
     inputEl.addEventListener("click", (e) => e.stopPropagation());
@@ -185,10 +185,7 @@
       recompute();
     });
     resize();
-    return (newKrwPer, newRecv, newCountryCode) => {
-      krwPerStr = newKrwPer; recvStr = newRecv; ccyCode = COUNTRY_CCY_CODE[newCountryCode] || "";
-      recompute();
-    };
+    return (newKrwPer, newRecv) => { krwPerStr = newKrwPer; recvStr = newRecv; recompute(); };
   }
   // 입력값은 나라를 바꿔도 유지(예: "50000원이면 어디가 제일 싸지?" 식으로 비교해보라는 의도) — 재렌더 시
   // updateHero()/openDetail()가 매번 새 krwPer·recv로 updater를 호출하면 현재 입력값 기준으로 재계산됨.
@@ -569,7 +566,7 @@
 
     // 파란 카드 = 물가 절약 지표 전용 (환율 표기 없음).
     // 대표(대형) 숫자 = 서울 대비 체감 절약/부담 %. 텍스트 전부 흰색.
-    updateDetailCalc(d.krwPer, d.recv || "환율 준비 중", d.code); // "원화 환산" 입력값 기준 재계산(구 d.rate 대체)
+    updateDetailCalc(d.krwPer, d.recv || "환율 준비 중"); // "원화 환산" 입력값 기준 재계산(구 d.rate 대체)
     const krwPerEl = detail.querySelector(".d-krwper");
     if (krwPerEl) krwPerEl.textContent = d.krwPer || "—";
 
@@ -792,7 +789,8 @@
       badgeEl.style.color = dirColor(up);
       badgeEl.style.background = dirTint(up);
     }
-    updateHeroCalc(top.krwPer, top.recv, top.code); // "보내는 금액" 입력값 기준으로 "받는 금액" 재계산(기존 set 대체)
+    updateHeroCalc(top.krwPer, top.recv); // "보내는 금액" 입력값 기준으로 "받는 금액" 재계산(기존 set 대체)
+    set(".t-hero-recv-cap", COUNTRY_CCY_CODE[top.code] || "현지통화"); // "받는 금액" 캡션 = ISO 통화 코드
     set(".t-hero-desc",
       top.is3moLow ? "최근 3개월 환율 중 가장 유리해요."
         : `최근 일주일 원화가 ${Math.abs(top.changePct).toFixed(1)}% 강해졌어요.`);
