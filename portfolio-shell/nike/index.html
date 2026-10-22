@@ -69,49 +69,47 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT SHOWCASE (sticky) ============ -->
+  <!-- ============ PRODUCT SHOWCASE (상단 3D 틸트 스테이지 → 텍스트 콘텐츠) ============ -->
   <section class="showcase" id="showcase">
-    <!-- 배경 전용 클립 래퍼 — .showcase__visual(형제, sticky)은 안 건드리고 배경만 가둠 -->
-    <div class="showcase__bgclip" aria-hidden="true">
-      <div class="showcase__bg" data-speed="0.2"></div>
-    </div>
-    <div class="showcase__inner">
-      <div class="showcase__visual">
-        <div class="ph-visual ph-visual--shoe">
-          <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="ph-visual__img">
+    <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발이 3D로 방향을 틀며 정면을 향하고,
+         아래 라인이 그어지고, 배경 그라데이션이 번짐. 핀이 풀려야 아래 콘텐츠가 자연스럽게 등장. -->
+    <div class="showcase__stage-wrap" data-showcase-stage-wrap>
+      <div class="showcase__stage">
+        <!-- 배경 전용 클립 래퍼 — 형제인 스테이지의 sticky는 안 건드리고 배경만 가둠 -->
+        <div class="showcase__bgclip" aria-hidden="true">
+          <div class="showcase__bg" data-speed="0.2" data-showcase-bg></div>
         </div>
+        <div class="showcase__visual">
+          <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-tilt>
+        </div>
+        <div class="showcase__line" data-showcase-line aria-hidden="true"></div>
       </div>
-      <div class="showcase__features">
+    </div>
+
+    <div class="showcase__content">
+      <div class="container">
         <p class="showcase__kicker" data-reveal>PRODUCT</p>
         <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
         <ul class="feature-list">
           <li class="feature-item" data-reveal>
             <span class="feature-item__num">01</span>
-            <div>
-              <h3>반응형 쿠셔닝</h3>
-              <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
-            </div>
+            <h3>반응형 쿠셔닝</h3>
+            <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
           </li>
           <li class="feature-item" data-reveal>
             <span class="feature-item__num">02</span>
-            <div>
-              <h3>초경량 니트 갑피</h3>
-              <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
-            </div>
+            <h3>초경량 니트 갑피</h3>
+            <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
           </li>
           <li class="feature-item" data-reveal>
             <span class="feature-item__num">03</span>
-            <div>
-              <h3>에너지 리턴 아웃솔</h3>
-              <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
-            </div>
+            <h3>에너지 리턴 아웃솔</h3>
+            <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
           </li>
           <li class="feature-item" data-reveal>
             <span class="feature-item__num">04</span>
-            <div>
-              <h3>올데이 핏</h3>
-              <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
-            </div>
+            <h3>올데이 핏</h3>
+            <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
           </li>
         </ul>
       </div>

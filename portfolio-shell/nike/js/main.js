@@ -45,9 +45,11 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 스크롤 진행률에 비주얼 회전·확대 바인딩(아래 raf 루프, showcase는 bounds 측정에도 재사용) ----
-  const showcase = document.querySelector(".showcase");
-  const showcaseVisual = document.querySelector(".ph-visual__img");
+  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률에 3D 틸트·라인·배경 블룸 바인딩 ----
+  const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
+  const showcaseTilt = document.querySelector("[data-showcase-tilt]");
+  const showcaseLine = document.querySelector("[data-showcase-line]");
+  const showcaseBg = document.querySelector("[data-showcase-bg]");
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -106,7 +108,7 @@
       bounds = {
         hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
-        showcase: showcase ? { start: showcase.offsetTop, range: showcase.offsetHeight - window.innerHeight } : null,
+        showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
       };
     }
     measure();
@@ -148,12 +150,20 @@
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
-      // 쇼케이스 비주얼: 섹션 스크롤 진행률에 회전·확대 바인딩
-      if (showcaseVisual && bounds.showcase && bounds.showcase.range > 0) {
-        const progress = clamp01((smoothY - bounds.showcase.start) / bounds.showcase.range);
-        const rotate = progress * 50 - 10;
-        const scale = 0.9 + progress * 0.25;
-        showcaseVisual.style.transform = `rotate(${rotate.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+      // 쇼케이스 스테이지: 신발이 -34deg에서 정면(0deg)으로 3D 틸트, 그 뒤를 따라 아래 라인이 그어지고
+      // 배경 그라데이션이 번짐 — 전부 같은 진행률(0~1) 하나에 구간만 다르게 걸어서 "틸트가 먼저 거의
+      // 끝나갈 때쯤 라인이 생기는" 순서가 자연스럽게 나오게 함.
+      if (showcaseTilt && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
+        const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
+        const rotateY = -34 + progress * 34; // -34deg(측면) -> 0deg(정면)
+        const scale = 0.86 + progress * 0.14; // 0.86 -> 1
+        showcaseTilt.style.transform = `rotateY(${rotateY.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
+        if (showcaseBg) showcaseBg.style.opacity = Math.min(1, progress * 1.3).toFixed(3);
+        if (showcaseLine) {
+          const lineProgress = clamp01((progress - 0.45) / 0.55); // 틸트 후반부에야 라인이 생기도록 지연
+          showcaseLine.style.transform = `scaleX(${lineProgress.toFixed(3)})`;
+          showcaseLine.style.opacity = lineProgress.toFixed(3);
+        }
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)
