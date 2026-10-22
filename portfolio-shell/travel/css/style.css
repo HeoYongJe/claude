@@ -202,13 +202,19 @@ ul, ol { list-style: none; padding: 0; }
 .fxcard__amt--send { grid-column: 1; }
 .fxcard__arrow { grid-column: 2; grid-row: 2; font-size: 20px; color: var(--accent); align-self: center; }
 .t-hero-recv { grid-column: 3; grid-row: 2; font-size: 22px; font-weight: 800; color: var(--ink); white-space: nowrap; }   /* 받는 금액: 잉크 + 굵게(방향색 제거). nowrap: 2026-10-22 상한 999만원 확대로 IDR 등 고비율 통화는 desktop에서도 10자리까지 나올 수 있어 줄바꿈 금지(§7 참고) */
+/* 2026-10-22: "박스만으로 입력 가능한 칸인지 알아볼까?" 논의 — 보더를 추가하면 바로 위아래의
+   `.fxcard__convert` 가로 보더와 선이 겹쳐 더 번잡해 보여서, 보더 대신 ① 연필 아이콘(가장 확실한
+   "편집 가능" 신호, 숫자 자릿수가 늘어도 박스가 `inline-flex`라 자동으로 같이 밀려나 정렬 걱정 없음)
+   ② 옅은 inset(안쪽) 그림자(평평한 채우기보다 "눌려 들어간 입력 칸" 느낌)를 보조 신호로 추가. */
 .d-calc-box { display: inline-flex; align-items: baseline; background: var(--surface);
-  border-radius: 10px; padding: 6px 10px 6px 8px; transition: box-shadow .15s ease, background .15s ease; }
-.d-calc-box:focus-within { background: #fff; box-shadow: 0 0 0 2px var(--accent); }
+  border-radius: 10px; padding: 6px 10px 6px 8px; box-shadow: inset 0 1px 2px rgba(15,23,42,.06);
+  transition: box-shadow .15s ease, background .15s ease; }
+.d-calc-box:focus-within { background: #fff; box-shadow: inset 0 1px 2px rgba(15,23,42,.06), 0 0 0 2px var(--accent); }
 .d-calc-input { font-size: 15px; font-weight: 800; color: var(--ink); background: transparent; border: none;
   outline: none; padding: 0; margin: 0; text-align: left; }
 .fxcard__amt .d-calc-input { font-size: 22px; } /* 히어로 컨텍스트: 받는 금액(22px)과 동일 크기 */
 .d-calc-unit { font-size: 14px; font-weight: 700; color: var(--muted); margin-left: 3px; } /* 사이트 전역 최소 폰트 14px 규칙 준수 */
+.d-calc-edit-icon { width: 13px; height: 13px; margin-left: 4px; color: var(--muted2); align-self: center; flex: none; }
 .d-calc-eq { color: var(--muted); font-weight: 700; }
 .t-hero-desc { font-size: 14px; color: var(--muted); margin-top: 16px; line-height: 1.5; }
 /* 히어로 '오늘의 추천' 카드: 클릭 가능 */
