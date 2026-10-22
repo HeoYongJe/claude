@@ -164,7 +164,12 @@
   function setupCalcInput(inputEl, resultEl) {
     if (!inputEl || !resultEl) return () => {};
     let krwPerStr = "", recvStr = "";
-    const resize = () => { inputEl.style.width = Math.max(inputEl.value.length + 1, 4) + "ch"; }; // 자릿수만큼 자동 확장(콤마 넣어도 안 잘리게)
+    // 자릿수만큼 자동 확장(콤마 넣어도 안 잘리게). 포커스 중엔 다음 글자 입력할 자리로 +1ch 여유를 두지만,
+    // 포커스를 벗어나면 그 여유가 숫자와 "원" 사이의 어색한 빈 공간으로 보여서(2026-10-22 지적) 여유 없이 딱 맞춤.
+    const resize = () => {
+      const buffer = document.activeElement === inputEl ? 1 : 0;
+      inputEl.style.width = Math.max(inputEl.value.length + buffer, 4) + "ch";
+    };
     const recompute = () => {
       resize();
       const ratio = parseKrwPerRatio(krwPerStr);
@@ -179,7 +184,7 @@
       e.stopPropagation(); // 카드 전체가 클릭/Enter로 상세이동하는 핸들러와 겹치지 않게(히어로 카드)
       if (e.key === "Enter") inputEl.blur();
     });
-    inputEl.addEventListener("focus", () => inputEl.select());
+    inputEl.addEventListener("focus", () => { inputEl.select(); resize(); });
     inputEl.addEventListener("blur", () => {
       inputEl.value = digitsFromInput(inputEl).toLocaleString("ko-KR"); // 자릿수 콤마 정리는 blur 시에만(타이핑 중 커서 튐 방지)
       recompute();
