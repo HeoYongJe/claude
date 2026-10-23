@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261023b">
+<link rel="stylesheet" href="css/style.css?v=20261023c">
 </head>
 <body>
 
@@ -69,13 +69,11 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT SHOWCASE (상단 3D 모델 스테이지 → 세로 라인 → 텍스트, 한 흐름) ============ -->
+  <!-- ============ PRODUCT SHOWCASE (상단 3D 모델 스테이지 → 텍스트, 한 흐름) ============ -->
   <section class="showcase" id="showcase">
-    <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발 3D 모델이 회전하며 정면을 향하고,
-         신발이 자리 잡은 뒤에야(후반부) 아래 세로 라인이 쭉 그어짐 — 배경 그라데이션은 더 이상 이
-         스테이지 전용 레이어가 아니라 .showcase 섹션 전체(스테이지+콘텐츠)에 걸친 하나의 연속된
-         그라데이션(css 참고) — 핀이 풀려야 아래 콘텐츠가 자연스럽게 등장
-         (신발→라인→텍스트가 한 세트로 이어지는 흐름). -->
+    <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발 3D 모델이 360도 꽉 채워 회전 —
+         배경 그라데이션은 .showcase 섹션 전체(스테이지+콘텐츠)에 걸친 하나의 연속된 그라데이션(css 참고)
+         — 핀이 풀려야 아래 콘텐츠가 자연스럽게 등장(신발→텍스트가 한 세트로 이어지는 흐름). -->
     <div class="showcase__stage-wrap" data-showcase-stage-wrap>
       <div class="showcase__stage">
         <div class="showcase__visual is-loading">
@@ -85,8 +83,6 @@
                중 은은한 펄스로 "로딩 중"을 알리고, 로드 완료 시 JS가 제거. -->
           <canvas class="showcase__canvas" data-showcase-canvas aria-label="신발 3D 모델"></canvas>
         </div>
-        <!-- 세로 라인: hero__scroll의 반복 애니메이션과 달리 1회성 — 스크롤 진행률에 따라 위→아래로 쭉 그려짐 -->
-        <div class="showcase__line" data-showcase-line aria-hidden="true"></div>
       </div>
     </div>
 
@@ -183,7 +179,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261023b"></script>
+  <script src="js/main.js?v=20261023c"></script>
   <!-- 쇼케이스 3D(신발 glb) 전용 — three.js는 ES 모듈 배포만 안정적으로 유지되는 버전대라 importmap으로 로드.
        main.js(classic script)와는 window.__setShowcaseProgress로만 통신(§5 Motion 참고). -->
   <script type="importmap">
@@ -194,6 +190,6 @@
     }
   }
   </script>
-  <script type="module" src="js/showcase3d.js?v=20261023a"></script>
+  <script type="module" src="js/showcase3d.js?v=20261023d"></script>
 </body>
 </html>

@@ -129,21 +129,23 @@ button, input { font: inherit; }
      (참고: 이 디버깅 과정에서 "배경이 안 바뀐다"고 한동안 재현됐던 현상은 실은 **브라우저가 index.html을
      캐싱**(파일은 수정됐는데 동일 URL이라 안 가져옴)하고 있었던 테스트 환경 문제였음 — 실제 스크롤 진행률
      로직 자체엔 버그가 없었음. 이후 `css/js` 로드에 `?v=20261023a` 버전 쿼리를 붙여 재발 방지.) */
+/* 2026-10-23 5차: "여전히 신발이 작고 없어보인다(최소 2배)", "360도까지 돌고 나서 다음 아이템",
+   "라인은 의미 없어 보이니 제거", "신발-배경-텍스트가 따로 노는 느낌, 하나로 안 이어짐" 피드백 반영.
+   스테이지 높이를 220vh로 늘려(풀 회전이 급하지 않게 호흡을 줌) 그라데이션 vh 스톱도 비례 재계산,
+   라인 제거로 신발 바로 아래가 비게 된 공간은 신발 자체를 훨씬 키워 채움(따로 노는 느낌의 핵심 원인은
+   "라인"이라는 애매한 중간 요소였지 그라데이션 자체가 아니었음 — 큰 신발이 그대로 그라데이션 쪽으로
+   이어지면 중간 매개 없이 한 덩어리로 읽힘). */
 .showcase { background: var(--ink)
-  linear-gradient(180deg, transparent 0, transparent 150vh, rgba(215,255,62,.16) 172vh, rgba(215,255,62,.10) 195vh, transparent 230vh); }
-.showcase__stage-wrap { position: relative; height: 180vh; }
+  linear-gradient(180deg, transparent 0, transparent 183vh, rgba(215,255,62,.16) 211vh, rgba(215,255,62,.10) 238vh, transparent 282vh); }
+.showcase__stage-wrap { position: relative; height: 220vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }
-/* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 크게 떠 있는 느낌 */
-.showcase__visual { position: relative; z-index: 1; width: min(900px, 90vw); height: min(640px, 64vh); }
+/* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 화면을 꽉 채우는 느낌 —
+   기존(900×640) 대비 가로·세로 둘 다 키워 면적 기준 2배 이상(1600×880). */
+.showcase__visual { position: relative; z-index: 1; width: min(1600px, 94vw); height: min(880px, 82vh); }
 .showcase__visual.is-loading { animation: showcasePulse 1.6s ease-in-out infinite; border-radius: 50%; }
 @keyframes showcasePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(215,255,62,0); } 50% { box-shadow: 0 0 80px 10px rgba(215,255,62,.06); } }
 .showcase__canvas { width: 100%; height: 100%; display: block; filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); }
-/* 세로 라인(히어로 하단 스크롤 힌트와 같은 톤) — 단, 그쪽은 반복 루프 애니메이션이고 이건 반복 없이
-   스크롤 진행률 그대로 위→아래로 "쭉" 늘어나기만 함(1회성, main.js에서 scaleY 바인딩). */
-.showcase__line { position: relative; z-index: 1; margin-top: 8px; width: 1px; height: 120px;
-  background: linear-gradient(var(--volt), transparent);
-  transform: scaleY(0); transform-origin: top; opacity: 0; }
 .showcase__content { padding: 0 0 120px; }
 .showcase__content .container { padding-top: 64px; }
 .showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
@@ -205,11 +207,11 @@ button, input { font: inherit; }
 
 /* ---- 반응형(900px) ---- */
 @media (max-width: 900px) {
-  .showcase__stage-wrap { height: 140vh; }
-  /* 위 .showcase 배경 그라데이션의 vh 스톱도 스테이지 높이 축소(180vh→140vh, ×0.778) 비율에 맞춰 재계산 */
+  .showcase__stage-wrap { height: 180vh; }
+  /* 위 .showcase 배경 그라데이션의 vh 스톱도 스테이지 높이 축소(220vh→180vh, ×0.818) 비율에 맞춰 재계산 */
   .showcase { background: var(--ink)
-    linear-gradient(180deg, transparent 0, transparent 117vh, rgba(215,255,62,.16) 134vh, rgba(215,255,62,.10) 152vh, transparent 179vh); }
-  .showcase__visual { width: min(560px, 88vw); height: min(420px, 50vh); }
+    linear-gradient(180deg, transparent 0, transparent 150vh, rgba(215,255,62,.16) 173vh, rgba(215,255,62,.10) 195vh, transparent 231vh); }
+  .showcase__visual { width: min(900px, 92vw); height: min(560px, 62vh); }
   .showcase__content { padding-bottom: 80px; }
   .showcase__content .container { padding-top: 48px; }
   .showcase__title { margin-bottom: 48px; }
@@ -239,7 +241,6 @@ button, input { font: inherit; }
   .manifesto__text { transform: none !important; }
   .showcase__stage-wrap { height: auto; }
   .showcase__stage { position: relative; height: auto; padding: 96px 0; }
-  .showcase__line { transform: scaleY(1) !important; opacity: 1 !important; }
   .lb-tile[data-reveal] { clip-path: none !important; transition: none !important; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }

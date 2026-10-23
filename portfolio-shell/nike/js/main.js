@@ -45,13 +45,11 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률에 3D 회전(js/showcase3d.js)·
-  //      세로 라인 바인딩. 배경 그라데이션은 더 이상 JS가 아니라 .showcase 섹션 하나의 정적 CSS
-  //      배경(vh 단위 스톱)이 스크롤에 따라 자연스럽게 드러나는 방식으로 바뀌어 여기선 안 건드림(css 참고).
-  //      3D 회전 자체는 별도 모듈(showcase3d.js)이 소유하고, 여기선 window.__setShowcaseProgress로
-  //      같은 진행률 값만 넘겨 동기화한다. ----
+  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률을 3D 회전(js/showcase3d.js)에
+  //      넘겨 동기화. 세로 라인은 "의미 없고 없어 보인다"는 피드백으로 제거(2026-10-23 5차), 배경
+  //      그라데이션은 JS가 아니라 .showcase 섹션 하나의 정적 CSS 배경(vh 단위 스톱)이 스크롤에 따라
+  //      자연스럽게 드러나는 방식이라 여기선 안 건드림(css 참고). ----
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
-  const showcaseLine = document.querySelector("[data-showcase-line]");
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -158,19 +156,12 @@
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
-      // 쇼케이스 스테이지: 신발 회전(showcase3d.js가 소유, 여기선 progress만 넘겨 동기화)이 자리 잡고
-      // 나서야 세로 라인이 쭉 그어짐 — 배경 그라데이션은 더 이상 여기서 안 건드림(.showcase 섹션 전체에
-      // 걸친 정적 CSS 그라데이션으로 교체, css 참고 — 스크롤에 따라 저절로 드러남).
+      // 쇼케이스 스테이지: 신발 회전(showcase3d.js가 소유, 여기선 progress만 넘겨 동기화) — 배경
+      // 그라데이션은 .showcase 섹션 전체에 걸친 정적 CSS라 여기선 안 건드림(css 참고, 스크롤에 따라
+      // 저절로 드러남).
       if (bounds.showcaseStage && bounds.showcaseStage.range > 0) {
         const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
         if (window.__setShowcaseProgress) window.__setShowcaseProgress(progress);
-        if (showcaseLine) {
-          // 배경이 번지기 시작한 조금 뒤부터, 세로선이 위→아래로 쭉 늘어나며 등장(반복 애니메이션 아님 —
-          // hero__scroll의 루프와 달리 스크롤 값 자체가 그려지는 길이).
-          const lineProgress = clamp01((progress - 0.62) / 0.38);
-          showcaseLine.style.transform = `scaleY(${lineProgress.toFixed(3)})`;
-          showcaseLine.style.opacity = Math.min(1, lineProgress * 3).toFixed(3);
-        }
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)
