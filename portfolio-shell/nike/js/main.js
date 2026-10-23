@@ -46,11 +46,12 @@
   }
 
   // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률에 3D 회전(js/showcase3d.js)·
-  //      세로 라인·배경 그라데이션 바인딩. 3D 회전 자체는 별도 모듈(showcase3d.js)이 소유하고,
-  //      여기선 window.__setShowcaseProgress로 같은 진행률 값만 넘겨 동기화한다. ----
+  //      세로 라인 바인딩. 배경 그라데이션은 더 이상 JS가 아니라 .showcase 섹션 하나의 정적 CSS
+  //      배경(vh 단위 스톱)이 스크롤에 따라 자연스럽게 드러나는 방식으로 바뀌어 여기선 안 건드림(css 참고).
+  //      3D 회전 자체는 별도 모듈(showcase3d.js)이 소유하고, 여기선 window.__setShowcaseProgress로
+  //      같은 진행률 값만 넘겨 동기화한다. ----
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
   const showcaseLine = document.querySelector("[data-showcase-line]");
-  const showcaseBg = document.querySelector("[data-showcase-bg]");
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -113,6 +114,12 @@
       };
     }
     measure();
+    // 안전장치: 초기 measure()는 스크립트 실행 시점(웹폰트가 아직 안 끝났을 수 있는 때) 한 번만 도는데,
+    // Oswald/Pretendard가 늦게 적용되며 위쪽(히어로·매니페스토) 텍스트 줄바꿈이 바뀌면 그 아래
+    // showcaseStage의 offsetTop도 같이 밀릴 수 있음 — 창 크기가 그대로여도 폰트 로드 완료 시점엔
+    // 다시 재도록 보강(리사이즈 이벤트만으론 이 경우를 못 잡음).
+    document.fonts.ready.then(measure);
+    window.addEventListener("load", measure);
     let resizeTimer;
     window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
 
@@ -151,15 +158,12 @@
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
-      // 쇼케이스 스테이지: "신발이 자리 잡고 나서야 배경이 번지고, 그다음 세로 라인이 쭉 그어지고,
-      // 그 뒤로 텍스트가 올라온다"는 하나의 흐름 — 전부 같은 진행률(0~1) 하나를 구간만 다르게 나눠 씀.
-      // 회전 자체(3D 모델)는 showcase3d.js가 소유 — 여기선 매 프레임 같은 progress만 넘겨 동기화.
+      // 쇼케이스 스테이지: 신발 회전(showcase3d.js가 소유, 여기선 progress만 넘겨 동기화)이 자리 잡고
+      // 나서야 세로 라인이 쭉 그어짐 — 배경 그라데이션은 더 이상 여기서 안 건드림(.showcase 섹션 전체에
+      // 걸친 정적 CSS 그라데이션으로 교체, css 참고 — 스크롤에 따라 저절로 드러남).
       if (bounds.showcaseStage && bounds.showcaseStage.range > 0) {
         const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
         if (window.__setShowcaseProgress) window.__setShowcaseProgress(progress);
-        // 신발 회전이 어느 정도 끝나가는 후반부(0.5)부터 배경 그라데이션이 번지기 시작 —
-        // "신발 스크롤링이 끝나면 그라데이션이 시작된다"는 요청대로 먼저 겹치지 않게 지연.
-        if (showcaseBg) showcaseBg.style.opacity = clamp01((progress - 0.5) / 0.5).toFixed(3);
         if (showcaseLine) {
           // 배경이 번지기 시작한 조금 뒤부터, 세로선이 위→아래로 쭉 늘어나며 등장(반복 애니메이션 아님 —
           // hero__scroll의 루프와 달리 스크롤 값 자체가 그려지는 길이).

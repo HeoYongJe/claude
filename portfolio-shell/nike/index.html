@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=20261023b">
 </head>
 <body>
 
@@ -72,14 +72,12 @@
   <!-- ============ PRODUCT SHOWCASE (상단 3D 모델 스테이지 → 세로 라인 → 텍스트, 한 흐름) ============ -->
   <section class="showcase" id="showcase">
     <!-- 스테이지: 자체 스크롤 핀 구간(hero-wrap과 동일 패턴) 동안 신발 3D 모델이 회전하며 정면을 향하고,
-         신발이 자리 잡은 뒤에야(후반부) 배경 그라데이션이 번지며 아래 세로 라인이 쭉 그어짐 —
-         핀이 풀려야 아래 콘텐츠가 자연스럽게 등장(신발→라인→텍스트가 한 세트로 이어지는 흐름). -->
+         신발이 자리 잡은 뒤에야(후반부) 아래 세로 라인이 쭉 그어짐 — 배경 그라데이션은 더 이상 이
+         스테이지 전용 레이어가 아니라 .showcase 섹션 전체(스테이지+콘텐츠)에 걸친 하나의 연속된
+         그라데이션(css 참고) — 핀이 풀려야 아래 콘텐츠가 자연스럽게 등장
+         (신발→라인→텍스트가 한 세트로 이어지는 흐름). -->
     <div class="showcase__stage-wrap" data-showcase-stage-wrap>
       <div class="showcase__stage">
-        <!-- 배경 전용 클립 래퍼 — 형제인 스테이지의 sticky는 안 건드리고 배경만 가둠 -->
-        <div class="showcase__bgclip" aria-hidden="true">
-          <div class="showcase__bg" data-showcase-bg></div>
-        </div>
         <div class="showcase__visual is-loading">
           <!-- PLACEHOLDER였던 .showcase__shoe(이미지)는 3D 모델(assets/models/sneaker.glb)로 교체 —
                js/showcase3d.js(three.js)가 이 canvas에 렌더링하고, 회전은 main.js가 넘겨주는
@@ -185,7 +183,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="js/main.js?v=20261023b"></script>
   <!-- 쇼케이스 3D(신발 glb) 전용 — three.js는 ES 모듈 배포만 안정적으로 유지되는 버전대라 importmap으로 로드.
        main.js(classic script)와는 window.__setShowcaseProgress로만 통신(§5 Motion 참고). -->
   <script type="importmap">
@@ -196,6 +194,6 @@
     }
   }
   </script>
-  <script type="module" src="js/showcase3d.js"></script>
+  <script type="module" src="js/showcase3d.js?v=20261023a"></script>
 </body>
 </html>

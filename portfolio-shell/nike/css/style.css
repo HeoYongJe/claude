@@ -112,23 +112,28 @@ button, input { font: inherit; }
    그대로 쭉 그려짐)"는 피드백 반영.
    - 신발 사진(nike_s.png) → 실제 3D 모델(assets/models/sneaker.glb, three.js)로 교체. 회전은
      js/showcase3d.js가 소유, 여기 CSS는 그 모듈이 그리는 <canvas>의 자리·크기만 잡아줌.
-   - "두 섹션처럼 분리돼 보인다" 문제는, 배경 그라데이션이 스테이지 안에만 갇혀 있고 .showcase__content는
-     그냥 단색 블랙이라 경계에서 색이 뚝 끊겨서 생긴 것 — 스테이지 쪽 그라데이션을 "후반부 하단에만"
-     모이도록(아래 .showcase__bg) 만들고, .showcase__content 맨 위에도 같은 톤의 짧은 페이드를 둬서
-     스테이지 하단에서 콘텐츠 상단으로 색이 자연스럽게 이어지도록(물리적으로 하나의 엘리먼트는 아니지만
-     색 연속성으로 이음새를 가림 — 스테이지를 감싼 sticky 때문에 실제로 하나의 엘리먼트로 두 섹션에
-     걸치게 하려면 .showcase 자체가 포지션 컨텍스트가 돼야 하는데, 그러면 .showcase__stage-wrap의
-     offsetTop 측정 기준이 바뀌어 스크롤 진행률이 깨짐 — 전에 겪은 버그라 그 구조는 피함). */
-.showcase { background: var(--ink); }
+   - **"두 섹션처럼 분리돼 보인다" — 2026-10-23 구조적으로 재해결**: 1차 시도(스테이지 안 그라데이션에
+     JS로 opacity를 올리고, 콘텐츠 맨 위에 "비슷한 톤"의 별도 페이드를 겹쳐 색만 맞추는 방식)는 물리적으로
+     두 개의 다른 엘리먼트라 완벽히 안 맞았고 사용자가 스크린샷으로 경계를 다시 지적함 — **진짜 원인은
+     그라데이션이 "스테이지 전용"과 "콘텐츠 전용" 두 레이어로 쪼개져 있었다는 것 자체**. 지금은 **`.showcase`
+     섹션 전체(스테이지+콘텐츠를 감싸는 가장 바깥 엘리먼트) 배경에 단 하나의 연속된 `linear-gradient`**를
+     직접 그려서 물리적으로 이음새 자체가 없게 함. `.showcase__stage`는 자체 배경이 없어(투명) 그 아래
+     `.showcase`의 그라데이션이 그대로 비쳐 보이고, 정지된(non-sticky) `.showcase` 박스의 배경이라 스크롤에
+     따라 자연스럽게 다른 구간이 보임 — **별도 JS 없이 CSS만으로 "신발 스크롤 중엔 안 보이다가, 스테이지가
+     끝나갈 때쯤 번지고, 콘텐츠 초반까지 이어지다 사라지는" 효과가 거저 나옴**(스톱을 `vh` 단위로 둬서
+     스테이지의 고정 높이(180vh) 기준으로 정확히 위치 지정 — % 단위였다면 콘텐츠 높이가 바뀔 때마다
+     다시 계산해야 했음). `.showcase` 자체에 `position`을 안 줘도 되는 배경(background-image)이라, 전에
+     겪었던 "`.showcase`에 `position:relative`를 주면 `.showcase__stage-wrap`의 `offsetTop` 측정 기준이
+     바뀌어 스크롤 진행률이 깨지는" 버그와도 전혀 부딪히지 않음(그 버그는 "자식의 position 기준점"
+     문제였지, 배경 자체는 `position` 없이도 항상 렌더링됨).
+     (참고: 이 디버깅 과정에서 "배경이 안 바뀐다"고 한동안 재현됐던 현상은 실은 **브라우저가 index.html을
+     캐싱**(파일은 수정됐는데 동일 URL이라 안 가져옴)하고 있었던 테스트 환경 문제였음 — 실제 스크롤 진행률
+     로직 자체엔 버그가 없었음. 이후 `css/js` 로드에 `?v=20261023a` 버전 쿼리를 붙여 재발 방지.) */
+.showcase { background: var(--ink)
+  linear-gradient(180deg, transparent 0, transparent 150vh, rgba(215,255,62,.16) 172vh, rgba(215,255,62,.10) 195vh, transparent 230vh); }
 .showcase__stage-wrap { position: relative; height: 180vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }
-.showcase__bgclip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-/* 위→아래 그라데이션, 하단(신발이 자리 잡는 영역)에만 모이게 — 초반엔 안 보이다가(opacity 0) 신발
-   회전이 끝나갈 때쯤 js에서 opacity를 올려 "펼쳐지는" 느낌을 냄. */
-.showcase__bg { position: absolute; inset: 0; opacity: 0;
-  background: linear-gradient(180deg, transparent 0%, transparent 45%, rgba(215,255,62,.16) 78%, rgba(215,255,62,.22) 100%);
-}
 /* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 크게 떠 있는 느낌 */
 .showcase__visual { position: relative; z-index: 1; width: min(900px, 90vw); height: min(640px, 64vh); }
 .showcase__visual.is-loading { animation: showcasePulse 1.6s ease-in-out infinite; border-radius: 50%; }
@@ -139,9 +144,7 @@ button, input { font: inherit; }
 .showcase__line { position: relative; z-index: 1; margin-top: 8px; width: 1px; height: 120px;
   background: linear-gradient(var(--volt), transparent);
   transform: scaleY(0); transform-origin: top; opacity: 0; }
-/* 스테이지 하단 그라데이션과 같은 톤으로 짧게 시작해, 스테이지→콘텐츠 사이 색이 뚝 끊기지 않고
-   이어지는 것처럼 보이게(위 섹션 주석 참고) */
-.showcase__content { padding: 0 0 120px; background: linear-gradient(180deg, rgba(215,255,62,.14) 0%, transparent 260px); }
+.showcase__content { padding: 0 0 120px; }
 .showcase__content .container { padding-top: 64px; }
 .showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
 .showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 4.4vw, 48px); color: var(--text-on-dark); max-width: 640px; margin-bottom: 72px; }
@@ -203,6 +206,9 @@ button, input { font: inherit; }
 /* ---- 반응형(900px) ---- */
 @media (max-width: 900px) {
   .showcase__stage-wrap { height: 140vh; }
+  /* 위 .showcase 배경 그라데이션의 vh 스톱도 스테이지 높이 축소(180vh→140vh, ×0.778) 비율에 맞춰 재계산 */
+  .showcase { background: var(--ink)
+    linear-gradient(180deg, transparent 0, transparent 117vh, rgba(215,255,62,.16) 134vh, rgba(215,255,62,.10) 152vh, transparent 179vh); }
   .showcase__visual { width: min(560px, 88vw); height: min(420px, 50vh); }
   .showcase__content { padding-bottom: 80px; }
   .showcase__content .container { padding-top: 48px; }
@@ -233,7 +239,6 @@ button, input { font: inherit; }
   .manifesto__text { transform: none !important; }
   .showcase__stage-wrap { height: auto; }
   .showcase__stage { position: relative; height: auto; padding: 96px 0; }
-  .showcase__bg { opacity: .9 !important; }
   .showcase__line { transform: scaleY(1) !important; opacity: 1 !important; }
   .lb-tile[data-reveal] { clip-path: none !important; transition: none !important; }
   .spec-card__num span[data-count] { animation: none !important; }
