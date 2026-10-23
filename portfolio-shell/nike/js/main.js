@@ -45,11 +45,12 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 전용 스테이지(아래 raf 루프)의 스크롤 진행률을 3D 회전(js/showcase3d.js)에
-  //      넘겨 동기화. 세로 라인은 "의미 없고 없어 보인다"는 피드백으로 제거(2026-10-23 5차), 배경
-  //      그라데이션은 JS가 아니라 .showcase 섹션 하나의 정적 CSS 배경(vh 단위 스톱)이 스크롤에 따라
-  //      자연스럽게 드러나는 방식이라 여기선 안 건드림(css 참고). ----
+  // ---- 제품 쇼케이스: 2026-10-23 6차 — "홀로그램 표현이 안 됨, 3D/회전 다 빼고 신발을 강조하는
+  //      인터랙션으로 시원시원하게"라는 요청으로 three.js 3D 렌더링을 전면 폐기하고 평면 사진 +
+  //      스크롤 연동 2D 트랜스폼(확대 + 기울어짐 → 정자세로 정리)으로 교체. 배경 그라데이션은 여전히
+  //      JS가 아니라 .showcase 섹션 하나의 정적 CSS 배경(vh 단위 스톱)이라 여기선 안 건드림(css 참고). ----
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
+  const showcaseShoe = document.querySelector("[data-showcase-shoe]");
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -156,12 +157,16 @@
         manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
       }
 
-      // 쇼케이스 스테이지: 신발 회전(showcase3d.js가 소유, 여기선 progress만 넘겨 동기화) — 배경
+      // 쇼케이스 스테이지: 신발 사진이 살짝 기울어진 채 작게 시작해 확대되며 정자세로 "탁" 정리됨 —
+      // 3D 대신 순수 2D 트랜스폼(scale+rotate+translateY)만으로 "시원시원한" 임팩트를 냄. 배경
       // 그라데이션은 .showcase 섹션 전체에 걸친 정적 CSS라 여기선 안 건드림(css 참고, 스크롤에 따라
       // 저절로 드러남).
-      if (bounds.showcaseStage && bounds.showcaseStage.range > 0) {
+      if (showcaseShoe && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
         const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
-        if (window.__setShowcaseProgress) window.__setShowcaseProgress(progress);
+        const scale = 0.8 + progress * 0.35; // 0.8 -> 1.15, 확대되며 등장
+        const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
+        const rise = (1 - progress) * 50; // 아래에서 살짝 떠오르며 자리 잡음
+        showcaseShoe.style.transform = `translateY(${rise.toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${rotate.toFixed(2)}deg)`;
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)
