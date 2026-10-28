@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261023e">
+<link rel="stylesheet" href="css/style.css?v=20261029a">
 </head>
 <body>
 
@@ -78,6 +78,8 @@
     <div class="showcase__stage-wrap" data-showcase-stage-wrap>
       <div class="showcase__stage">
         <div class="showcase__visual">
+          <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
+          <div class="showcase__ring" data-showcase-ring aria-hidden="true"></div>
           <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
         </div>
       </div>
@@ -143,13 +145,36 @@
     <div class="container">
       <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
       <h2 class="lookbook__title" data-reveal>어디서든, 당신의 속도로</h2>
-      <!-- PLACEHOLDER: 아래 6칸 전부 실사 라이프스타일 이미지로 교체 예정 -->
-      <div class="lookbook__grid">
-        <div class="lb-tile lb-tile--lg ph-visual" data-reveal data-placeholder="lookbook-1"><span class="lb-tile__cap">STREET</span></div>
-        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-2"><span class="lb-tile__cap">TRACK</span></div>
-        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-3"><span class="lb-tile__cap">STUDIO</span></div>
-        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-4"><span class="lb-tile__cap">NIGHT RUN</span></div>
-        <div class="lb-tile ph-visual" data-reveal data-placeholder="lookbook-5"><span class="lb-tile__cap">COURT</span></div>
+    </div>
+    <!-- PLACEHOLDER: 슬라이드 5장 전부 실사 라이프스타일 이미지로 교체 예정(각 .lookbook__slide 안에
+         <img>를 넣고 배경 그라데이션(.ph-visual)은 제거) -->
+    <div class="lookbook__slider">
+      <div class="lookbook__track" data-lookbook-track>
+        <div class="lookbook__slide ph-visual" data-placeholder="lookbook-1">
+          <span class="lookbook__slide-num">01</span>
+          <span class="lookbook__slide-cap">STREET</span>
+        </div>
+        <div class="lookbook__slide ph-visual" data-placeholder="lookbook-2">
+          <span class="lookbook__slide-num">02</span>
+          <span class="lookbook__slide-cap">TRACK</span>
+        </div>
+        <div class="lookbook__slide ph-visual" data-placeholder="lookbook-3">
+          <span class="lookbook__slide-num">03</span>
+          <span class="lookbook__slide-cap">STUDIO</span>
+        </div>
+        <div class="lookbook__slide ph-visual" data-placeholder="lookbook-4">
+          <span class="lookbook__slide-num">04</span>
+          <span class="lookbook__slide-cap">NIGHT RUN</span>
+        </div>
+        <div class="lookbook__slide ph-visual" data-placeholder="lookbook-5">
+          <span class="lookbook__slide-num">05</span>
+          <span class="lookbook__slide-cap">COURT</span>
+        </div>
+      </div>
+      <div class="lookbook__nav">
+        <button type="button" class="lookbook__arrow" data-lookbook-prev aria-label="이전 슬라이드">‹</button>
+        <div class="lookbook__dots" data-lookbook-dots></div>
+        <button type="button" class="lookbook__arrow" data-lookbook-next aria-label="다음 슬라이드">›</button>
       </div>
     </div>
   </section>
@@ -176,6 +201,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261023e"></script>
+  <script src="js/main.js?v=20261029a"></script>
 </body>
 </html>

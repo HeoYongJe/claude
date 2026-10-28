@@ -51,6 +51,44 @@
   //      JS가 아니라 .showcase 섹션 하나의 정적 CSS 배경(vh 단위 스톱)이라 여기선 안 건드림(css 참고). ----
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
   const showcaseShoe = document.querySelector("[data-showcase-shoe]");
+  const showcaseGlow = document.querySelector("[data-showcase-glow]");
+  const showcaseRing = document.querySelector("[data-showcase-ring]");
+
+  // ---- 룩북 슬라이더: scroll-snap 트랙을 화살표/점 네비로 보조 조작 ----
+  const lookbookTrack = document.querySelector("[data-lookbook-track]");
+  if (lookbookTrack) {
+    const slides = [...lookbookTrack.children];
+    const dotsWrap = document.querySelector("[data-lookbook-dots]");
+    const prevBtn = document.querySelector("[data-lookbook-prev]");
+    const nextBtn = document.querySelector("[data-lookbook-next]");
+    const dots = slides.map((slide, i) => {
+      if (!dotsWrap) return null;
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "lookbook__dot" + (i === 0 ? " is-active" : "");
+      dot.setAttribute("aria-label", `${i + 1}번째 슬라이드로 이동`);
+      dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" }));
+      dotsWrap.appendChild(dot);
+      return dot;
+    });
+    function updateActiveDot() {
+      const trackLeft = lookbookTrack.getBoundingClientRect().left;
+      let closest = 0;
+      let closestDist = Infinity;
+      slides.forEach((slide, i) => {
+        const dist = Math.abs(slide.getBoundingClientRect().left - trackLeft);
+        if (dist < closestDist) { closestDist = dist; closest = i; }
+      });
+      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", i === closest));
+    }
+    let dotTick;
+    lookbookTrack.addEventListener("scroll", () => {
+      clearTimeout(dotTick);
+      dotTick = setTimeout(updateActiveDot, 80);
+    }, { passive: true });
+    if (prevBtn) prevBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: -(slides[0].offsetWidth + 20), behavior: "smooth" }));
+    if (nextBtn) nextBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: slides[0].offsetWidth + 20, behavior: "smooth" }));
+  }
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
   const countEls = document.querySelectorAll("[data-count]");
@@ -134,7 +172,10 @@
       if (heroInner && bounds.hero && bounds.hero.range > 0) {
         const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
         const scale = 1 + progress * 0.9; // 1 -> 1.9 (전경, 빠르게 확대)
-        const opacity = Math.max(0, 1 - progress * 1.6);
+        // 2026-10-29: 기존 *1.6은 핀 구간의 62.5% 지점에서 이미 완전히 투명해져, 나머지 37.5%는
+        // 아무것도 없는 빈 화면만 스크롤되는 "죽은 구간"이었음("여백이 너무 많아 미완성 같다" 피드백의
+        // 원인). progress를 그대로 써서 핀이 풀리는 정확한 순간에 다 사라지도록 range 전체를 씀.
+        const opacity = Math.max(0, 1 - progress);
         // 2026-10-22: 입장 시 blur→선명(위 CSS [data-reveal])의 반대 방향 — 스크롤해서 다음 섹션으로
         // 넘어가는 동안 다시 흐려지도록 진행률에 블러를 바인딩(0 -> 14px, 입장 블러 세기와 동일하게 맞춤).
         const blur = progress * 14;
@@ -152,9 +193,11 @@
       // "멈춰 있다가" sticky가 풀리도록(급작스러운 핸드오프 방지용 호흡).
       if (manifestoText && bounds.manifesto && bounds.manifesto.range > 0) {
         const progress = clamp01((smoothY - bounds.manifesto.start) / (bounds.manifesto.range * 0.75));
-        const scale = 0.5 + progress * 0.65;
+        // 2026-10-29: 시작 크기 0.5→0.65, opacity 램프 ×2.5→×3 — 히어로 쪽 여백 수정과 짝으로
+        // 텍스트가 더 일찍·더 또렷하게 잡혀서 핸드오프가 타이트하게 느껴지도록.
+        const scale = 0.65 + progress * 0.5;
         manifestoText.style.transform = `scale(${scale.toFixed(3)})`;
-        manifestoText.style.opacity = Math.min(1, progress * 2.5).toFixed(3);
+        manifestoText.style.opacity = Math.min(1, progress * 3).toFixed(3);
       }
 
       // 쇼케이스 스테이지: 신발 사진이 살짝 기울어진 채 작게 시작해 확대되며 정자세로 "탁" 정리됨 —
@@ -163,10 +206,15 @@
       // 저절로 드러남).
       if (showcaseShoe && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
         const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
-        const scale = 0.8 + progress * 0.35; // 0.8 -> 1.15, 확대되며 등장
+        // 2026-10-29: "확대됐을 때 사이즈를 조금만 줄여줘" — 최대 스케일 1.15 -> 1.0.
+        const scale = 0.75 + progress * 0.25; // 0.75 -> 1.0, 확대되며 등장
         const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
         const rise = (1 - progress) * 50; // 아래에서 살짝 떠오르며 자리 잡음
         showcaseShoe.style.transform = `translateY(${rise.toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${rotate.toFixed(2)}deg)`;
+        // 신발 뒤 글로우·링도 같은 진행률로 밝아짐 — "이펙트가 화려했으면" 피드백 반영(transform은
+        // 각자 CSS 무한 애니메이션이 소유하므로 opacity만 건드려 충돌 없음, css 참고).
+        if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.9).toFixed(3);
+        if (showcaseRing) showcaseRing.style.opacity = (progress * 0.8).toFixed(3);
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)
