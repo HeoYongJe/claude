@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261029q">
+<link rel="stylesheet" href="css/style.css?v=20261029r">
 </head>
 <body>
 
@@ -116,44 +116,15 @@
   </section>
 
   <!-- ============ SPEC HIGHLIGHTS + LOOKBOOK — 흰 배경이 길게 이어지는 구간이라 밋밋하다는
-       2026-10-29 피드백으로 .speedfield 래퍼를 추가. 1차는 얇은 스트로크 웨이브+스피드라인이었는데
-       "선으로만 찍찍 그은 느낌, 더 화려하고 시원시원하게, 컬러도 더 어울리는 그라데이션으로"라는
-       2차 피드백(피파온라인4 이벤트 페이지 레퍼런스)으로 전면 재설계 — 얇은 선 전부 폐기하고 큰
-       리본형 도형(volt→오렌지→크림슨 3단 그라데이션) + 소프트 글로우로 교체.
-       design.md Colors/8차 항목 참고. ============ -->
+       2026-10-29 피드백으로 .speedfield 래퍼를 추가. 1차(얇은 스트로크 웨이브) → 2차(volt+오렌지+
+       크림슨 그라데이션 리본)를 거쳐, "그라데이션 빼고 포인트컬러(volt)만으로 블러 처리된 큼직한
+       덩어리를 배경처럼 배치해달라"는 3차 피드백으로 단순화 — 보조 액센트 전부 제거, volt 단색
+       블러 블롭 3개로 교체. design.md Colors/8차 항목 참고. ============ -->
   <div class="speedfield">
     <div class="speedfield__waveclip" aria-hidden="true">
-      <svg class="speedfield__glow" data-speed="0.03" viewBox="0 0 1600 1700" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="speedGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="var(--volt)" stop-opacity=".55"/>
-            <stop offset="100%" stop-color="var(--volt)" stop-opacity="0"/>
-          </radialGradient>
-        </defs>
-        <circle cx="1180" cy="560" r="480" fill="url(#speedGlow)"/>
-      </svg>
-      <svg class="speedfield__ribbon speedfield__ribbon--a" data-speed="0.05" viewBox="0 0 1600 1700" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="speedGradA" x1="0%" y1="0%" x2="100%" y2="60%">
-            <stop offset="0%" stop-color="var(--volt)"/>
-            <stop offset="55%" stop-color="var(--accent2)"/>
-            <stop offset="100%" stop-color="var(--accent3)"/>
-          </linearGradient>
-        </defs>
-        <path fill="url(#speedGradA)" d="M -120,140 C 260,-30 560,310 980,130 C 1300,-10 1500,190 1820,60
-          L 1820,300 C 1500,430 1300,230 980,370 C 560,550 260,210 -120,380 Z"/>
-      </svg>
-      <svg class="speedfield__ribbon speedfield__ribbon--b" data-speed="0.08" viewBox="0 0 1600 1700" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="speedGradB" x1="100%" y1="0%" x2="0%" y2="80%">
-            <stop offset="0%" stop-color="var(--accent3)"/>
-            <stop offset="55%" stop-color="var(--accent2)"/>
-            <stop offset="100%" stop-color="var(--volt)"/>
-          </linearGradient>
-        </defs>
-        <path fill="url(#speedGradB)" d="M -120,1260 C 300,1060 660,1420 1060,1200 C 1400,1010 1560,1260 1820,1120
-          L 1820,1340 C 1560,1480 1400,1230 1060,1420 C 660,1640 300,1280 -120,1480 Z"/>
-      </svg>
+      <div class="speedfield__blob speedfield__blob--a" data-speed="0.04"></div>
+      <div class="speedfield__blob speedfield__blob--b" data-speed="0.07"></div>
+      <div class="speedfield__blob speedfield__blob--c" data-speed="0.1"></div>
     </div>
 
   <!-- ============ SPEC HIGHLIGHTS ============ -->
