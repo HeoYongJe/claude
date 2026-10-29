@@ -294,33 +294,39 @@ button, input { font: inherit; }
 .lookbook__viewport.is-dragging { cursor: grabbing; }
 .lookbook__track { position: relative; width: 100%; height: 100%; }
 /* 랭크 기반 스택 캐러셀 — 가로 트랙이 없으므로 전환 중 "잘림"이 구조적으로 불가능.
-   2026-10-29 9차: "2560px 화면에선 바뀐 게 하나도 없다, 여전히 슬라이드가 우측에 짱박혀있다" —
-   8차까지 rank0·1을 `right`(뷰포트 오른쪽 끝 기준 px)로 당겼는데, `right`는 애초에 "오른쪽 끝에서부터"
-   고정 거리라서 화면이 넓어질수록 `.lookbook__layout`의 `padding-left`(= (100vw-1200px)/2, 뷰포트
-   폭에 비례해서 커짐)도 같이 커져 타이틀 칸 자체가 오른쪽으로 밀리고, 그만큼 "타이틀 끝 ~ rank0
-   시작" 사이 빈 공간이 다시 벌어짐 — 1800px 기준으로 튜닝한 값이 2560px 이상에서는 사실상 원점으로
-   돌아간 것. **해상도에 무관하게 고정된 간격을 만들려면 "뷰포트 오른쪽 끝"이 아니라 "타이틀이 끝나는
-   지점"(=`.lookbook__slider`의 왼쪽 경계, flex 레이아웃이 이미 알아서 타이틀 칸 폭+패딩을 따라가며
-   계산해줌)을 기준으로 삼아야 함** — rank0·1을 `right` 대신 `left`(슬라이더 박스의 왼쪽 경계 기준)로
-   전환, 48px 고정 간격이 어떤 해상도에서도 똑같이 유지됨. rank2(우측 끝 플러시)는 `right:40px`
-   대신 `left: calc(100% - 250px)`로 등가 변환해서 "슬라이더 박스 오른쪽 끝에서 40px"를 그대로
-   유지(슬라이더 자체가 풀블리드라 이 끝은 뷰포트 오른쪽 끝과 사실상 같음 — 이쪽은 이전부터 이미
-   해상도 무관하게 잘 동작했음). 전부 `left` 하나로 통일한 이유는 랭크 전환 애니메이션 때문 —
-   `[data-rank]`가 바뀔 때 `left`/`right` 중 한쪽만 쓰는 랭크끼리 섞이면 전환 애니메이션이 'auto'를
-   거치며 뚝 끊기므로, 모든 랭크가 항상 `left`에 구체적인 값을 갖도록 통일(모바일·중간 구간은 여전히
-   `right`를 쓰므로 그쪽 미디어쿼리에 `left:auto`를 명시해 이 기본 규칙의 `left`값을 덮어씀 — 자세한
-   계산 근거는 design.md 9차 항목 참고). */
+   2026-10-29 9차: rank0·1을 `right` 대신 `left`(타이틀이 끝나는 지점 기준)로 바꿔 해상도 무관하게
+   간격을 고정시켰지만, rank2는 여전히 "우측 끝까지 채운다"는 6~7차 요청대로 `left: calc(100% -
+   250px)`(뷰포트 오른쪽 끝 플러시)에 남겨뒀음 — 그 결과 넓은 화면에서 rank1(타이틀 옆)과 rank2
+   (화면 우측 끝) 사이에 아무것도 없는 큰 빈 구간이 생기고, rank2 카드 한 장만 뚝 떨어져 섬처럼
+   붕 떠 보이는 문제가 스크린샷으로 지적됨("이미지 5장뿐이라 화면 전체를 채우기엔 아이템이 부족하다").
+   10차: "우측 끝까지 채운다"는 요청을 이번엔 포기하고, 대신 **사진 4장은 타이틀 바로 옆에 바싹
+   붙여 부채꼴로 쌓고(`left` 전부 작은 고정값, 해상도 무관), 5번째(= rank4)는 또렷한 카드가 아니라
+   아주 흐릿하고 작은 "잔상"(블러 + 저투명도)으로만 살짝 더 비치게** 처리 — 아이템이 5장뿐이라
+   화면 전체에 흩뿌리면 듬성듬성해 보이는 문제 자체를 "넓게 펼치지 않는" 쪽으로 해결. 더 이상
+   `right`/`calc(100%...)`를 쓰는 랭크가 없어 모든 랭크가 `.lookbook__slider`의 왼쪽(=타이틀이 끝나는
+   지점) 기준 고정 px 하나로만 정해지므로 1800px이든 2560px이든 4K든 항상 동일한 모양으로 보임
+   (9차에서 확인한 "left는 flex가 알아서 해상도 반응형으로 계산해주는 기준점"이라는 원리를 전체
+   랭크로 확장 적용한 것).
+   ⚠️ 구현 중 발견한 버그: 처음엔 각 랭크의 `left`를 "이전 랭크 left + 고정 step"으로만 늘렸는데,
+   `step < 이전 카드 너비`인 경우 다음 카드의 오른쪽 끝이 이전 카드의 오른쪽 끝보다 안쪽에 들어와
+   (예: rank1 `left:178,width:300`→끝 478 < rank0 끝 508) **완전히 뒤에 가려 아예 안 보이는** 카드가
+   생김. "각 랭크의 오른쪽 끝(`left+width`)이 이전 랭크의 오른쪽 끝보다 `peek`만큼 더 나가야 한다"는
+   식으로 역산(`end[n] = end[n-1] + peek`, `left[n] = end[n] - width[n]`)해서 모든 랭크가 실제로
+   조금씩이라도 삐져나와 보이도록 수정. 자세한 수치 근거는 design.md 10차 항목 참고. */
 .lookbook__slide { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 24px; overflow: hidden;
   display: flex; align-items: flex-end; padding: 20px;
   transition: left .7s cubic-bezier(.16,1,.3,1), right .7s cubic-bezier(.16,1,.3,1),
-    width .7s cubic-bezier(.16,1,.3,1), height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease, box-shadow .7s ease; }
-.lookbook__slide[data-rank="0"] { left: 48px; width: 460px; height: 560px; opacity: 1; z-index: 3;
+    width .7s cubic-bezier(.16,1,.3,1), height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease,
+    filter .6s ease, box-shadow .7s ease; }
+.lookbook__slide[data-rank="0"] { left: 48px; width: 460px; height: 560px; opacity: 1; z-index: 5;
   box-shadow: 0 32px 60px -18px rgba(0,0,0,.42); }
-.lookbook__slide[data-rank="1"] { left: 378px; width: 300px; height: 400px; opacity: .82; z-index: 2;
+.lookbook__slide[data-rank="1"] { left: 318px; width: 300px; height: 400px; opacity: .85; z-index: 4;
   box-shadow: 0 20px 40px -16px rgba(0,0,0,.3); }
-.lookbook__slide[data-rank="2"] { left: calc(100% - 250px); width: 210px; height: 280px; opacity: .5; z-index: 1; box-shadow: none; }
-.lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { left: calc(100% + 50px); width: 210px; height: 280px;
-  opacity: 0; z-index: 0; pointer-events: none; box-shadow: none; }
+.lookbook__slide[data-rank="2"] { left: 498px; width: 210px; height: 280px; opacity: .55; z-index: 3; box-shadow: none; }
+.lookbook__slide[data-rank="3"] { left: 628px; width: 150px; height: 200px; opacity: .3; z-index: 2; box-shadow: none; }
+/* rank4 = "잔상" — 또렷한 5번째 카드가 아니라 블러+저투명도로 살짝 더 쌓여있음만 암시하는 장식 */
+.lookbook__slide[data-rank="4"] { left: 718px; width: 110px; height: 150px; opacity: .14; filter: blur(4px);
+  z-index: 1; pointer-events: none; box-shadow: none; }
 .lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
   font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
 .lookbook__slide-cap { font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark);
@@ -384,17 +390,17 @@ button, input { font: inherit; }
   .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
 }
 
-/* 데스크톱이지만 타이틀 칸(440px)과 부딪힐 만큼 좁은 중간 구간(900~1300px) — 스택 카드 크기만 비례 축소.
-   이 구간은 폭 자체가 좁아 기본 구간(9차)만큼 타이틀 쪽으로 당기면 카드가 타이틀 칸을 침범하므로
-   8차 이전 값을 그대로 유지(이 구간에서 "간격이 멀다" 피드백은 아직 없었음 — 스크린샷은 넓은
-   데스크톱 폭 기준이었음, design.md 8~9차 항목 참고). 9차: 기본 규칙이 left를 쓰므로 여기도
-   left:auto 리셋 추가(위 모바일 구간과 동일한 이유). */
+/* 데스크톱이지만 타이틀 칸(440px)과 부딪힐 만큼 좁은 중간 구간(900~1300px) — 10차의 "타이틀 옆에
+   바싹 붙은 부채꼴 + 잔상" 구조를 카드 크기만 ~76% 비례 축소해서 그대로 적용(기본 구간과 같은
+   left 기준이라 두 구간이 일관된 느낌). 901px(이 구간 하한)에서 잔상(rank4)이 몇십px 정도 섹션
+   바깥으로 살짝 클리핑될 수 있지만, 어차피 블러 처리된 장식이라 체감상 문제 없음. */
 @media (max-width: 1300px) and (min-width: 901px) {
   .lookbook__slider { height: 480px; }
-  .lookbook__slide[data-rank="0"] { left: auto; right: 290px; width: 350px; height: 430px; }
-  .lookbook__slide[data-rank="1"] { left: auto; right: 110px; width: 220px; height: 300px; }
-  .lookbook__slide[data-rank="2"] { left: auto; right: 0; width: 160px; height: 210px; }
-  .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { left: auto; right: -180px; width: 160px; height: 210px; }
+  .lookbook__slide[data-rank="0"] { left: 32px; width: 350px; height: 430px; }
+  .lookbook__slide[data-rank="1"] { left: 224px; width: 228px; height: 304px; }
+  .lookbook__slide[data-rank="2"] { left: 347px; width: 160px; height: 213px; }
+  .lookbook__slide[data-rank="3"] { left: 433px; width: 114px; height: 152px; }
+  .lookbook__slide[data-rank="4"] { left: 493px; width: 84px; height: 114px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
