@@ -294,24 +294,32 @@ button, input { font: inherit; }
 .lookbook__viewport.is-dragging { cursor: grabbing; }
 .lookbook__track { position: relative; width: 100%; height: 100%; }
 /* 랭크 기반 스택 캐러셀 — 가로 트랙이 없으므로 전환 중 "잘림"이 구조적으로 불가능.
-   2026-10-29 8차: "스택 방식은 괜찮은데 타이틀하고 카드 더미 사이 빈 공간이 동그라미 친 만큼 너무
-   멀다" — rank0·1의 right값을 키워(= 뷰포트 오른쪽 끝에서 더 멀리, 즉 타이틀 쪽으로) 그 간격을 줄임.
-   rank2는 거의 그대로 둬 "우측 끝까지 채운다"는 이전 요청도 계속 지킴(0 -> 40px, 2000px급 화면에서
-   거의 체감 안 되는 차이). 처음엔 더 과감하게 당겼다가(rank0 right 640px) 실측해보니 카드 왼쪽
-   끝(약 x=685)이 타이틀 칸의 오른쪽 끝(약 x=740)보다 더 왼쪽까지 들어와 타이틀 칸·간격(gap)을
-   침범하는 버그가 있었음 — `.lookbook__slider`의 실제 왼쪽 경계(헤드 폭 440px + gap 56px + 좌측
-   패딩)보다 카드가 더 왼쪽으로 나가면 안 된다는 제약을 역산해 480px로 낮춰 안전마진(~48px)을 두고
-   확정. 자세한 계산 근거는 design.md 8차 항목 참고. */
+   2026-10-29 9차: "2560px 화면에선 바뀐 게 하나도 없다, 여전히 슬라이드가 우측에 짱박혀있다" —
+   8차까지 rank0·1을 `right`(뷰포트 오른쪽 끝 기준 px)로 당겼는데, `right`는 애초에 "오른쪽 끝에서부터"
+   고정 거리라서 화면이 넓어질수록 `.lookbook__layout`의 `padding-left`(= (100vw-1200px)/2, 뷰포트
+   폭에 비례해서 커짐)도 같이 커져 타이틀 칸 자체가 오른쪽으로 밀리고, 그만큼 "타이틀 끝 ~ rank0
+   시작" 사이 빈 공간이 다시 벌어짐 — 1800px 기준으로 튜닝한 값이 2560px 이상에서는 사실상 원점으로
+   돌아간 것. **해상도에 무관하게 고정된 간격을 만들려면 "뷰포트 오른쪽 끝"이 아니라 "타이틀이 끝나는
+   지점"(=`.lookbook__slider`의 왼쪽 경계, flex 레이아웃이 이미 알아서 타이틀 칸 폭+패딩을 따라가며
+   계산해줌)을 기준으로 삼아야 함** — rank0·1을 `right` 대신 `left`(슬라이더 박스의 왼쪽 경계 기준)로
+   전환, 48px 고정 간격이 어떤 해상도에서도 똑같이 유지됨. rank2(우측 끝 플러시)는 `right:40px`
+   대신 `left: calc(100% - 250px)`로 등가 변환해서 "슬라이더 박스 오른쪽 끝에서 40px"를 그대로
+   유지(슬라이더 자체가 풀블리드라 이 끝은 뷰포트 오른쪽 끝과 사실상 같음 — 이쪽은 이전부터 이미
+   해상도 무관하게 잘 동작했음). 전부 `left` 하나로 통일한 이유는 랭크 전환 애니메이션 때문 —
+   `[data-rank]`가 바뀔 때 `left`/`right` 중 한쪽만 쓰는 랭크끼리 섞이면 전환 애니메이션이 'auto'를
+   거치며 뚝 끊기므로, 모든 랭크가 항상 `left`에 구체적인 값을 갖도록 통일(모바일·중간 구간은 여전히
+   `right`를 쓰므로 그쪽 미디어쿼리에 `left:auto`를 명시해 이 기본 규칙의 `left`값을 덮어씀 — 자세한
+   계산 근거는 design.md 9차 항목 참고). */
 .lookbook__slide { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 24px; overflow: hidden;
   display: flex; align-items: flex-end; padding: 20px;
-  transition: right .7s cubic-bezier(.16,1,.3,1), width .7s cubic-bezier(.16,1,.3,1),
-    height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease, box-shadow .7s ease; }
-.lookbook__slide[data-rank="0"] { right: 480px; width: 460px; height: 560px; opacity: 1; z-index: 3;
+  transition: left .7s cubic-bezier(.16,1,.3,1), right .7s cubic-bezier(.16,1,.3,1),
+    width .7s cubic-bezier(.16,1,.3,1), height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease, box-shadow .7s ease; }
+.lookbook__slide[data-rank="0"] { left: 48px; width: 460px; height: 560px; opacity: 1; z-index: 3;
   box-shadow: 0 32px 60px -18px rgba(0,0,0,.42); }
-.lookbook__slide[data-rank="1"] { right: 240px; width: 300px; height: 400px; opacity: .82; z-index: 2;
+.lookbook__slide[data-rank="1"] { left: 378px; width: 300px; height: 400px; opacity: .82; z-index: 2;
   box-shadow: 0 20px 40px -16px rgba(0,0,0,.3); }
-.lookbook__slide[data-rank="2"] { right: 40px; width: 210px; height: 280px; opacity: .5; z-index: 1; box-shadow: none; }
-.lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { right: -200px; width: 210px; height: 280px;
+.lookbook__slide[data-rank="2"] { left: calc(100% - 250px); width: 210px; height: 280px; opacity: .5; z-index: 1; box-shadow: none; }
+.lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { left: calc(100% + 50px); width: 210px; height: 280px;
   opacity: 0; z-index: 0; pointer-events: none; box-shadow: none; }
 .lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
   font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
@@ -365,24 +373,28 @@ button, input { font: inherit; }
   .lookbook__head { flex: none; width: 100%; }
   .lookbook__title { font-size: clamp(34px, 9vw, 52px); margin-bottom: 20px; }
   .lookbook__slider { width: 100%; height: 64vw; }
-  .lookbook__slide[data-rank="0"] { right: 30vw; width: 54vw; height: 60vw; }
-  .lookbook__slide[data-rank="1"] { right: 0; width: 32vw; height: 40vw; opacity: .7; }
+  /* 9차: 기본 규칙이 랭크 위치를 left로 쓰므로, 여기선 right로 되돌리는 김에 left:auto로 명시
+     리셋 — 안 하면 기본 규칙의 left 값이 같이 살아남아(둘 다 구체값이면 left가 우선) right가
+     무시되는 충돌이 생김. */
+  .lookbook__slide[data-rank="0"] { left: auto; right: 30vw; width: 54vw; height: 60vw; }
+  .lookbook__slide[data-rank="1"] { left: auto; right: 0; width: 32vw; height: 40vw; opacity: .7; }
   .lookbook__slide[data-rank="2"], .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] {
-    right: -40vw; width: 32vw; height: 40vw; opacity: 0; }
+    left: auto; right: -40vw; width: 32vw; height: 40vw; opacity: 0; }
   .manifesto { padding: 96px 0; }
   .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
 }
 
 /* 데스크톱이지만 타이틀 칸(440px)과 부딪힐 만큼 좁은 중간 구간(900~1300px) — 스택 카드 크기만 비례 축소.
-   이 구간은 폭 자체가 좁아 기본 구간(8차)만큼 타이틀 쪽으로 당기면 카드가 타이틀 칸을 침범하므로
+   이 구간은 폭 자체가 좁아 기본 구간(9차)만큼 타이틀 쪽으로 당기면 카드가 타이틀 칸을 침범하므로
    8차 이전 값을 그대로 유지(이 구간에서 "간격이 멀다" 피드백은 아직 없었음 — 스크린샷은 넓은
-   데스크톱 폭 기준이었음, design.md 8차 항목 참고). */
+   데스크톱 폭 기준이었음, design.md 8~9차 항목 참고). 9차: 기본 규칙이 left를 쓰므로 여기도
+   left:auto 리셋 추가(위 모바일 구간과 동일한 이유). */
 @media (max-width: 1300px) and (min-width: 901px) {
   .lookbook__slider { height: 480px; }
-  .lookbook__slide[data-rank="0"] { right: 290px; width: 350px; height: 430px; }
-  .lookbook__slide[data-rank="1"] { right: 110px; width: 220px; height: 300px; }
-  .lookbook__slide[data-rank="2"] { right: 0; width: 160px; height: 210px; }
-  .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { right: -180px; width: 160px; height: 210px; }
+  .lookbook__slide[data-rank="0"] { left: auto; right: 290px; width: 350px; height: 430px; }
+  .lookbook__slide[data-rank="1"] { left: auto; right: 110px; width: 220px; height: 300px; }
+  .lookbook__slide[data-rank="2"] { left: auto; right: 0; width: 160px; height: 210px; }
+  .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { left: auto; right: -180px; width: 160px; height: 210px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
