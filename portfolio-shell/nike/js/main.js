@@ -54,88 +54,112 @@
   const showcaseGlow = document.querySelector("[data-showcase-glow]");
   const showcaseRing = document.querySelector("[data-showcase-ring]");
 
-  // ---- 룩북 슬라이더: 센터 강조 캐러셀 + 화살표/점/마우스 드래그 네비 ----
-  // 2026-10-29 2차: "가운데가 양옆보다 크게, 돌아갈 때마다 가운데가 커 보이게, 마우스로도 슬라이드되게,
-  // 끝에 다다르면 빈 화면이 생긴다" 피드백 — CSS 쪽에서 scroll-snap-align을 center로 바꾸고 좌우
-  // padding을 센터링 전용 공식으로 재계산(끝 빈 화면 버그의 원인이던 좌우 비대칭 padding 해소, css 참고).
-  // 여기서는 스크롤/드래그될 때마다 각 슬라이드-트랙 중심 거리로 scale/opacity를 계속 갱신.
+  // ---- 룩북 슬라이더: 인덱스 기반 커스텀 캐러셀(센터 슬라이드 확대) ----
+  // 2026-10-29 3차: "처음·끝에 여전히 빈 화면, 가운데-나머지 크기 대비를 더 크게, 전환이 화려하고
+  // 스무스했으면, 슬라이드 모양 통일, 가운데 슬라이드 위쪽이 라운드가 아니라 직각으로 잘림, 마우스
+  // 휠로 페이지 스크롤할 때 슬라이드 안 컨텐츠가 반응함" — 네이티브 overflow-x 스크롤+scroll-snap을
+  // 전부 버리고 translateX 오프셋을 인덱스 기준으로 직접 계산하는 캐러셀로 교체(이유는 css 주석 참고:
+  // 빈 화면·휠 하이재킹·라운드 모서리 클리핑 버그 전부 이 구조 변경 하나로 해소됨).
   const lookbookTrack = document.querySelector("[data-lookbook-track]");
-  if (lookbookTrack) {
+  const lookbookViewport = document.querySelector("[data-lookbook-viewport]");
+  if (lookbookTrack && lookbookViewport) {
     const slides = [...lookbookTrack.children];
     const dotsWrap = document.querySelector("[data-lookbook-dots]");
     const prevBtn = document.querySelector("[data-lookbook-prev]");
     const nextBtn = document.querySelector("[data-lookbook-next]");
-    const dots = slides.map((slide, i) => {
+    let currentIndex = 0;
+    let step = 0;
+    let slideWidth = 0;
+
+    const dots = slides.map((_, i) => {
       if (!dotsWrap) return null;
       const dot = document.createElement("button");
       dot.type = "button";
       dot.className = "lookbook__dot" + (i === 0 ? " is-active" : "");
       dot.setAttribute("aria-label", `${i + 1}번째 슬라이드로 이동`);
-      dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" }));
+      dot.addEventListener("click", () => goTo(i));
       dotsWrap.appendChild(dot);
       return dot;
     });
 
-    // 센터에 가까울수록 크고 또렷하게(reduced-motion에서는 끄고 CSS 기본 크기 그대로 둠).
-    let emphasisQueued = false;
-    function updateEmphasis() {
-      const trackRect = lookbookTrack.getBoundingClientRect();
-      const centerX = trackRect.left + trackRect.width / 2;
-      let closest = 0;
-      let closestDist = Infinity;
-      slides.forEach((slide, i) => {
-        const r = slide.getBoundingClientRect();
-        const dist = Math.abs(r.left + r.width / 2 - centerX);
-        if (dist < closestDist) { closestDist = dist; closest = i; }
-        if (!reduceMotion) {
-          const norm = Math.min(1, dist / (trackRect.width / 2));
-          const scale = 1.06 - norm * 0.26; // 센터 ~1.06, 가장자리 ~0.8
-          const opacity = Math.max(0.45, 1 - norm * 0.5);
-          slide.style.transform = `scale(${scale.toFixed(3)})`;
-          slide.style.opacity = opacity.toFixed(3);
-        }
-      });
-      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", i === closest));
-      emphasisQueued = false;
+    function measureStep() {
+      const style = getComputedStyle(lookbookTrack);
+      const gap = parseFloat(style.columnGap || style.gap) || 0;
+      // getBoundingClientRect()는 현재 적용된 scale() 트랜스폼까지 반영된 "보이는" 크기를 주기 때문에
+      // is-active(1.14배)/is-near(.92배) 상태에 따라 값이 들쭉날쭉해짐 — 트랜스폼에 안 흔들리는
+      // 레이아웃 폭(offsetWidth)을 써야 오프셋 계산이 매번 정확함(이게 이전 버전에서 센터가 안 맞던
+      // 진짜 원인: 측정 당시 어떤 슬라이드가 is-active였는지에 따라 폭이 .78~1.14배로 흔들렸었음).
+      slideWidth = slides[0].offsetWidth;
+      step = slideWidth + gap;
     }
-    updateEmphasis();
-    lookbookTrack.addEventListener("scroll", () => {
-      if (!emphasisQueued) {
-        emphasisQueued = true;
-        requestAnimationFrame(updateEmphasis);
-      }
-    }, { passive: true });
-    window.addEventListener("resize", updateEmphasis);
 
-    if (prevBtn) prevBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: -(slides[0].offsetWidth + 20), behavior: "smooth" }));
-    if (nextBtn) nextBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: slides[0].offsetWidth + 20, behavior: "smooth" }));
+    // "현재 인덱스 슬라이드가 뷰포트 정중앙"이 되도록 매번 오프셋을 직접 계산 — 첫/마지막 슬라이드도
+    // 항상 정확히 중앙에 와서 끝에 남는 빈 공간이 구조적으로 생기지 않음.
+    // (슬라이드 i의 자기 중심은 자기 왼쪽 끝 + "슬라이드 폭의 절반"이지 "step(슬라이드 폭+gap)의 절반"이
+    // 아님 — 이전 라운드에 step/2를 썼다가 매번 gap의 절반(12px)만큼 중심이 어긋나 있었던 버그.)
+    function render(animate) {
+      const viewportWidth = lookbookViewport.getBoundingClientRect().width;
+      const offset = viewportWidth / 2 - (currentIndex * step + slideWidth / 2);
+      lookbookTrack.style.transition = animate ? "" : "none";
+      lookbookTrack.style.transform = `translateX(${offset.toFixed(1)}px)`;
+      slides.forEach((slide, i) => {
+        const dist = Math.abs(i - currentIndex);
+        slide.classList.toggle("is-active", dist === 0);
+        slide.classList.toggle("is-near", dist === 1);
+      });
+      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", i === currentIndex));
+      if (prevBtn) prevBtn.disabled = currentIndex === 0;
+      if (nextBtn) nextBtn.disabled = currentIndex === slides.length - 1;
+    }
 
-    // 마우스 클릭+드래그로도 넘기기("버튼 말고 마우스로도 슬라이드되게") — 트랙패드/휠은 이미 네이티브로 됨.
-    // 드래그 중엔 scroll-snap을 끄고(css .is-dragging) scrollLeft를 1:1로 따라가게 하다가, 손을 떼면
-    // snap이 되살아나 가장 가까운 슬라이드로 자연스럽게 정렬됨.
+    function goTo(i) {
+      currentIndex = Math.max(0, Math.min(slides.length - 1, i));
+      render(true);
+    }
+
+    measureStep();
+    render(false);
+    window.addEventListener("resize", () => { measureStep(); render(false); });
+
+    if (prevBtn) prevBtn.addEventListener("click", () => goTo(currentIndex - 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => goTo(currentIndex + 1));
+
+    // 마우스 드래그 + 터치 스와이프(Pointer Events로 통합 — 네이티브 스크롤이 없으므로 직접 구현).
+    // 드래그 중엔 transform을 1:1로 따라가다가(css 전환 꺼짐), 손을 떼면 이동 거리로 몇 칸 넘어갔는지
+    // 계산해 가장 가까운 인덱스로 애니메이션과 함께 스냅.
     let isDragging = false;
     let dragMoved = false;
     let dragStartX = 0;
-    let dragScrollStart = 0;
-    lookbookTrack.addEventListener("mousedown", (e) => {
+    let dragBaseOffset = 0;
+    function currentTranslateX() {
+      return new DOMMatrixReadOnly(getComputedStyle(lookbookTrack).transform).m41;
+    }
+    lookbookViewport.addEventListener("pointerdown", (e) => {
       isDragging = true;
       dragMoved = false;
-      dragStartX = e.pageX;
-      dragScrollStart = lookbookTrack.scrollLeft;
-      lookbookTrack.classList.add("is-dragging");
+      dragStartX = e.clientX;
+      dragBaseOffset = currentTranslateX();
+      lookbookTrack.style.transition = "none";
+      lookbookViewport.classList.add("is-dragging");
+      lookbookViewport.setPointerCapture(e.pointerId);
     });
-    window.addEventListener("mousemove", (e) => {
+    lookbookViewport.addEventListener("pointermove", (e) => {
       if (!isDragging) return;
-      const dx = e.pageX - dragStartX;
+      const dx = e.clientX - dragStartX;
       if (Math.abs(dx) > 4) dragMoved = true;
-      lookbookTrack.scrollLeft = dragScrollStart - dx;
+      lookbookTrack.style.transform = `translateX(${(dragBaseOffset + dx).toFixed(1)}px)`;
     });
-    window.addEventListener("mouseup", () => {
+    function endDrag() {
       if (!isDragging) return;
       isDragging = false;
-      lookbookTrack.classList.remove("is-dragging");
-    });
-    lookbookTrack.addEventListener("dragstart", (e) => e.preventDefault());
+      lookbookViewport.classList.remove("is-dragging");
+      const dx = currentTranslateX() - dragBaseOffset;
+      const stepsMoved = Math.round(-dx / step);
+      goTo(currentIndex + stepsMoved);
+    }
+    lookbookViewport.addEventListener("pointerup", endDrag);
+    lookbookViewport.addEventListener("pointercancel", endDrag);
+    lookbookViewport.addEventListener("dragstart", (e) => e.preventDefault());
     // 드래그 끝에 자식 요소가 의도치 않게 클릭되는 것 방지
     lookbookTrack.addEventListener("click", (e) => { if (dragMoved) { e.preventDefault(); e.stopPropagation(); } }, true);
   }
