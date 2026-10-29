@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261029g">
+<link rel="stylesheet" href="css/style.css?v=20261029h">
 </head>
 <body>
 
@@ -141,11 +141,12 @@
   </section>
 
   <!-- ============ LOOKBOOK ============ -->
-  <!-- 2026-10-29 5차: 가운데-정렬 캐러셀(3~4차)을 전면 폐기. "타이틀을 좌측에 고정하고 우측에 슬라이드,
-       첫 슬라이드(활성)는 크게 나머지는 작게" 요청대로 좌/우 2단 레이아웃으로 교체 — 자세한 설계
-       배경은 design.md 5차 항목 참고. -->
+  <!-- 2026-10-29 5차: 가운데-정렬 캐러셀(3~4차)을 전면 폐기, 좌(타이틀 고정)/우(슬라이더) 2단 레이아웃으로
+       교체. 6차: "틀에 가두지 말고 marquee처럼 폭을 다 써라, 타이틀 더 크게" 요청으로 .container(최대
+       1200px) 제약을 벗어나 슬라이더가 브라우저 우측 끝까지 풀블리드로 흐르게 재구성 — 자세한 배경은
+       design.md 5~6차 항목 참고. -->
   <section class="lookbook">
-    <div class="container lookbook__layout">
+    <div class="lookbook__layout">
       <div class="lookbook__head">
         <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
         <h2 class="lookbook__title" data-reveal>어디서든,<br>당신의 속도로</h2>
