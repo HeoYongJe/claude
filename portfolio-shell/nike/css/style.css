@@ -234,19 +234,35 @@ button, input { font: inherit; }
      보이므로 "모양이 안 맞다"는 지적도 같이 해소됨(활성/비활성 전부 동일한 박스, scale만 다름).
    - **마우스 드래그 + 터치 스와이프**: Pointer Events로 통합 구현(마우스·터치·펜 전부 같은 코드 경로) —
      드래그 중엔 `transform`을 1:1로 따라가다가(css 전환 꺼짐), 손을 떼면 이동 거리로 몇 칸 넘어갔는지
-     계산해 가장 가까운 인덱스로 애니메이션과 함께 스냅. */
+     계산해 가장 가까운 인덱스로 애니메이션과 함께 스냅.
+   2026-10-29 4차: "1번이 화면 가운데가 아니라 왼쪽에 쏠려서 비어 보인다, 처음부터 3개를 놓고 가운데부터
+   보여주면 되잖아, 활성 슬라이드 그림자가 옆 슬라이드 위로 선처럼 걸쳐 보인다, 대비를 더 명확하게" 피드백.
+   - **첫/마지막이 "중앙 정렬인데 한쪽만 비어 보이던" 문제**: 3차 수식 자체는 수학적으로 정확히
+     중앙 정렬이었지만(실측 오차 0.03px), 양 끝 슬라이드는 애초에 한쪽에 피크할 이웃이 없어서
+     "정중앙에 떠 있는데 한쪽만 횅하다"는 인상을 줬던 것 — js가 `slides[0]`(마지막 슬라이드)과
+     `slides[4]`(첫 슬라이드)를 각각 복제해 트랙 맨 앞/뒤에 장식용으로 붙여둠(`aria-hidden`,
+     클릭 불가) — 이러면 1번이 활성이어도 왼쪽에 "5번의 복제본"이 피크하고 있어 항상 3장(피크-활성-피크)
+     구도가 유지됨("3개를 놓고 가운데부터 보여달라"는 요청 그대로).
+   - **그림자가 옆 슬라이드 위에 선처럼 걸치던 버그**: 활성 스케일이 1.14배로 너무 커서 이웃 슬라이드
+     영역까지 물리적으로 겹쳤고, 활성이 `z-index`가 더 높아 그 그림자가 이웃 위에 그대로 그려져 경계선
+     처럼 보였음. 활성 스케일을 1.14→1.02로 낮추고(자기 박스 대비 거의 그대로라 겹침이 사실상 없음),
+     대신 그림자도 `spread`를 음수로 줘서(`-12px`) 박스에 바싹 붙게 축소.
+   - **대비 강화**: "셀렉은 좀 더 줄이고 나머지는 더 줄여라" — 활성(1.14→1.02)은 줄이고 비활성은 더
+     줄여서(기본 .78→.6, 인접 .92→.75) 절대 크기 차이가 아니라 "활성/비활성 배율 차이"로 대비를 키움
+     (활성이 비활성 대비 약 1.7배 커 보임, 이전보다 오히려 체감 대비는 더 큼). */
 .lookbook__slider { position: relative; }
 .lookbook__viewport { overflow-x: hidden; padding: 44px 0 64px; cursor: grab; touch-action: pan-y; }
 .lookbook__viewport.is-dragging { cursor: grabbing; }
-.lookbook__track { display: flex; gap: 24px; width: max-content; will-change: transform;
+.lookbook__track { display: flex; gap: 32px; width: max-content; will-change: transform;
   transition: transform .6s cubic-bezier(.16,1,.3,1); }
 .lookbook__slide { flex: 0 0 auto; width: min(640px, 58vw); height: min(520px, 58vh); border-radius: 24px;
   position: relative; display: flex; align-items: flex-end; padding: 28px;
-  transform: scale(.78); opacity: .45; filter: blur(1.5px); box-shadow: 0 20px 40px rgba(0,0,0,0);
+  transform: scale(.6); opacity: .35; filter: blur(2px); box-shadow: 0 20px 40px -14px rgba(0,0,0,0);
   transition: transform .6s cubic-bezier(.16,1,.3,1), opacity .5s ease, filter .5s ease, box-shadow .6s ease; }
-.lookbook__slide.is-near { transform: scale(.92); opacity: .75; filter: blur(.5px); }
-.lookbook__slide.is-active { transform: scale(1.14); opacity: 1; filter: blur(0); z-index: 2;
-  box-shadow: 0 32px 60px rgba(0,0,0,.4); }
+.lookbook__slide.is-near { transform: scale(.75); opacity: .55; filter: blur(1px); }
+.lookbook__slide.is-active { transform: scale(1.02); opacity: 1; filter: blur(0); z-index: 2;
+  box-shadow: 0 24px 48px -12px rgba(0,0,0,.45); }
+.lookbook__slide--clone { pointer-events: none; }
 .lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
   font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
 .lookbook__slide-cap { font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark);
@@ -295,7 +311,7 @@ button, input { font: inherit; }
   .specs__grid { grid-template-columns: repeat(2, 1fr); }
   .lookbook__slide { width: 78vw; height: 52vh; }
   .lookbook__viewport { padding: 28px 0 44px; }
-  .lookbook__track { gap: 16px; }
+  .lookbook__track { gap: 20px; }
   .manifesto { padding: 96px 0; }
   .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
 }

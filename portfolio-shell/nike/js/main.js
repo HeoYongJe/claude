@@ -55,11 +55,13 @@
   const showcaseRing = document.querySelector("[data-showcase-ring]");
 
   // ---- 룩북 슬라이더: 인덱스 기반 커스텀 캐러셀(센터 슬라이드 확대) ----
-  // 2026-10-29 3차: "처음·끝에 여전히 빈 화면, 가운데-나머지 크기 대비를 더 크게, 전환이 화려하고
-  // 스무스했으면, 슬라이드 모양 통일, 가운데 슬라이드 위쪽이 라운드가 아니라 직각으로 잘림, 마우스
-  // 휠로 페이지 스크롤할 때 슬라이드 안 컨텐츠가 반응함" — 네이티브 overflow-x 스크롤+scroll-snap을
-  // 전부 버리고 translateX 오프셋을 인덱스 기준으로 직접 계산하는 캐러셀로 교체(이유는 css 주석 참고:
-  // 빈 화면·휠 하이재킹·라운드 모서리 클리핑 버그 전부 이 구조 변경 하나로 해소됨).
+  // 2026-10-29 3차: 네이티브 overflow-x 스크롤+scroll-snap을 전부 버리고 translateX 오프셋을 인덱스
+  // 기준으로 직접 계산하는 캐러셀로 교체(빈 화면·휠 하이재킹·라운드 모서리 클리핑 버그 해소, css 참고).
+  // 4차: "1번이 화면 가운데가 아니라 왼쪽에 쏠려 비어 보인다, 처음부터 3개를 놓고 가운데부터 보여주면
+  // 되잖아" — 3차 수식 자체는 정확히 중앙 정렬이었지만 맨 앞/뒤 슬라이드는 피크할 이웃이 한쪽에 없어서
+  // "중앙인데 한쪽만 휑하다"는 인상을 줬음. 마지막 슬라이드의 복제본을 트랙 맨 앞에, 첫 슬라이드의
+  // 복제본을 맨 뒤에 장식용으로 붙여(`aria-hidden`, 클릭 불가) 양 끝에서도 항상 피크-활성-피크 3장
+  // 구도가 유지되게 함 — 실제 인덱스/점/화살표는 여전히 진짜 5장 기준으로만 동작(복제본은 시각 전용).
   const lookbookTrack = document.querySelector("[data-lookbook-track]");
   const lookbookViewport = document.querySelector("[data-lookbook-viewport]");
   if (lookbookTrack && lookbookViewport) {
@@ -70,6 +72,16 @@
     let currentIndex = 0;
     let step = 0;
     let slideWidth = 0;
+
+    const leadClone = slides[slides.length - 1].cloneNode(true);
+    const trailClone = slides[0].cloneNode(true);
+    [leadClone, trailClone].forEach((clone) => {
+      clone.classList.add("lookbook__slide--clone", "is-near");
+      clone.setAttribute("aria-hidden", "true");
+      clone.removeAttribute("data-placeholder");
+    });
+    lookbookTrack.insertBefore(leadClone, lookbookTrack.firstChild);
+    lookbookTrack.appendChild(trailClone);
 
     const dots = slides.map((_, i) => {
       if (!dotsWrap) return null;
@@ -96,10 +108,12 @@
     // "현재 인덱스 슬라이드가 뷰포트 정중앙"이 되도록 매번 오프셋을 직접 계산 — 첫/마지막 슬라이드도
     // 항상 정확히 중앙에 와서 끝에 남는 빈 공간이 구조적으로 생기지 않음.
     // (슬라이드 i의 자기 중심은 자기 왼쪽 끝 + "슬라이드 폭의 절반"이지 "step(슬라이드 폭+gap)의 절반"이
-    // 아님 — 이전 라운드에 step/2를 썼다가 매번 gap의 절반(12px)만큼 중심이 어긋나 있었던 버그.)
+    // 아님 — 이전 라운드에 step/2를 썼다가 매번 gap의 절반만큼 중심이 어긋나 있었던 버그.
+    // `currentIndex + 1`인 이유: 트랙 맨 앞에 복제 슬라이드 1장을 붙여뒀으므로(위 참고), 실제 슬라이드
+    // i는 트랙 안에서 (i+1)번째 자리에 있음.)
     function render(animate) {
       const viewportWidth = lookbookViewport.getBoundingClientRect().width;
-      const offset = viewportWidth / 2 - (currentIndex * step + slideWidth / 2);
+      const offset = viewportWidth / 2 - ((currentIndex + 1) * step + slideWidth / 2);
       lookbookTrack.style.transition = animate ? "" : "none";
       lookbookTrack.style.transform = `translateX(${offset.toFixed(1)}px)`;
       slides.forEach((slide, i) => {
