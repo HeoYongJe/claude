@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261029h">
+<link rel="stylesheet" href="css/style.css?v=20261029i">
 </head>
 <body>
 
@@ -143,8 +143,10 @@
   <!-- ============ LOOKBOOK ============ -->
   <!-- 2026-10-29 5차: 가운데-정렬 캐러셀(3~4차)을 전면 폐기, 좌(타이틀 고정)/우(슬라이더) 2단 레이아웃으로
        교체. 6차: "틀에 가두지 말고 marquee처럼 폭을 다 써라, 타이틀 더 크게" 요청으로 .container(최대
-       1200px) 제약을 벗어나 슬라이더가 브라우저 우측 끝까지 풀블리드로 흐르게 재구성 — 자세한 배경은
-       design.md 5~6차 항목 참고. -->
+       1200px) 제약을 벗어나 슬라이더가 브라우저 우측 끝까지 풀블리드로 흐르게 재구성. 7차: "전환 중
+       반만 잘린다, 3장만 화면 우측을 꽉 채우게, 넘기면 메인이 맨 뒤 대기열로 빠지고 다음 장이 메인이
+       되게" 요청으로 translateX 트랙을 폐기하고 랭크(data-rank) 기반 스택 캐러셀로 교체 — 자세한 배경은
+       design.md 5~7차 항목 참고. 초기 data-rank는 JS 로드 전 깜빡임 방지용(JS가 같은 값으로 재확인). -->
   <section class="lookbook">
     <div class="lookbook__layout">
       <div class="lookbook__head">
@@ -161,23 +163,23 @@
       <div class="lookbook__slider">
         <div class="lookbook__viewport" data-lookbook-viewport>
           <div class="lookbook__track" data-lookbook-track>
-            <div class="lookbook__slide ph-visual is-active" data-placeholder="lookbook-1">
+            <div class="lookbook__slide ph-visual" data-rank="0" data-placeholder="lookbook-1">
               <span class="lookbook__slide-num">01</span>
               <span class="lookbook__slide-cap">STREET</span>
             </div>
-            <div class="lookbook__slide ph-visual" data-placeholder="lookbook-2">
+            <div class="lookbook__slide ph-visual" data-rank="1" data-placeholder="lookbook-2">
               <span class="lookbook__slide-num">02</span>
               <span class="lookbook__slide-cap">TRACK</span>
             </div>
-            <div class="lookbook__slide ph-visual" data-placeholder="lookbook-3">
+            <div class="lookbook__slide ph-visual" data-rank="2" data-placeholder="lookbook-3">
               <span class="lookbook__slide-num">03</span>
               <span class="lookbook__slide-cap">STUDIO</span>
             </div>
-            <div class="lookbook__slide ph-visual" data-placeholder="lookbook-4">
+            <div class="lookbook__slide ph-visual" data-rank="3" data-placeholder="lookbook-4">
               <span class="lookbook__slide-num">04</span>
               <span class="lookbook__slide-cap">NIGHT RUN</span>
             </div>
-            <div class="lookbook__slide ph-visual" data-placeholder="lookbook-5">
+            <div class="lookbook__slide ph-visual" data-rank="4" data-placeholder="lookbook-5">
               <span class="lookbook__slide-num">05</span>
               <span class="lookbook__slide-cap">COURT</span>
             </div>
@@ -209,6 +211,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261029g"></script>
+  <script src="js/main.js?v=20261029i"></script>
 </body>
 </html>

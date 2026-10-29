@@ -270,23 +270,42 @@ button, input { font: inherit; }
    드나들다 보니 전환 중 어중간하게 잘려 보이는 현상도 같이 생김). `.container` 래퍼를 완전히 제거하고
    `.lookbook`을 히어로/marquee처럼 브라우저 폭을 그대로 쓰는 풀블리드 섹션으로 전환 — 타이틀 칸만
    `.container`의 왼쪽 거터와 맞춘 `padding-left`로 정렬을 유지하고, 슬라이더는 오른쪽으로 제약 없이
-   뻗어 실제 화면 끝까지 흐름. 타이틀도 다른 섹션들(CTA 등)과 비슷한 스케일로 큼직하게 키움. */
+   뻗어 실제 화면 끝까지 흐름. 타이틀도 다른 섹션들(CTA 등)과 비슷한 스케일로 큼직하게 키움.
+   2026-10-29 7차: "레이아웃(좌 타이틀 고정/우 슬라이드, 첫 장만 크게)은 맞는데 — 전환 중 슬라이드가
+   반만 잘려 보인다, 3장으로 줄여서 그 3장이 우측 화면을 꽉 채우게, 그리고 넘길 때 지금 메인이 오른쪽
+   빈 자리로 빠지는 게 아니라 **맨 뒤 대기열로 빠지면서** 다음 장이 메인이 되는 식으로(카드 더미가
+   유기적으로 순환)" — `translateX` 트랙 자체를 폐기. 그 구조가 "반만 잘림"의 근본 원인이었음: 활성
+   슬라이드가 width/height로 커지는 동안에도 여전히 가로로 나열된 flex 트랙 한 줄 위에 있었고, 그
+   확대·재배치가 뷰포트 경계와 맞물리며 전환 중 프레임에서 어중간하게 걸쳐 보였던 것.
+   이제 5장 모두 `.lookbook__slider` 안에 `position:absolute`로 겹쳐 쌓이고, 각자 `data-rank`(0=메인,
+   1=다음, 2=그다음, 3~4=화면 밖 대기)에 따라 `right`/`width`/`height`/`opacity`만 바뀐다 — "잘리는"
+   현상 자체가 구조적으로 발생할 수 없음(가로로 이동하는 트랙이 없으므로). rank0는 크고 왼쪽에, rank2는
+   가장 작고 `right:0`으로 뷰포트 우측 끝에 딱 붙어 "3장이 화면을 꽉 채운" 느낌을 내고, rank3·4는 opacity
+   0으로 화면 밖에 대기. `next()`는 배열의 맨 앞(현재 rank0)을 맨 뒤로 보내는 회전(`[1,2,3,4,0]`)이라
+   "메인이 뒤로 빠지고 다음이 앞으로" 요청을 그대로 구현 — 빈 오른쪽 공간이 생길 수 없음(언제나 5장
+   전부가 어떤 rank든 채우고 있어서). 이 방식은 순환(loop) 구조라 이전/다음 버튼에 "끝에서 비활성화"
+   개념 자체가 없어져, `offsetLeft` 실측에 의존하던 이전 로직의 버그 클래스(5차 참고)도 같이 사라짐. */
 .lookbook__layout { display: flex; align-items: center; gap: 56px; padding-left: max(24px, calc((100vw - 1200px) / 2)); }
 .lookbook__head { flex: 0 0 440px; }
 .lookbook__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 20px; }
 .lookbook__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(42px, 4.8vw, 72px); line-height: 1.05; letter-spacing: -.01em; margin-bottom: 44px; }
-.lookbook__slider { flex: 1 1 auto; min-width: 0; }
-.lookbook__viewport { overflow-x: hidden; padding: 40px 4px 56px 0; cursor: grab; touch-action: pan-y; }
+.lookbook__slider { flex: 1 1 auto; min-width: 0; position: relative; height: 620px; }
+.lookbook__viewport { position: relative; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
 .lookbook__viewport.is-dragging { cursor: grabbing; }
-.lookbook__track { display: flex; align-items: center; gap: 20px; width: max-content; will-change: transform;
-  transition: transform .6s cubic-bezier(.16,1,.3,1); }
-.lookbook__slide { flex: 0 0 auto; width: 210px; height: 280px; border-radius: 20px;
-  position: relative; display: flex; align-items: flex-end; padding: 18px;
-  opacity: .4; filter: blur(1px); box-shadow: 0 16px 32px -16px rgba(0,0,0,0);
-  transition: width .6s cubic-bezier(.16,1,.3,1), height .6s cubic-bezier(.16,1,.3,1),
-    opacity .5s ease, filter .5s ease, box-shadow .6s ease; }
-.lookbook__slide.is-active { width: 480px; height: 540px; opacity: 1; filter: blur(0); z-index: 2;
-  padding: 28px; box-shadow: 0 28px 56px -18px rgba(0,0,0,.4); }
+.lookbook__track { position: relative; width: 100%; height: 100%; }
+/* 랭크 기반 스택 캐러셀 — 가로 트랙이 없으므로 전환 중 "잘림"이 구조적으로 불가능.
+   right 기준 고정값이라 뷰포트 폭이 바뀌어도(=.lookbook 풀블리드 폭이 늘어나도) 우측 끝 정렬이 항상 유지됨. */
+.lookbook__slide { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 24px; overflow: hidden;
+  display: flex; align-items: flex-end; padding: 20px;
+  transition: right .7s cubic-bezier(.16,1,.3,1), width .7s cubic-bezier(.16,1,.3,1),
+    height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease, box-shadow .7s ease; }
+.lookbook__slide[data-rank="0"] { right: 380px; width: 460px; height: 560px; opacity: 1; z-index: 3;
+  box-shadow: 0 32px 60px -18px rgba(0,0,0,.42); }
+.lookbook__slide[data-rank="1"] { right: 150px; width: 300px; height: 400px; opacity: .82; z-index: 2;
+  box-shadow: 0 20px 40px -16px rgba(0,0,0,.3); }
+.lookbook__slide[data-rank="2"] { right: 0; width: 210px; height: 280px; opacity: .5; z-index: 1; box-shadow: none; }
+.lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { right: -240px; width: 210px; height: 280px;
+  opacity: 0; z-index: 0; pointer-events: none; box-shadow: none; }
 .lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
   font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
 .lookbook__slide-cap { font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark);
@@ -295,8 +314,6 @@ button, input { font: inherit; }
 .lookbook__arrow { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--paper);
   font-size: 20px; line-height: 1; color: var(--text); cursor: pointer; transition: background .2s, color .2s, transform .2s; }
 .lookbook__arrow:hover { background: var(--ink); color: var(--text-on-dark); transform: scale(1.08); }
-.lookbook__arrow:disabled { opacity: .35; cursor: default; }
-.lookbook__arrow:disabled:hover { background: var(--paper); color: var(--text); transform: none; }
 .lookbook__dots { display: flex; gap: 8px; }
 .lookbook__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; padding: 0;
   cursor: pointer; transition: background .2s, transform .2s; }
@@ -334,17 +351,28 @@ button, input { font: inherit; }
   .feature-item:nth-child(even) { margin-top: 0; }
   .specs__grid { grid-template-columns: repeat(2, 1fr); }
   /* 좁은 화면에서는 좌(타이틀)/우(슬라이더) 2단이 들어갈 폭이 없어 세로로 쌓음 — 타이틀만 컨테이너
-     거터(24px)에 맞추고, 슬라이더는 데스크톱과 동일하게 화면 우측 끝까지 풀블리드로 흐르게 둠 */
+     거터(24px)에 맞추고, 슬라이더는 데스크톱과 동일하게 화면 우측 끝까지 풀블리드로 흐르게 둠.
+     2026-10-29 7차: 스택 캐러셀도 모바일에선 폭이 부족해 3장 전부 보여주면 서로 거의 다 겹쳐버리므로
+     메인+다음 2장만 보이게 축소(그다음부터는 데스크톱과 동일하게 화면 밖 대기). */
   .lookbook__layout { flex-direction: column; align-items: flex-start; gap: 28px; padding-left: 24px; }
   .lookbook__head { flex: none; width: 100%; }
   .lookbook__title { font-size: clamp(34px, 9vw, 52px); margin-bottom: 20px; }
-  .lookbook__slider { width: 100%; }
-  .lookbook__slide { width: 58vw; height: 42vh; }
-  .lookbook__slide.is-active { width: 86vw; height: 56vh; padding: 22px; }
-  .lookbook__viewport { padding: 20px 4px 32px 0; }
-  .lookbook__track { gap: 16px; }
+  .lookbook__slider { width: 100%; height: 64vw; }
+  .lookbook__slide[data-rank="0"] { right: 30vw; width: 54vw; height: 60vw; }
+  .lookbook__slide[data-rank="1"] { right: 0; width: 32vw; height: 40vw; opacity: .7; }
+  .lookbook__slide[data-rank="2"], .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] {
+    right: -40vw; width: 32vw; height: 40vw; opacity: 0; }
   .manifesto { padding: 96px 0; }
   .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
+}
+
+/* 데스크톱이지만 타이틀 칸(440px)과 부딪힐 만큼 좁은 중간 구간(900~1300px) — 스택 카드 크기만 비례 축소 */
+@media (max-width: 1300px) and (min-width: 901px) {
+  .lookbook__slider { height: 480px; }
+  .lookbook__slide[data-rank="0"] { right: 290px; width: 350px; height: 430px; }
+  .lookbook__slide[data-rank="1"] { right: 110px; width: 220px; height: 300px; }
+  .lookbook__slide[data-rank="2"] { right: 0; width: 160px; height: 210px; }
+  .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] { right: -180px; width: 160px; height: 210px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -354,8 +382,10 @@ button, input { font: inherit; }
   .grain { display: none; }
   .marquee__track { animation: none; }
   .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
-  .spec-card, .lookbook__slide, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
-  .lookbook__track { transition: none !important; }
+  .spec-card, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
+  /* .lookbook__slide는 transform(translateY(-50%))을 세로 중앙정렬용 레이아웃값으로 쓰므로 transform까지
+     꺼버리면 카드가 위로 쏠려버림 — transition만 꺼서 랭크 전환이 애니메이션 없이 즉시 바뀌게만 함. */
+  .lookbook__slide { transition: none !important; }
   /* 스크롤 스크러빙·핀드줌·배경 패럴럭스 전부 끔 — 정상 문서 흐름으로 */
   .hero-wrap { height: auto; }
   .hero { position: relative; }

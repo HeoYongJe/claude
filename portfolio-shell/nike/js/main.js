@@ -54,12 +54,14 @@
   const showcaseGlow = document.querySelector("[data-showcase-glow]");
   const showcaseRing = document.querySelector("[data-showcase-ring]");
 
-  // ---- 룩북 슬라이더: 인덱스 기반 커스텀 캐러셀(센터 슬라이드 확대) ----
-  // 2026-10-29 3차: 네이티브 overflow-x 스크롤+scroll-snap을 전부 버리고 translateX 오프셋을 인덱스
-  // 기준으로 직접 계산하는 캐러셀로 교체(빈 화면·휠 하이재킹·라운드 모서리 클리핑 버그 해소, css 참고).
-  // 5차: 가운데-정렬 캐러셀(복제 피크 + scale 확대)을 폐기하고 "활성 슬라이드를 슬라이더 칸 왼쪽 끝에
-  // 딱 붙이는" 단순한 방식으로 교체 — 인덱스 0이면 오프셋도 정확히 0이라 복제본·중앙정렬 수식이
-  // 필요 없음(자세한 배경은 style.css 룩북 5차 주석 참고).
+  // ---- 룩북 슬라이더: 랭크 기반 스택 캐러셀 ----
+  // 2026-10-29 3~6차 히스토리는 style.css 룩북 주석 참고. 7차: "전환 중 반만 잘린다, 3장만 화면
+  // 우측을 꽉 채우게, 넘기면 지금 메인이 오른쪽 빈자리가 아니라 맨 뒤 대기열로 빠지면서 다음 장이
+  // 메인이 되는 식으로" — translateX 트랙(인덱스 기반)을 전면 폐기하고, 5장 전부가 각자
+  // data-rank(0=메인 ~ 4=대기열 끝)를 들고 있는 구조로 교체. `order` 배열의 순서 자체가 곧 대기열이라
+  // "메인이 뒤로 빠진다"는 요청이 `order`의 맨 앞을 맨 뒤로 돌리는 연산 하나로 정확히 표현됨 — 중간에
+  // 빈 자리가 생길 수 없음(5장 모두 항상 어떤 rank든 차지). 순환 구조라 "첫/마지막에서 버튼 비활성화"
+  // 개념도 없어져 더 단순해짐.
   const lookbookTrack = document.querySelector("[data-lookbook-track]");
   const lookbookViewport = document.querySelector("[data-lookbook-viewport]");
   if (lookbookTrack && lookbookViewport) {
@@ -67,7 +69,8 @@
     const dotsWrap = document.querySelector("[data-lookbook-dots]");
     const prevBtn = document.querySelector("[data-lookbook-prev]");
     const nextBtn = document.querySelector("[data-lookbook-next]");
-    let currentIndex = 0;
+    // order[rank] = 그 랭크를 차지한 슬라이드의 원래 인덱스. order[0]이 항상 현재 메인.
+    let order = slides.map((_, i) => i);
 
     const dots = slides.map((_, i) => {
       if (!dotsWrap) return null;
@@ -75,78 +78,63 @@
       dot.type = "button";
       dot.className = "lookbook__dot" + (i === 0 ? " is-active" : "");
       dot.setAttribute("aria-label", `${i + 1}번째 슬라이드로 이동`);
-      dot.addEventListener("click", () => goTo(i));
+      dot.addEventListener("click", () => goToIndex(i));
       dotsWrap.appendChild(dot);
       return dot;
     });
 
-    // 활성 슬라이드를 슬라이더 칸(뷰포트) 왼쪽 끝에 맞춤 — offsetLeft는 scale이 아니라 실제
-    // width/height로 결정되는 레이아웃 폭이라 is-active를 토글한 직후 바로 읽어도 최종 폭 기준의
-    // 값이 나와(가변 폭 애니메이션과 무관하게) 매번 정확함.
-    function render(animate) {
-      slides.forEach((slide, i) => slide.classList.toggle("is-active", i === currentIndex));
-      const offset = -slides[currentIndex].offsetLeft;
-      lookbookTrack.style.transition = animate ? "" : "none";
-      lookbookTrack.style.transform = `translateX(${offset}px)`;
-      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", i === currentIndex));
-      if (prevBtn) prevBtn.disabled = currentIndex === 0;
-      if (nextBtn) nextBtn.disabled = currentIndex === slides.length - 1;
+    function render() {
+      order.forEach((slideIndex, rank) => {
+        slides[slideIndex].dataset.rank = String(rank);
+      });
+      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", order[0] === i));
     }
 
-    function goTo(i) {
-      currentIndex = Math.max(0, Math.min(slides.length - 1, i));
-      render(true);
+    // 메인(맨 앞)을 대기열 맨 뒤로 보내고 나머지를 한 칸씩 당김 — "메인이 뒤로 빠지며 다음이 앞으로".
+    function next() {
+      order = [...order.slice(1), order[0]];
+      render();
+    }
+    // 대기열 맨 뒤를 메인 자리로 — next()의 역순.
+    function prev() {
+      order = [order[order.length - 1], ...order.slice(0, -1)];
+      render();
+    }
+    // 점(dot) 클릭: 해당 슬라이드 앞쪽에 있던 슬라이드들을 그대로 순서 유지한 채 뒤로 보내 그 슬라이드를
+    // 메인으로 — next()를 여러 번 누른 것과 같은 결과.
+    function goToIndex(i) {
+      const pos = order.indexOf(i);
+      if (pos > 0) order = [...order.slice(pos), ...order.slice(0, pos)];
+      render();
     }
 
-    render(false);
-    window.addEventListener("resize", () => render(false));
+    render();
 
-    if (prevBtn) prevBtn.addEventListener("click", () => goTo(currentIndex - 1));
-    if (nextBtn) nextBtn.addEventListener("click", () => goTo(currentIndex + 1));
+    if (prevBtn) prevBtn.addEventListener("click", prev);
+    if (nextBtn) nextBtn.addEventListener("click", next);
 
-    // 마우스 드래그 + 터치 스와이프(Pointer Events로 통합 — 네이티브 스크롤이 없으므로 직접 구현).
-    // 드래그 중엔 transform을 1:1로 따라가다가(css 전환 꺼짐), 손을 떼면 "왼쪽 끝과 가장 가까운
-    // 슬라이드"를 찾아 그 인덱스로 애니메이션과 함께 스냅.
-    let isDragging = false;
-    let dragMoved = false;
+    // 스와이프: 스택 구조는 연속적인 오프셋이 없어(1:1 드래그 추종 불가) 일정 거리 이상 끌고 놓으면
+    // 한 칸 전/후진시키는 방식으로 단순화.
+    let dragActive = false;
     let dragStartX = 0;
-    let dragBaseOffset = 0;
-    function currentTranslateX() {
-      return new DOMMatrixReadOnly(getComputedStyle(lookbookTrack).transform).m41;
-    }
     lookbookViewport.addEventListener("pointerdown", (e) => {
-      isDragging = true;
-      dragMoved = false;
+      dragActive = true;
       dragStartX = e.clientX;
-      dragBaseOffset = currentTranslateX();
-      lookbookTrack.style.transition = "none";
       lookbookViewport.classList.add("is-dragging");
       lookbookViewport.setPointerCapture(e.pointerId);
     });
-    lookbookViewport.addEventListener("pointermove", (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - dragStartX;
-      if (Math.abs(dx) > 4) dragMoved = true;
-      lookbookTrack.style.transform = `translateX(${(dragBaseOffset + dx).toFixed(1)}px)`;
-    });
-    function endDrag() {
-      if (!isDragging) return;
-      isDragging = false;
+    lookbookViewport.addEventListener("pointerup", (e) => {
+      if (!dragActive) return;
+      dragActive = false;
       lookbookViewport.classList.remove("is-dragging");
-      const visualOffset = currentTranslateX();
-      let nearest = 0;
-      let nearestDist = Infinity;
-      slides.forEach((slide, i) => {
-        const dist = Math.abs(-slide.offsetLeft - visualOffset);
-        if (dist < nearestDist) { nearestDist = dist; nearest = i; }
-      });
-      goTo(nearest);
-    }
-    lookbookViewport.addEventListener("pointerup", endDrag);
-    lookbookViewport.addEventListener("pointercancel", endDrag);
+      const dx = e.clientX - dragStartX;
+      if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
+    });
+    lookbookViewport.addEventListener("pointercancel", () => {
+      dragActive = false;
+      lookbookViewport.classList.remove("is-dragging");
+    });
     lookbookViewport.addEventListener("dragstart", (e) => e.preventDefault());
-    // 드래그 끝에 자식 요소가 의도치 않게 클릭되는 것 방지
-    lookbookTrack.addEventListener("click", (e) => { if (dragMoved) { e.preventDefault(); e.stopPropagation(); } }, true);
   }
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
