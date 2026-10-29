@@ -208,16 +208,28 @@ button, input { font: inherit; }
 .lookbook { background: var(--paper); padding: 0 0 140px; }
 .lookbook__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 18px; }
 .lookbook__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(28px, 4vw, 44px); margin-bottom: 48px; }
-/* 2026-10-29: 불균등 그리드(4~6칸) → "타이틀 밑에 화면 꽉 찬 슬라이드 4~5개" 요청으로 가로 슬라이드
+/* 2026-10-29 1차: 불균등 그리드(4~6칸) → "타이틀 밑에 화면 꽉 찬 슬라이드 4~5개" 요청으로 가로 슬라이드
    갤러리로 교체. 캐러셀 라이브러리 없이 scroll-snap 네이티브 가로 스크롤 + 화살표/점 네비(js가
-   scrollIntoView로 보조) — 드래그·휠·버튼·점 클릭 전부 같은 스냅 지점으로 수렴. */
+   scrollIntoView로 보조) — 드래그·휠·버튼·점 클릭 전부 같은 스냅 지점으로 수렴.
+   2026-10-29 2차: "가운데가 양옆보다 크게, 마우스로도 드래그되게, 끝에서 빈 화면이 생긴다" 피드백.
+   - **끝 빈 화면 버그**: 이전 padding이 좌우 동일하게 `(100vw-1200px)/2`였는데, 이건 "첫 슬라이드를
+     컨테이너 왼쪽 끝에 맞추기" 용도였던 값을 오른쪽에도 그대로 복사한 것이라 마지막 슬라이드 뒤에
+     똑같은 폭(큰 화면에서 수백px)의 의미 없는 빈 스크롤 영역이 생겼던 것 — 원인 규명.
+   - **가운데 확대 + 센터 스냅으로 구조 변경**: `scroll-snap-align: start`(왼쪽 정렬) → `center`로 바꾸고,
+     좌우 padding을 `(트랙 폭 - 슬라이드 폭)/2`로 재계산 — 이러면 ①스크롤 0(첫 로드)일 때 1번 슬라이드가
+     저절로 뷰포트 정중앙에 오고, ②첫 슬라이드~마지막 슬라이드 전부 각자 정중앙까지 스크롤될 수 있는
+     "딱 맞는" 여백만 생겨 끝 빈 화면 문제도 같이 해결됨(양쪽 padding이 센터링 목적 하나로 통일).
+     `js/main.js`가 스크롤마다(rAF 스로틀) 각 슬라이드의 중심이 트랙 중심에서 얼마나 떨어졌는지 계산해
+     가까울수록 크고 또렷하게(scale↑ opacity↑), 멀수록 작고 흐리게 — 스크롤/드래그되는 동안 계속
+     갱신되어 "돌아갈 때마다 가운데가 커 보이는" 입체적인 캐러셀처럼 보임. */
 .lookbook__slider { position: relative; }
 .lookbook__track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory;
-  padding: 0 max(24px, calc((100vw - 1200px) / 2)) 10px; scrollbar-width: none; }
+  padding: 0 calc((100% - min(760px, 78vw)) / 2) 10px; scrollbar-width: none; cursor: grab; }
 .lookbook__track::-webkit-scrollbar { display: none; }
+.lookbook__track.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
 .lookbook__slide { flex: 0 0 auto; width: min(760px, 78vw); height: min(560px, 64vh); border-radius: 20px;
-  scroll-snap-align: start; position: relative; display: flex; align-items: flex-end; padding: 28px; transition: transform .3s; }
-.lookbook__slide:hover { transform: translateY(-6px); }
+  scroll-snap-align: center; position: relative; display: flex; align-items: flex-end; padding: 28px;
+  transform: scale(.86); opacity: .7; will-change: transform, opacity; }
 .lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
   font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
 .lookbook__slide-cap { font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark);
@@ -263,7 +275,7 @@ button, input { font: inherit; }
   .feature-item:nth-child(even) { margin-top: 0; }
   .specs__grid { grid-template-columns: repeat(2, 1fr); }
   .lookbook__slide { width: 86vw; height: 56vh; }
-  .lookbook__track { padding: 0 20px 10px; }
+  .lookbook__track { padding: 0 calc((100% - 86vw) / 2) 10px; }
   .manifesto { padding: 96px 0; }
   .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
 }

@@ -54,7 +54,11 @@
   const showcaseGlow = document.querySelector("[data-showcase-glow]");
   const showcaseRing = document.querySelector("[data-showcase-ring]");
 
-  // ---- 룩북 슬라이더: scroll-snap 트랙을 화살표/점 네비로 보조 조작 ----
+  // ---- 룩북 슬라이더: 센터 강조 캐러셀 + 화살표/점/마우스 드래그 네비 ----
+  // 2026-10-29 2차: "가운데가 양옆보다 크게, 돌아갈 때마다 가운데가 커 보이게, 마우스로도 슬라이드되게,
+  // 끝에 다다르면 빈 화면이 생긴다" 피드백 — CSS 쪽에서 scroll-snap-align을 center로 바꾸고 좌우
+  // padding을 센터링 전용 공식으로 재계산(끝 빈 화면 버그의 원인이던 좌우 비대칭 padding 해소, css 참고).
+  // 여기서는 스크롤/드래그될 때마다 각 슬라이드-트랙 중심 거리로 scale/opacity를 계속 갱신.
   const lookbookTrack = document.querySelector("[data-lookbook-track]");
   if (lookbookTrack) {
     const slides = [...lookbookTrack.children];
@@ -67,27 +71,73 @@
       dot.type = "button";
       dot.className = "lookbook__dot" + (i === 0 ? " is-active" : "");
       dot.setAttribute("aria-label", `${i + 1}번째 슬라이드로 이동`);
-      dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" }));
+      dot.addEventListener("click", () => slide.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" }));
       dotsWrap.appendChild(dot);
       return dot;
     });
-    function updateActiveDot() {
-      const trackLeft = lookbookTrack.getBoundingClientRect().left;
+
+    // 센터에 가까울수록 크고 또렷하게(reduced-motion에서는 끄고 CSS 기본 크기 그대로 둠).
+    let emphasisQueued = false;
+    function updateEmphasis() {
+      const trackRect = lookbookTrack.getBoundingClientRect();
+      const centerX = trackRect.left + trackRect.width / 2;
       let closest = 0;
       let closestDist = Infinity;
       slides.forEach((slide, i) => {
-        const dist = Math.abs(slide.getBoundingClientRect().left - trackLeft);
+        const r = slide.getBoundingClientRect();
+        const dist = Math.abs(r.left + r.width / 2 - centerX);
         if (dist < closestDist) { closestDist = dist; closest = i; }
+        if (!reduceMotion) {
+          const norm = Math.min(1, dist / (trackRect.width / 2));
+          const scale = 1.06 - norm * 0.26; // 센터 ~1.06, 가장자리 ~0.8
+          const opacity = Math.max(0.45, 1 - norm * 0.5);
+          slide.style.transform = `scale(${scale.toFixed(3)})`;
+          slide.style.opacity = opacity.toFixed(3);
+        }
       });
       dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", i === closest));
+      emphasisQueued = false;
     }
-    let dotTick;
+    updateEmphasis();
     lookbookTrack.addEventListener("scroll", () => {
-      clearTimeout(dotTick);
-      dotTick = setTimeout(updateActiveDot, 80);
+      if (!emphasisQueued) {
+        emphasisQueued = true;
+        requestAnimationFrame(updateEmphasis);
+      }
     }, { passive: true });
+    window.addEventListener("resize", updateEmphasis);
+
     if (prevBtn) prevBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: -(slides[0].offsetWidth + 20), behavior: "smooth" }));
     if (nextBtn) nextBtn.addEventListener("click", () => lookbookTrack.scrollBy({ left: slides[0].offsetWidth + 20, behavior: "smooth" }));
+
+    // 마우스 클릭+드래그로도 넘기기("버튼 말고 마우스로도 슬라이드되게") — 트랙패드/휠은 이미 네이티브로 됨.
+    // 드래그 중엔 scroll-snap을 끄고(css .is-dragging) scrollLeft를 1:1로 따라가게 하다가, 손을 떼면
+    // snap이 되살아나 가장 가까운 슬라이드로 자연스럽게 정렬됨.
+    let isDragging = false;
+    let dragMoved = false;
+    let dragStartX = 0;
+    let dragScrollStart = 0;
+    lookbookTrack.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      dragMoved = false;
+      dragStartX = e.pageX;
+      dragScrollStart = lookbookTrack.scrollLeft;
+      lookbookTrack.classList.add("is-dragging");
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.pageX - dragStartX;
+      if (Math.abs(dx) > 4) dragMoved = true;
+      lookbookTrack.scrollLeft = dragScrollStart - dx;
+    });
+    window.addEventListener("mouseup", () => {
+      if (!isDragging) return;
+      isDragging = false;
+      lookbookTrack.classList.remove("is-dragging");
+    });
+    lookbookTrack.addEventListener("dragstart", (e) => e.preventDefault());
+    // 드래그 끝에 자식 요소가 의도치 않게 클릭되는 것 방지
+    lookbookTrack.addEventListener("click", (e) => { if (dragMoved) { e.preventDefault(); e.stopPropagation(); } }, true);
   }
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
