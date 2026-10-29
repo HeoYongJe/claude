@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261029n">
+<link rel="stylesheet" href="css/style.css?v=20261029p">
 </head>
 <body>
 
@@ -115,6 +115,34 @@
     </div>
   </section>
 
+  <!-- ============ SPEC HIGHLIGHTS + LOOKBOOK — 흰 배경이 길게 이어지는 구간이라 밋밋하다는
+       2026-10-29 피드백으로 .speedfield 래퍼를 추가, 두 섹션에 걸쳐 흐르는 웨이브+스피드라인
+       장식 레이어를 뒤에 깐다(design.md Colors/8차 항목 참고). ============ -->
+  <div class="speedfield">
+    <div class="speedfield__waveclip" aria-hidden="true">
+      <svg class="speedfield__wave-blob" data-speed="0.05" viewBox="0 0 1600 1600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--volt)"/>
+            <stop offset="100%" stop-color="var(--accent2)"/>
+          </linearGradient>
+        </defs>
+        <path d="M -100,260 C 320,120 480,480 900,330 C 1300,190 1480,520 1800,380" fill="none" stroke="var(--volt)" stroke-width="260" stroke-linecap="round" opacity=".16"/>
+        <path d="M -100,1120 C 340,920 620,1300 1020,1080 C 1400,870 1520,1220 1800,1060" fill="none" stroke="var(--accent2)" stroke-width="220" stroke-linecap="round" opacity=".14"/>
+        <path d="M -100,700 C 420,500 900,900 1800,650" fill="none" stroke="url(#speedGrad)" stroke-width="180" stroke-linecap="round" opacity=".12"/>
+      </svg>
+      <svg class="speedfield__wave-lines" data-speed="0.12" viewBox="0 0 1600 1600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke-linecap="round">
+          <path d="M 1120,60 L 1300,180" stroke="var(--volt)" stroke-width="4" opacity=".4"/>
+          <path d="M 1180,110 L 1430,270" stroke="var(--volt)" stroke-width="4" opacity=".3"/>
+          <path d="M 1250,170 L 1420,280" stroke="var(--accent2)" stroke-width="3" opacity=".3"/>
+          <path d="M 180,980 L 400,1110" stroke="var(--accent2)" stroke-width="4" opacity=".35"/>
+          <path d="M 120,1040 L 300,1150" stroke="var(--accent2)" stroke-width="3" opacity=".25"/>
+          <path d="M 260,1090 L 460,1210" stroke="var(--volt)" stroke-width="3" opacity=".3"/>
+        </g>
+      </svg>
+    </div>
+
   <!-- ============ SPEC HIGHLIGHTS ============ -->
   <section class="specs">
     <div class="container">
@@ -188,6 +216,7 @@
       </div>
     </div>
   </section>
+  </div>
 
   <!-- ============ CTA ============ -->
   <section class="cta" id="cta">
