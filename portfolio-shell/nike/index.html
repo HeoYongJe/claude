@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261029s">
+<link rel="stylesheet" href="css/style.css?v=20261030a">
 </head>
 <body>
 
@@ -153,51 +153,67 @@
   </section>
 
   <!-- ============ LOOKBOOK ============ -->
-  <!-- 2026-10-29 5차: 가운데-정렬 캐러셀(3~4차)을 전면 폐기, 좌(타이틀 고정)/우(슬라이더) 2단 레이아웃으로
-       교체. 6차: "틀에 가두지 말고 marquee처럼 폭을 다 써라, 타이틀 더 크게" 요청으로 .container(최대
-       1200px) 제약을 벗어나 슬라이더가 브라우저 우측 끝까지 풀블리드로 흐르게 재구성. 7차: "전환 중
-       반만 잘린다, 3장만 화면 우측을 꽉 채우게, 넘기면 메인이 맨 뒤 대기열로 빠지고 다음 장이 메인이
-       되게" 요청으로 translateX 트랙을 폐기하고 랭크(data-rank) 기반 스택 캐러셀로 교체 — 자세한 배경은
-       design.md 5~7차 항목 참고. 초기 data-rank는 JS 로드 전 깜빡임 방지용(JS가 같은 값으로 재확인). -->
+  <!-- 2026-10-30: 1~11차에 걸쳐 다듬어온 "랭크 기반 스택 캐러셀"(화살표/점 네비, 드래그)을 전면 폐기하고
+       "Fluid Hover Accordion"으로 교체 — 세로로 등분된 패널을 좁게 깔아두다가 데스크톱은 마우스 호버
+       (+키보드 포커스), 모바일은 탭(js가 .is-active 토글)으로 해당 패널이 유동적으로 커지며 감춰진
+       디테일 텍스트가 드러남. 폐기 배경·설계 근거는 design.md Lookbook 항목 참고.
+       PLACEHOLDER: 각 패널의 실사 이미지는 .ph-visual 배경(그라데이션)을 지우고 <img>로 교체 예정. -->
   <section class="lookbook">
-    <div class="lookbook__layout">
-      <div class="lookbook__head">
-        <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
-        <h2 class="lookbook__title" data-reveal>어디서든,<br>당신의 속도로</h2>
-        <div class="lookbook__nav">
-          <button type="button" class="lookbook__arrow" data-lookbook-prev aria-label="이전 슬라이드">‹</button>
-          <div class="lookbook__dots" data-lookbook-dots></div>
-          <button type="button" class="lookbook__arrow" data-lookbook-next aria-label="다음 슬라이드">›</button>
+    <div class="container">
+      <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
+      <h2 class="lookbook__title" data-reveal>어디서든,<br>당신의 속도로</h2>
+    </div>
+    <div class="lookbook__accordion" data-lookbook-accordion data-reveal>
+      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-1">
+        <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
+          <span class="lookbook__panel-num">01</span><span class="lookbook__panel-name">STREET</span>
+        </span></span>
+        <div class="lookbook__panel-detail">
+          <span class="lookbook__panel-detail-num">01</span>
+          <h3 class="lookbook__panel-detail-title">STREET</h3>
+          <p class="lookbook__panel-detail-desc">도심 아스팔트 위, 가장 자연스러운 하루의 속도.</p>
         </div>
-      </div>
-      <!-- PLACEHOLDER: 슬라이드 5장 전부 실사 라이프스타일 이미지로 교체 예정(각 .lookbook__slide 안에
-           <img>를 넣고 배경 그라데이션(.ph-visual)은 제거) -->
-      <div class="lookbook__slider">
-        <div class="lookbook__viewport" data-lookbook-viewport>
-          <div class="lookbook__track" data-lookbook-track>
-            <div class="lookbook__slide ph-visual" data-rank="0" data-placeholder="lookbook-1">
-              <span class="lookbook__slide-num">01</span>
-              <span class="lookbook__slide-cap">STREET</span>
-            </div>
-            <div class="lookbook__slide ph-visual" data-rank="1" data-placeholder="lookbook-2">
-              <span class="lookbook__slide-num">02</span>
-              <span class="lookbook__slide-cap">TRACK</span>
-            </div>
-            <div class="lookbook__slide ph-visual" data-rank="2" data-placeholder="lookbook-3">
-              <span class="lookbook__slide-num">03</span>
-              <span class="lookbook__slide-cap">STUDIO</span>
-            </div>
-            <div class="lookbook__slide ph-visual" data-rank="3" data-placeholder="lookbook-4">
-              <span class="lookbook__slide-num">04</span>
-              <span class="lookbook__slide-cap">NIGHT RUN</span>
-            </div>
-            <div class="lookbook__slide ph-visual" data-rank="4" data-placeholder="lookbook-5">
-              <span class="lookbook__slide-num">05</span>
-              <span class="lookbook__slide-cap">COURT</span>
-            </div>
-          </div>
+      </button>
+      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-2">
+        <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
+          <span class="lookbook__panel-num">02</span><span class="lookbook__panel-name">TRACK</span>
+        </span></span>
+        <div class="lookbook__panel-detail">
+          <span class="lookbook__panel-detail-num">02</span>
+          <h3 class="lookbook__panel-detail-title">TRACK</h3>
+          <p class="lookbook__panel-detail-desc">한계를 재는 트랙 위, 숫자로 증명되는 순간.</p>
         </div>
-      </div>
+      </button>
+      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-3">
+        <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
+          <span class="lookbook__panel-num">03</span><span class="lookbook__panel-name">STUDIO</span>
+        </span></span>
+        <div class="lookbook__panel-detail">
+          <span class="lookbook__panel-detail-num">03</span>
+          <h3 class="lookbook__panel-detail-title">STUDIO</h3>
+          <p class="lookbook__panel-detail-desc">정제된 조명 아래, 디테일이 말하는 완성도.</p>
+        </div>
+      </button>
+      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-4">
+        <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
+          <span class="lookbook__panel-num">04</span><span class="lookbook__panel-name">NIGHT RUN</span>
+        </span></span>
+        <div class="lookbook__panel-detail">
+          <span class="lookbook__panel-detail-num">04</span>
+          <h3 class="lookbook__panel-detail-title">NIGHT RUN</h3>
+          <p class="lookbook__panel-detail-desc">가로등 불빛 사이, 가장 사적인 속도로 달리는 시간.</p>
+        </div>
+      </button>
+      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-5">
+        <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
+          <span class="lookbook__panel-num">05</span><span class="lookbook__panel-name">COURT</span>
+        </span></span>
+        <div class="lookbook__panel-detail">
+          <span class="lookbook__panel-detail-num">05</span>
+          <h3 class="lookbook__panel-detail-title">COURT</h3>
+          <p class="lookbook__panel-detail-desc">코트 위 짧은 순간, 방향을 바꾸는 폭발적인 힘.</p>
+        </div>
+      </button>
     </div>
   </section>
   </div>
@@ -224,6 +240,6 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261029i"></script>
+  <script src="js/main.js?v=20261030a"></script>
 </body>
 </html>

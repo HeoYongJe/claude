@@ -15,8 +15,7 @@
   document.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
-  // ---- 등장 애니메이션(data-reveal) — 룩북 타일은 같은 매커니즘으로 is-revealed만 받고,
-  //      실제 비주얼(클립패스 와이프)은 CSS에서 .lb-tile[data-reveal] 쪽이 더 구체적이라 오버라이드됨 ----
+  // ---- 등장 애니메이션(data-reveal) ----
   const revealEls = document.querySelectorAll("[data-reveal]");
   if (reduceMotion) {
     revealEls.forEach((el) => el.classList.add("is-revealed"));
@@ -54,87 +53,22 @@
   const showcaseGlow = document.querySelector("[data-showcase-glow]");
   const showcaseRing = document.querySelector("[data-showcase-ring]");
 
-  // ---- 룩북 슬라이더: 랭크 기반 스택 캐러셀 ----
-  // 2026-10-29 3~6차 히스토리는 style.css 룩북 주석 참고. 7차: "전환 중 반만 잘린다, 3장만 화면
-  // 우측을 꽉 채우게, 넘기면 지금 메인이 오른쪽 빈자리가 아니라 맨 뒤 대기열로 빠지면서 다음 장이
-  // 메인이 되는 식으로" — translateX 트랙(인덱스 기반)을 전면 폐기하고, 5장 전부가 각자
-  // data-rank(0=메인 ~ 4=대기열 끝)를 들고 있는 구조로 교체. `order` 배열의 순서 자체가 곧 대기열이라
-  // "메인이 뒤로 빠진다"는 요청이 `order`의 맨 앞을 맨 뒤로 돌리는 연산 하나로 정확히 표현됨 — 중간에
-  // 빈 자리가 생길 수 없음(5장 모두 항상 어떤 rank든 차지). 순환 구조라 "첫/마지막에서 버튼 비활성화"
-  // 개념도 없어져 더 단순해짐.
-  const lookbookTrack = document.querySelector("[data-lookbook-track]");
-  const lookbookViewport = document.querySelector("[data-lookbook-viewport]");
-  if (lookbookTrack && lookbookViewport) {
-    const slides = [...lookbookTrack.children];
-    const dotsWrap = document.querySelector("[data-lookbook-dots]");
-    const prevBtn = document.querySelector("[data-lookbook-prev]");
-    const nextBtn = document.querySelector("[data-lookbook-next]");
-    // order[rank] = 그 랭크를 차지한 슬라이드의 원래 인덱스. order[0]이 항상 현재 메인.
-    let order = slides.map((_, i) => i);
-
-    const dots = slides.map((_, i) => {
-      if (!dotsWrap) return null;
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = "lookbook__dot" + (i === 0 ? " is-active" : "");
-      dot.setAttribute("aria-label", `${i + 1}번째 슬라이드로 이동`);
-      dot.addEventListener("click", () => goToIndex(i));
-      dotsWrap.appendChild(dot);
-      return dot;
-    });
-
-    function render() {
-      order.forEach((slideIndex, rank) => {
-        slides[slideIndex].dataset.rank = String(rank);
+  // ---- 룩북: Fluid Hover Accordion ----
+  // 2026-10-30: 1~11차 동안 다듬어온 랭크 기반 스택 캐러셀을 전면 폐기 — design.md Lookbook 항목 참고.
+  // 데스크톱(마우스 호버 가능)에서는 CSS `:hover`만으로 패널이 커져서 JS가 필요 없음 — 아예 아래 리스너를
+  // 안 붙인다. 터치 기기는 호버 자체가 없으므로("데스크톱은 호버, 모바일은 탭" 요청) 탭(click)할 때마다
+  // `.is-active`를 토글해 CSS의 `.is-active` 확장 규칙을 대신 태움 — 한 번에 하나만 열리는 표준 아코디언
+  // 동작(다른 패널 클릭 시 이전 건 자동으로 닫힘, 열린 걸 다시 탭하면 닫힘).
+  const lookbookAccordion = document.querySelector("[data-lookbook-accordion]");
+  if (lookbookAccordion && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const panels = [...lookbookAccordion.querySelectorAll("[data-panel]")];
+    panels.forEach((panel) => {
+      panel.addEventListener("click", () => {
+        const wasActive = panel.classList.contains("is-active");
+        panels.forEach((p) => p.classList.remove("is-active"));
+        if (!wasActive) panel.classList.add("is-active");
       });
-      dots.forEach((dot, i) => dot && dot.classList.toggle("is-active", order[0] === i));
-    }
-
-    // 메인(맨 앞)을 대기열 맨 뒤로 보내고 나머지를 한 칸씩 당김 — "메인이 뒤로 빠지며 다음이 앞으로".
-    function next() {
-      order = [...order.slice(1), order[0]];
-      render();
-    }
-    // 대기열 맨 뒤를 메인 자리로 — next()의 역순.
-    function prev() {
-      order = [order[order.length - 1], ...order.slice(0, -1)];
-      render();
-    }
-    // 점(dot) 클릭: 해당 슬라이드 앞쪽에 있던 슬라이드들을 그대로 순서 유지한 채 뒤로 보내 그 슬라이드를
-    // 메인으로 — next()를 여러 번 누른 것과 같은 결과.
-    function goToIndex(i) {
-      const pos = order.indexOf(i);
-      if (pos > 0) order = [...order.slice(pos), ...order.slice(0, pos)];
-      render();
-    }
-
-    render();
-
-    if (prevBtn) prevBtn.addEventListener("click", prev);
-    if (nextBtn) nextBtn.addEventListener("click", next);
-
-    // 스와이프: 스택 구조는 연속적인 오프셋이 없어(1:1 드래그 추종 불가) 일정 거리 이상 끌고 놓으면
-    // 한 칸 전/후진시키는 방식으로 단순화.
-    let dragActive = false;
-    let dragStartX = 0;
-    lookbookViewport.addEventListener("pointerdown", (e) => {
-      dragActive = true;
-      dragStartX = e.clientX;
-      lookbookViewport.classList.add("is-dragging");
-      lookbookViewport.setPointerCapture(e.pointerId);
     });
-    lookbookViewport.addEventListener("pointerup", (e) => {
-      if (!dragActive) return;
-      dragActive = false;
-      lookbookViewport.classList.remove("is-dragging");
-      const dx = e.clientX - dragStartX;
-      if (Math.abs(dx) > 50) { if (dx < 0) next(); else prev(); }
-    });
-    lookbookViewport.addEventListener("pointercancel", () => {
-      dragActive = false;
-      lookbookViewport.classList.remove("is-dragging");
-    });
-    lookbookViewport.addEventListener("dragstart", (e) => e.preventDefault());
   }
 
   // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----

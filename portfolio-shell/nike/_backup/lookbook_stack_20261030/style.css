@@ -1,0 +1,465 @@
+:root {
+  --ink: #0A0A0A;
+  --ink2: #171717;
+  --paper: #FFFFFF;
+  --paper2: #F5F5F5;
+  --volt: #D7FF3E;
+  --text: #111111;
+  --muted: #6B6B6B;
+  --text-on-dark: #F5F5F5;
+  --muted-on-dark: #9A9A9A;
+  --border: #E6E6E6;
+  --font-display: "Oswald", "Pretendard", sans-serif;
+  --font-body: "Pretendard", -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); color: var(--text); background: var(--paper); line-height: 1.5; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* ---- 플레이스홀더(실제 이미지 교체 전) ---- */
+.ph-visual { background: linear-gradient(135deg, #1b1b1b, #0a0a0a); position: relative; overflow: hidden; }
+
+/* ---- 상단 진행 바 ---- */
+.progress { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 100; background: transparent; }
+.progress__bar { height: 100%; width: 0%; background: var(--volt); transform-origin: left; }
+
+/* ---- 그레인(필름 질감) ----
+   2026-10-19: mix-blend-mode: overlay는 그 아래 레이어(히어로·매니페스토 스크럽 트랜스폼)가 매 프레임
+   바뀔 때마다 블렌드 영역 전체를 다시 합성해야 해서 스크롤 중 끊김의 원인이 됐음 — blend-mode 제거,
+   그만큼 opacity를 낮춰 비슷한 느낌은 유지. */
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ---- 마퀴(장식 텍스트 띠) ---- */
+.marquee { background: var(--ink); overflow: hidden; padding: 28px 0; white-space: nowrap; }
+.marquee__track { display: inline-flex; animation: marqueeScroll 22s linear infinite; }
+.marquee__item { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 6vw, 72px); letter-spacing: -.01em; color: transparent; -webkit-text-stroke: 1.5px var(--text-on-dark); padding-right: 48px; }
+.marquee__item:nth-child(even) { -webkit-text-stroke: 1.5px var(--volt); }
+@keyframes marqueeScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ---- 네비 ---- */
+.nav { position: fixed; top: 0; left: 0; width: 100%; z-index: 90; padding: 20px 0; transition: background .3s, padding .3s; }
+.nav__inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; }
+.nav__brand { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: .02em; color: var(--text-on-dark); }
+.nav__cta { display: inline-block; font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--ink); background: var(--volt); padding: 10px 18px; border-radius: 999px; transition: transform .2s; }
+.nav__cta:hover { transform: scale(1.06); }
+.nav.is-scrolled { background: rgba(10,10,10,.85); backdrop-filter: blur(10px); padding: 14px 0; }
+
+/* ---- 히어로(스크롤 줌아웃 전환, 2026-10-20 복원) ----
+   hero-wrap이 2배 높이를 줘서 스크롤 공간을 만들고, 그 구간 동안 .hero는 sticky로 뷰포트에 고정된 채
+   JS가 .hero__inner를 scale+fade로 스크러빙 → "다음 섹션을 뚫고 지나가는" 느낌(사용자가 좋아한 효과, 유지).
+   "섹션 전환이 밋밋하다"는 피드백은 전체를 덮는 대신 **배경 레이어만** 가뿐의 [data-speed] 패럴럭스와
+   동일한 패턴으로 살짝 다른 속도로 움직이게 해서 해결(.hero__bg data-speed, 아래 패럴럭스 섹션 참고). */
+/* 2026-10-29: "타이틀이 사라지고 섹션2로 넘어갈 때 여백이 너무 많이 남아 미완성 같다" 피드백 —
+   원인은 히어로 텍스트가 opacity*1.6로 핀 구간의 62.5% 지점에서 이미 완전히 사라져, 나머지 37.5%
+   (약 75vh)는 아무 콘텐츠 없는 어두운 화면만 스크롤되는 "죽은 구간"이었음. opacity를 progress 그대로
+   써서 핀이 풀리는 정확한 순간에 텍스트가 사라지도록 맞추고(아래 js 참고), 핀 구간 자체도
+   200vh→180vh로 살짝 줄여 전체 호흡을 타이트하게. */
+.hero-wrap { height: 180vh; position: relative; }
+.hero { position: sticky; top: 0; height: 100vh; height: 100svh; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
+.hero__bg { position: absolute; inset: -10% -10%; background:
+  radial-gradient(ellipse at 30% 20%, rgba(215,255,62,.14), transparent 55%),
+  radial-gradient(ellipse at 75% 75%, rgba(215,255,62,.08), transparent 50%);
+}
+.hero__inner { position: relative; z-index: 1; padding: 0 24px; will-change: transform, opacity, filter; backface-visibility: hidden; }
+.hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
+.hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
+.hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
+@keyframes letterIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); } }
+.hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px); color: var(--text-on-dark); margin-top: 24px; }
+.hero__sub { font-size: 16px; color: var(--muted-on-dark); margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto; }
+.hero__scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); }
+.hero__scroll span { width: 1px; height: 36px; background: linear-gradient(var(--volt), transparent); animation: scrollLine 1.8s ease-in-out infinite; }
+@keyframes scrollLine { 0% { opacity: 0; transform: scaleY(0); transform-origin: top; } 40% { opacity: 1; transform: scaleY(1); transform-origin: top; } 60% { transform-origin: bottom; } 100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; } }
+
+/* ---- 등장 애니메이션(공통) ---- */
+[data-reveal] { opacity: 0; transform: translateY(32px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+[data-reveal].is-revealed { opacity: 1; transform: translateY(0); }
+/* 2026-10-22: 히어로 입장 시 블러→선명 전환 추가("타이포가 흐림 상태에서 샤악하고 나타났다가") —
+   기본 [data-reveal]의 페이드업에 filter를 더해 kicker·NIKE·tagline·sub 전부가 같은 리듬으로 흐려졌다
+   맑아지며 등장. NIKE 글자 자체는 이미 letterIn 키프레임에서 별도로 blur(6px)→0을 쓰고 있어 이중으로
+   더해지는 셈이라 더 또렷한 "샤악" 임팩트. 나가는 쪽(스크롤 시 다시 흐려짐)은 scroll-scrub 쪽
+   (js main.js heroInner.style.filter)에서 진행률에 따라 연속으로 처리 — 여긴 1회성 입장만 담당.
+   같은 날 쇼케이스 콘텐츠(.showcase__content)에도 동일 요청으로 공유 적용. */
+.hero [data-reveal], .showcase__content [data-reveal] { filter: blur(14px); transition-delay: .1s;
+  transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1), filter .9s cubic-bezier(.2,.7,.2,1); }
+.hero [data-reveal].is-revealed, .showcase__content [data-reveal].is-revealed { filter: blur(0); }
+.hero [data-reveal]:nth-child(2) { transition-delay: .25s; }
+.hero [data-reveal]:nth-child(3) { transition-delay: .4s; }
+.hero [data-reveal]:nth-child(4) { transition-delay: .55s; }
+
+/* ---- 매니페스토(핀드 줌텍스트) ----
+   섹션을 220vh로 늘려 스크롤 공간을 만들고, 안쪽 텍스트는 sticky로 뷰포트 중앙에 고정된 채
+   그 구간 스크롤 진행률만큼 JS가 scale을 키움(0.65→1.15) — 큰 스크롤텔링 연출.
+   2026-10-29: 히어로 쪽 "여백 많아 미완성 같다" 수정과 짝으로, 텍스트가 더 빨리·더 큰 시작 크기로
+   또렷해지도록(초기 scale 0.5→0.65, opacity 램프 ×2.5→×3) 다듬어 핸드오프 체감을 타이트하게. */
+.manifesto { background: var(--paper); height: 220vh; position: relative; }
+/* 배경 클립 래퍼: overflow:hidden은 여기(섹션 본체 아님)에만 둬서 .manifesto__pin의 sticky를 안 깨뜨림.
+   2026-10-20 버그 수정 — 전엔 .manifesto__bg가 클리핑 없이 inset:-10%로 커져서, 매니페스토가 아직
+   뷰포트에 들어오기도 전인데 배경만 위(히어로 영역)로 새어나와 보이는 이음새가 생겼었음. */
+.manifesto__bgclip { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.manifesto__bg { position: absolute; inset: -10% -10%; background:
+  radial-gradient(ellipse at 70% 30%, rgba(215,255,62,.10), transparent 55%);
+}
+.manifesto__pin { position: sticky; top: 0; height: 100vh; display: flex; align-items: center; overflow: hidden; }
+.manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; }
+.manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; transform-origin: left center; will-change: transform; backface-visibility: hidden; }
+.manifesto__text em { font-style: normal; color: var(--volt); -webkit-text-stroke: .5px var(--ink); }
+
+/* ---- 제품 쇼케이스 ----
+   2026-10-22 전면 재구성(3차): "신발이 더 커야 한다 — 화면에서 메인처럼. 그라데이션은 위→아래, 신발
+   연출이 끝나야 시작되면서 텍스트가 올라온다. 신발과 텍스트는 한 세트인데 지금은 스테이지/콘텐츠가
+   두 섹션처럼 분리돼 보인다. 라인은 가로가 아니라 세로(hero__scroll 느낌, 단 반복 아니고 스크롤값
+   그대로 쭉 그려짐)"는 피드백 반영.
+   - 신발 사진(nike_s.png) → 실제 3D 모델(assets/models/sneaker.glb, three.js)로 교체. 회전은
+     js/showcase3d.js가 소유, 여기 CSS는 그 모듈이 그리는 <canvas>의 자리·크기만 잡아줌.
+   - **"두 섹션처럼 분리돼 보인다" — 2026-10-23 구조적으로 재해결**: 1차 시도(스테이지 안 그라데이션에
+     JS로 opacity를 올리고, 콘텐츠 맨 위에 "비슷한 톤"의 별도 페이드를 겹쳐 색만 맞추는 방식)는 물리적으로
+     두 개의 다른 엘리먼트라 완벽히 안 맞았고 사용자가 스크린샷으로 경계를 다시 지적함 — **진짜 원인은
+     그라데이션이 "스테이지 전용"과 "콘텐츠 전용" 두 레이어로 쪼개져 있었다는 것 자체**. 지금은 **`.showcase`
+     섹션 전체(스테이지+콘텐츠를 감싸는 가장 바깥 엘리먼트) 배경에 단 하나의 연속된 `linear-gradient`**를
+     직접 그려서 물리적으로 이음새 자체가 없게 함. `.showcase__stage`는 자체 배경이 없어(투명) 그 아래
+     `.showcase`의 그라데이션이 그대로 비쳐 보이고, 정지된(non-sticky) `.showcase` 박스의 배경이라 스크롤에
+     따라 자연스럽게 다른 구간이 보임 — **별도 JS 없이 CSS만으로 "신발 스크롤 중엔 안 보이다가, 스테이지가
+     끝나갈 때쯤 번지고, 콘텐츠 초반까지 이어지다 사라지는" 효과가 거저 나옴**(스톱을 `vh` 단위로 둬서
+     스테이지의 고정 높이(180vh) 기준으로 정확히 위치 지정 — % 단위였다면 콘텐츠 높이가 바뀔 때마다
+     다시 계산해야 했음). `.showcase` 자체에 `position`을 안 줘도 되는 배경(background-image)이라, 전에
+     겪었던 "`.showcase`에 `position:relative`를 주면 `.showcase__stage-wrap`의 `offsetTop` 측정 기준이
+     바뀌어 스크롤 진행률이 깨지는" 버그와도 전혀 부딪히지 않음(그 버그는 "자식의 position 기준점"
+     문제였지, 배경 자체는 `position` 없이도 항상 렌더링됨).
+     (참고: 이 디버깅 과정에서 "배경이 안 바뀐다"고 한동안 재현됐던 현상은 실은 **브라우저가 index.html을
+     캐싱**(파일은 수정됐는데 동일 URL이라 안 가져옴)하고 있었던 테스트 환경 문제였음 — 실제 스크롤 진행률
+     로직 자체엔 버그가 없었음. 이후 `css/js` 로드에 `?v=20261023a` 버전 쿼리를 붙여 재발 방지.) */
+/* 2026-10-23 6차: "홀로그램 표현이 안 됨 — 3D·회전 다 빼고 신발을 강조하는 인터랙션+디자인으로
+   시원시원하게" 요청으로 three.js 3D 렌더링을 전면 폐기, 평면 사진(assets/img/nike_s.png)으로 복귀.
+   스테이지 핀(스크롤에 따라 확대+기울어짐→정자세로 정리되는 2D 트랜스폼, js main.js 참고)과 배경
+   그라데이션 구조는 그대로 — 회전이 없어져 "한 바퀴 다 돌 시간"이 필요 없어진 만큼 스테이지 높이를
+   220vh→160vh로 줄이고 그라데이션 vh 스톱도 같은 비율로 재계산(83/96/108/128%). */
+.showcase { background: var(--ink)
+  linear-gradient(180deg, transparent 0, transparent 133vh, rgba(215,255,62,.16) 154vh, rgba(215,255,62,.10) 173vh, transparent 205vh); }
+.showcase__stage-wrap { position: relative; height: 160vh; }
+.showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; overflow: hidden; }
+/* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 화면을 꽉 채우는 느낌 */
+.showcase__visual { position: relative; z-index: 1; width: min(1600px, 94vw); height: min(880px, 82vh); }
+/* 2026-10-29 7차: "신발이 밋밋하다, 이펙트·그라데이션·인터랙션이 화려했으면" 피드백 — 신발 뒤에
+   볼트색 글로우(블러 라디얼, 숨쉬듯 펄스)와 점선 링(천천히 회전)을 추가해 정적인 사진 한 장이 아니라
+   에너지 있는 무대처럼 보이게 함. 둘 다 opacity는 스크롤 진행률에 js가 바인딩(신발이 자리 잡을수록
+   같이 밝아짐)하고, transform(펄스/회전)은 js가 건드리지 않는 별개 속성이라 충돌 없이 CSS만으로
+   끊임없이 돈다. 신발(static 엘리먼트)이 그 위에 그려지도록 position:relative+z-index를 명시. */
+.showcase__glow { position: absolute; left: 50%; top: 50%; width: 120%; height: 120%; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(215,255,62,.38), rgba(215,255,62,.08) 45%, transparent 70%);
+  filter: blur(40px); z-index: 0; opacity: 0; pointer-events: none;
+  animation: showcaseGlowPulse 4s ease-in-out infinite; }
+@keyframes showcaseGlowPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.14); } }
+.showcase__ring { position: absolute; left: 50%; top: 50%; width: 82%; height: 82%; transform: translate(-50%, -50%);
+  border: 1px dashed rgba(215,255,62,.4); border-radius: 50%; z-index: 0; opacity: 0; pointer-events: none;
+  animation: showcaseRingSpin 20s linear infinite; }
+@keyframes showcaseRingSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.showcase__shoe { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block;
+  filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); will-change: transform; backface-visibility: hidden; }
+.showcase__content { padding: 0 0 120px; }
+.showcase__content .container { padding-top: 64px; }
+.showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
+.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 4.4vw, 48px); color: var(--text-on-dark);
+  max-width: 640px; margin-bottom: 72px; position: relative; overflow: hidden; }
+/* 2026-10-29: "신발에서 PRODUCT 텍스트로 넘어갈 때 임팩트가 없다, 그냥 띡 올라오는 느낌" — 다른
+   섹션과 같은 평범한 translateY 페이드 대신, 제목만 탄성 있게 튀어 오르는 팝(overshoot 이징)과
+   한 번 스쳐 지나가는 밝은 대각선 플래시(::after)를 더해 "쾅" 하고 나타나는 느낌을 냄. */
+.showcase__title[data-reveal] { transform: translateY(46px) scale(.88);
+  transition: opacity .75s cubic-bezier(.34,1.56,.64,1), transform .9s cubic-bezier(.34,1.56,.64,1), filter .9s cubic-bezier(.2,.7,.2,1); }
+.showcase__title[data-reveal].is-revealed { transform: translateY(0) scale(1); }
+.showcase__title::after { content: ""; position: absolute; inset: -20% -30%; pointer-events: none; mix-blend-mode: screen;
+  background: linear-gradient(100deg, transparent 35%, rgba(215,255,62,.55) 48%, rgba(255,255,255,.95) 50%, rgba(215,255,62,.55) 52%, transparent 65%);
+  transform: translateX(-140%); }
+.showcase__title[data-reveal].is-revealed::after { animation: showcaseTitleFlash 1s cubic-bezier(.2,.8,.2,1) .3s both; }
+@keyframes showcaseTitleFlash { to { transform: translateX(140%); } }
+/* 자유로운 느낌: 정형적인 1열 리스트 대신 2열 + 짝수 아이템만 세로로 내려 쓴 비대칭 스태거드 그리드,
+   큰 아웃라인 숫자로 캠페인 광고 같은 에디토리얼 톤 */
+.feature-list { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 48px; row-gap: 64px; }
+.feature-item { padding-top: 32px; border-top: 1px solid rgba(255,255,255,.14); }
+.feature-item:nth-child(even) { margin-top: 96px; }
+.feature-item__num { display: block; font-family: var(--font-display); font-size: clamp(52px, 6vw, 84px); font-weight: 700;
+  line-height: 1; letter-spacing: -.02em; color: transparent; -webkit-text-stroke: 1.5px rgba(215,255,62,.55); margin-bottom: 12px; }
+.feature-item h3 { font-size: 22px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 8px; }
+.feature-item p { font-size: 15px; color: var(--muted-on-dark); line-height: 1.6; max-width: 360px; }
+
+/* ---- specs~lookbook 배경 장식 레이어 (2026-10-29 8차~10차) ----
+   두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
+   두 섹션을 .speedfield로 묶고 흰 배경은 래퍼로 올린 뒤(.specs/.lookbook 자체 배경은 제거),
+   그 사이에 장식 레이어를 음수 z-index로 깐다. 흐릿한 블록 패럴럭스(.manifesto__bg 등)와 같은
+   [data-speed] 공식을 그대로 재사용 — 별도 JS 없이 바로 작동(js/main.js의 범용 parallaxEls 루프).
+   8차: 얇은 스트로크 웨이브+스피드라인 → "선으로만 찍찍 그은 느낌" 피드백으로 폐기.
+   9차: volt→오렌지→크림슨 그라데이션 리본 2장 + 글로우로 교체 → "그라데이션 빼고 포인트컬러만으로
+   블러 처리된 큼직한 덩어리를 배경처럼 배치해달라"는 피드백으로 다시 단순화.
+   10차(현재): 보조 액센트 전부 제거(design.md Colors 예외 조항도 철회 — 다시 volt 단일 포인트컬러
+   규칙 그대로). `.speedfield__blob` 3개 — 각각 큰 원(border-radius:50%) + `background:var(--volt)`
+   + 강한 blur로 또렷한 도형 윤곽 없이 "번진 빛 덩어리"만 남긴다. 위치를 서로 다른 모서리에 걸치게
+   배치(음수 inset 포함)해 화면 전체에 듬성듬성 떠 있는 느낌을 냄. */
+.speedfield { position: relative; z-index: 0; overflow: hidden; background: var(--paper); }
+.speedfield__waveclip { position: absolute; inset: -10% 0; overflow: hidden; z-index: -1; pointer-events: none; }
+.speedfield__blob { position: absolute; border-radius: 50%; aspect-ratio: 1; background: var(--volt); filter: blur(90px); }
+.speedfield__blob--a { width: 46vw; max-width: 760px; top: -14%; left: 46%; opacity: .34; }
+.speedfield__blob--b { width: 38vw; max-width: 620px; top: 48%; left: -12%; opacity: .26; }
+.speedfield__blob--c { width: 30vw; max-width: 480px; top: 76%; right: -10%; opacity: .3; }
+
+/* ---- 스펙 하이라이트 ---- */
+.specs { padding: 140px 0; }
+.specs__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 48px; text-align: center; }
+.specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.spec-card { text-align: center; padding: 40px 16px; background: var(--paper2); border-radius: 20px; transition: transform .25s; }
+.spec-card:hover { transform: translateY(-6px); }
+.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: 48px; letter-spacing: -.01em; }
+.spec-card__num span[data-count] { display: inline-block; }
+/* 숫자 팝업(카운트업 시작과 함께 JS가 is-popped를 붙임) — 작은 페이드가 아니라 크게 튀어 들어오는 느낌 */
+.spec-card__num span[data-count].is-popped { animation: numPop .7s cubic-bezier(.17,.89,.32,1.4) both; }
+@keyframes numPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.spec-card__num span:not([data-count]) { font-size: 24px; margin-left: 2px; color: var(--muted); }
+.spec-card__label { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
+
+/* ---- 룩북 ---- */
+.lookbook { padding: 140px 0; overflow: hidden; }
+/* 2026-10-29 1차: 불균등 그리드(4~6칸) → "타이틀 밑에 화면 꽉 찬 슬라이드 4~5개" 요청으로 가로 슬라이드
+   갤러리로 교체. 2차: 가운데 확대 + 마우스 드래그 + scroll-snap 센터 정렬로 보강.
+   2026-10-29 3차: "처음·끝에 여전히 빈 화면, 가운데-나머지 크기 대비를 더 크게, 전환이 화려하고
+   스무스했으면, 슬라이드 모양 통일, 가운데 슬라이드 위쪽이 라운드가 아니라 직각으로 잘림, 마우스
+   휠로 페이지를 스크롤할 때 슬라이드 안 컨텐츠가 반응함" — 네이티브 `overflow-x:auto` + scroll-snap
+   방식을 전부 버리고, `translateX` 오프셋을 js가 인덱스 기준으로 직접 계산하는 캐러셀로 전면 교체:
+   - **빈 화면이 구조적으로 안 생기는 이유**: 매번 "현재 인덱스 슬라이드가 뷰포트 정중앙"이 되도록
+     `offset = 뷰포트폭/2 - (인덱스*스텝 + 스텝/2)` 수식으로 오프셋을 직접 계산(js 참고) — padding으로
+     여백을 어림잡던 2차 방식과 달리 첫 번째·마지막 슬라이드도 항상 정확히 중앙에 오므로 끝에 남는
+     빈 공간이 아예 발생할 수 없음.
+   - **가운데-나머지 대비 강화**: 스크롤 거리 기반 연속 보간(2차) 대신 활성(`is-active`)/인접
+     (`is-near`)/비활성(기본) 3단계로 나눠 scale(1.14 / .92 / .78)·opacity·blur·그림자 차이를 더
+     뚜렷하게, cubic-bezier 이징(`.16,1,.3,1`, "expo-out")으로 전환에 탄력을 줌.
+   - **휠 하이재킹 버그**: 원인은 `.lookbook__track`에 `overflow-x: auto`만 줬던 것 — 가로로만 스크롤
+     가능한 요소 위에서 마우스 휠(세로 입력)을 돌리면 브라우저가 그 세로 입력을 가로 스크롤로 떠넘기는
+     경우가 있어, 페이지를 스크롤하려던 휠 동작이 슬라이더 내부를 멋대로 움직였던 것. 이제 뷰포트가
+     `overflow-x: hidden`일 뿐 스크롤 가능한 축 자체가 없어(위치는 transform으로만 바뀜) 휠이 항상
+     페이지 스크롤로만 쓰임 — 구조적으로 재발 불가.
+   - **라운드 모서리가 직각으로 잘리던 버그**: `overflow-x:auto`만 주고 `overflow-y`를 안 주면, "한
+     축만 non-visible이면 나머지 축도 자동으로 auto가 된다"는 CSS 스펙 규칙 때문에 세로도 암묵적으로
+     클리핑됐던 것 — 가운데 슬라이드가 scale(1.14)로 커질 때 그만큼 위아래로 튀어나온 부분(라운드
+     모서리 포함)이 그대로 잘려나가 직각처럼 보였음. `.lookbook__viewport`에 확대분을 충분히 덮는
+     세로 padding을 줘서 애초에 잘릴 내용이 없게 해결 — 모든 슬라이드가 항상 완전한 둥근 사각형으로
+     보이므로 "모양이 안 맞다"는 지적도 같이 해소됨(활성/비활성 전부 동일한 박스, scale만 다름).
+   - **마우스 드래그 + 터치 스와이프**: Pointer Events로 통합 구현(마우스·터치·펜 전부 같은 코드 경로) —
+     드래그 중엔 `transform`을 1:1로 따라가다가(css 전환 꺼짐), 손을 떼면 이동 거리로 몇 칸 넘어갔는지
+     계산해 가장 가까운 인덱스로 애니메이션과 함께 스냅.
+   2026-10-29 4차: "1번이 화면 가운데가 아니라 왼쪽에 쏠려서 비어 보인다, 처음부터 3개를 놓고 가운데부터
+   보여주면 되잖아, 활성 슬라이드 그림자가 옆 슬라이드 위로 선처럼 걸쳐 보인다, 대비를 더 명확하게" 피드백.
+   - **첫/마지막이 "중앙 정렬인데 한쪽만 비어 보이던" 문제**: 3차 수식 자체는 수학적으로 정확히
+     중앙 정렬이었지만(실측 오차 0.03px), 양 끝 슬라이드는 애초에 한쪽에 피크할 이웃이 없어서
+     "정중앙에 떠 있는데 한쪽만 횅하다"는 인상을 줬던 것 — js가 `slides[0]`(마지막 슬라이드)과
+     `slides[4]`(첫 슬라이드)를 각각 복제해 트랙 맨 앞/뒤에 장식용으로 붙여둠(`aria-hidden`,
+     클릭 불가) — 이러면 1번이 활성이어도 왼쪽에 "5번의 복제본"이 피크하고 있어 항상 3장(피크-활성-피크)
+     구도가 유지됨("3개를 놓고 가운데부터 보여달라"는 요청 그대로).
+   - **그림자가 옆 슬라이드 위에 선처럼 걸치던 버그**: 활성 스케일이 1.14배로 너무 커서 이웃 슬라이드
+     영역까지 물리적으로 겹쳤고, 활성이 `z-index`가 더 높아 그 그림자가 이웃 위에 그대로 그려져 경계선
+     처럼 보였음. 활성 스케일을 1.14→1.02로 낮추고(자기 박스 대비 거의 그대로라 겹침이 사실상 없음),
+     대신 그림자도 `spread`를 음수로 줘서(`-12px`) 박스에 바싹 붙게 축소.
+   - **대비 강화**: "셀렉은 좀 더 줄이고 나머지는 더 줄여라" — 활성(1.14→1.02)은 줄이고 비활성은 더
+     줄여서(기본 .78→.6, 인접 .92→.75) 절대 크기 차이가 아니라 "활성/비활성 배율 차이"로 대비를 키움
+     (활성이 비활성 대비 약 1.7배 커 보임, 이전보다 오히려 체감 대비는 더 큼).
+   2026-10-29 5차: "간격이 안 맞는다, 처음부터 한 화면 안에 깔끔하게 맞추라고, 그게 안 되면 타이틀을
+   좌측에 고정하고 우측에 슬라이드를, 첫(활성) 슬라이드는 크게 나머지는 작게" — 3~4차의 "가운데 정렬
+   캐러셀 + scale + 복제 피크" 구조를 전부 폐기. 중앙 정렬 자체가 활성 슬라이드 폭이 달라질 때마다
+   좌우 여백이 미세하게 어긋나 보이기 쉬운, 오차에 민감한 구조였음 — "정중앙 정렬"이라는 어려운
+   문제를 아예 없애는 방향으로 레이아웃을 바꿈:
+   - **레이아웃**: `.lookbook__layout`을 좌(타이틀+화살표/점, 고정)/우(슬라이더) 2단 flex로 분리.
+     타이틀은 스크롤 중 전혀 움직이지 않고, 슬라이더만 오른쪽 칸 안에서 가로로 움직임.
+   - **정렬 방식**: "뷰포트 정중앙에 오게 하기"(3~4차) 대신 "활성 슬라이드를 슬라이더 칸 왼쪽 끝에
+     딱 붙이기"(`offset = -activeSlide.offsetLeft`)로 변경 — 인덱스 0이면 offset도 정확히 0이라
+     첫 슬라이드는 처음부터 왼쪽 끝에 여백 없이 시작(복제 피크 불필요, js도 단순해짐).
+   - **크기 차이는 scale이 아니라 실제 width/height로**: `transform: scale()`은 자기 flex-box 영역
+     밖으로 물리적으로 튀어나와 이웃과 겹쳤고, 그게 그림자가 선처럼 보이던 버그의 원인이었음. 이제
+     활성 슬라이드는 실제 width/height가 커지고(210×280 → 480×540), flex가 그 실제 크기 기준으로
+     이웃을 밀어내며 재배치하므로 물리적 겹침 자체가 없음 — 그림자 겹침·모서리 클리핑 버그가
+     구조적으로 재발 불가.
+   2026-10-29 6차: "최악이다, marquee__track처럼 폭을 한정 짓지 말고 다 써라 — 나이키는 딱딱한 정형화된
+   사이트가 아니라 자유 속의 균형이다, 슬라이드가 반만 잘린다, 타이틀 크게, 슬라이드는 화면 우측 끝까지
+   나오게, 컨테이너에 가두지 마라" — 5차까지도 `.lookbook__layout`이 `.container`(max-width:1200px) 안에
+   갇혀 있어서 슬라이더가 가운데의 좁은 칸 안에서만 움직였던 게 근본 원인(그 좁은 폭 안에서 슬라이드가
+   드나들다 보니 전환 중 어중간하게 잘려 보이는 현상도 같이 생김). `.container` 래퍼를 완전히 제거하고
+   `.lookbook`을 히어로/marquee처럼 브라우저 폭을 그대로 쓰는 풀블리드 섹션으로 전환 — 타이틀 칸만
+   `.container`의 왼쪽 거터와 맞춘 `padding-left`로 정렬을 유지하고, 슬라이더는 오른쪽으로 제약 없이
+   뻗어 실제 화면 끝까지 흐름. 타이틀도 다른 섹션들(CTA 등)과 비슷한 스케일로 큼직하게 키움.
+   2026-10-29 7차: "레이아웃(좌 타이틀 고정/우 슬라이드, 첫 장만 크게)은 맞는데 — 전환 중 슬라이드가
+   반만 잘려 보인다, 3장으로 줄여서 그 3장이 우측 화면을 꽉 채우게, 그리고 넘길 때 지금 메인이 오른쪽
+   빈 자리로 빠지는 게 아니라 **맨 뒤 대기열로 빠지면서** 다음 장이 메인이 되는 식으로(카드 더미가
+   유기적으로 순환)" — `translateX` 트랙 자체를 폐기. 그 구조가 "반만 잘림"의 근본 원인이었음: 활성
+   슬라이드가 width/height로 커지는 동안에도 여전히 가로로 나열된 flex 트랙 한 줄 위에 있었고, 그
+   확대·재배치가 뷰포트 경계와 맞물리며 전환 중 프레임에서 어중간하게 걸쳐 보였던 것.
+   이제 5장 모두 `.lookbook__slider` 안에 `position:absolute`로 겹쳐 쌓이고, 각자 `data-rank`(0=메인,
+   1=다음, 2=그다음, 3~4=화면 밖 대기)에 따라 `right`/`width`/`height`/`opacity`만 바뀐다 — "잘리는"
+   현상 자체가 구조적으로 발생할 수 없음(가로로 이동하는 트랙이 없으므로). rank0는 크고 왼쪽에, rank2는
+   가장 작고 `right:0`으로 뷰포트 우측 끝에 딱 붙어 "3장이 화면을 꽉 채운" 느낌을 내고, rank3·4는 opacity
+   0으로 화면 밖에 대기. `next()`는 배열의 맨 앞(현재 rank0)을 맨 뒤로 보내는 회전(`[1,2,3,4,0]`)이라
+   "메인이 뒤로 빠지고 다음이 앞으로" 요청을 그대로 구현 — 빈 오른쪽 공간이 생길 수 없음(언제나 5장
+   전부가 어떤 rank든 채우고 있어서). 이 방식은 순환(loop) 구조라 이전/다음 버튼에 "끝에서 비활성화"
+   개념 자체가 없어져, `offsetLeft` 실측에 의존하던 이전 로직의 버그 클래스(5차 참고)도 같이 사라짐. */
+.lookbook__layout { display: flex; align-items: center; gap: 56px; padding-left: max(24px, calc((100vw - 1200px) / 2)); }
+.lookbook__head { flex: 0 0 440px; }
+.lookbook__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 20px; }
+.lookbook__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(42px, 4.8vw, 72px); line-height: 1.05; letter-spacing: -.01em; margin-bottom: 44px; }
+.lookbook__slider { flex: 1 1 auto; min-width: 0; position: relative; height: 620px; }
+.lookbook__viewport { position: relative; width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
+.lookbook__viewport.is-dragging { cursor: grabbing; }
+.lookbook__track { position: relative; width: 100%; height: 100%; }
+/* 랭크 기반 스택 캐러셀 — 가로 트랙이 없으므로 전환 중 "잘림"이 구조적으로 불가능.
+   2026-10-29 9차: rank0·1을 `right` 대신 `left`(타이틀이 끝나는 지점 기준)로 바꿔 해상도 무관하게
+   간격을 고정시켰지만, rank2는 여전히 "우측 끝까지 채운다"는 6~7차 요청대로 `left: calc(100% -
+   250px)`(뷰포트 오른쪽 끝 플러시)에 남겨뒀음 — 그 결과 넓은 화면에서 rank1(타이틀 옆)과 rank2
+   (화면 우측 끝) 사이에 아무것도 없는 큰 빈 구간이 생기고, rank2 카드 한 장만 뚝 떨어져 섬처럼
+   붕 떠 보이는 문제가 스크린샷으로 지적됨("이미지 5장뿐이라 화면 전체를 채우기엔 아이템이 부족하다").
+   10차: "우측 끝까지 채운다"는 요청을 이번엔 포기하고, 대신 **사진 4장은 타이틀 바로 옆에 바싹
+   붙여 부채꼴로 쌓고(`left` 전부 작은 고정값, 해상도 무관), 5번째(= rank4)는 또렷한 카드가 아니라
+   아주 흐릿하고 작은 "잔상"(블러 + 저투명도)으로만 살짝 더 비치게** 처리 — 아이템이 5장뿐이라
+   화면 전체에 흩뿌리면 듬성듬성해 보이는 문제 자체를 "넓게 펼치지 않는" 쪽으로 해결. 더 이상
+   `right`/`calc(100%...)`를 쓰는 랭크가 없어 모든 랭크가 `.lookbook__slider`의 왼쪽(=타이틀이 끝나는
+   지점) 기준 고정 px 하나로만 정해지므로 1800px이든 2560px이든 4K든 항상 동일한 모양으로 보임
+   (9차에서 확인한 "left는 flex가 알아서 해상도 반응형으로 계산해주는 기준점"이라는 원리를 전체
+   랭크로 확장 적용한 것).
+   ⚠️ 구현 중 발견한 버그(10차): 처음엔 각 랭크의 `left`를 "이전 랭크 left + 고정 step"으로만 늘렸는데,
+   `step < 이전 카드 너비`인 경우 다음 카드의 오른쪽 끝이 이전 카드의 오른쪽 끝보다 안쪽에 들어와
+   (예: rank1 `left:178,width:300`→끝 478 < rank0 끝 508) **완전히 뒤에 가려 아예 안 보이는** 카드가
+   생김. "각 랭크의 오른쪽 끝(`left+width`)이 이전 랭크의 오른쪽 끝보다 `peek`만큼 더 나가야 한다"는
+   식으로 역산해서 고쳤었음(자세한 수치 근거는 design.md 10차 항목 참고).
+   2026-10-29 11차: "화면 끝까지 해달라고 했는데 왜 이렇게 됐냐" — 10차가 고정 px(48/318/498/628/718)로
+   박아둔 탓에, 화면이 넓어져도 카드들은 제자리 그대로고 오른쪽엔 빈 여백만 늘어나는 게 진짜 원인
+   이었음(2560px 실측: 마지막 카드 끝이 뷰포트 오른쪽 끝에서 556px나 떨어져 있었음). "잔상을 늘리든
+   사이즈를 키우든 자유롭게 화면 전체를 채워달라"는 요청으로, 고정 px peek 대신 **슬라이더 폭(%)에
+   비례한 균등 분산**으로 전환 — rank0(타이틀 옆 고정 앵커)만 그대로 48px, rank1~4는 각자의 오른쪽
+   끝(`left+width`)이 `end[n] = 508px + n/4 * (100% - 548px)`(n=1~4) 공식을 따르도록 역산해 `left`를
+   `calc()`로 표현. 548px = rank0 끝(508) + 우측 여백(40px). 이러면 네 장의 "끝" 간격이 항상
+   `0.25 * 슬라이더폭 - 137px`로 균일해서(대수적으로 증명 가능 — 네 구간 모두 같은 식) 9차처럼 한
+   카드만 뚝 떨어져 보이는 섬 문제 없이, 화면이 넓을수록 카드 사이 간격도 같이 벌어지며 뒤로 갈수록
+   자연스럽게 흩어지고(=오히려 "자유롭게" 느낌 강화), rank4(마지막/잔상)의 끝은 항상 슬라이더 폭의
+   정확히 40px 안쪽, 즉 거의 뷰포트 우측 끝까지 흐름. 1301px(이 구간 하한)에서도 간격이 음수가 되지
+   않음을 대수적으로 확인(최소 폭 754px에서도 간격 ≈51px, 양수) — 자세한 계산은 design.md 11차 항목
+   참고. */
+.lookbook__slide { position: absolute; top: 50%; transform: translateY(-50%); border-radius: 24px; overflow: hidden;
+  display: flex; align-items: flex-end; padding: 20px;
+  transition: left .7s cubic-bezier(.16,1,.3,1), right .7s cubic-bezier(.16,1,.3,1),
+    width .7s cubic-bezier(.16,1,.3,1), height .7s cubic-bezier(.16,1,.3,1), opacity .5s ease,
+    filter .6s ease, box-shadow .7s ease; }
+.lookbook__slide[data-rank="0"] { left: 48px; width: 460px; height: 560px; opacity: 1; z-index: 5;
+  box-shadow: 0 32px 60px -18px rgba(0,0,0,.42); }
+.lookbook__slide[data-rank="1"] { left: calc(71px + 25%); width: 300px; height: 400px; opacity: .85; z-index: 4;
+  box-shadow: 0 20px 40px -16px rgba(0,0,0,.3); }
+.lookbook__slide[data-rank="2"] { left: calc(24px + 50%); width: 210px; height: 280px; opacity: .55; z-index: 3; box-shadow: none; }
+.lookbook__slide[data-rank="3"] { left: calc(75% - 53px); width: 150px; height: 200px; opacity: .3; z-index: 2; box-shadow: none; }
+/* rank4 = "잔상" — 또렷한 5번째 카드가 아니라 블러+저투명도로 살짝 더 쌓여있음만 암시하는 장식.
+   left: calc(100% - 150px) = 슬라이더 오른쪽 끝에서 40px 안쪽(150 = 카드폭110 + 여백40). */
+.lookbook__slide[data-rank="4"] { left: calc(100% - 150px); width: 110px; height: 150px; opacity: .14; filter: blur(4px);
+  z-index: 1; pointer-events: none; box-shadow: none; }
+.lookbook__slide-num { position: absolute; top: 24px; left: 28px; font-family: var(--font-display); font-size: 14px;
+  font-weight: 700; letter-spacing: .1em; color: rgba(255,255,255,.5); }
+.lookbook__slide-cap { font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-on-dark);
+  background: rgba(0,0,0,.4); padding: 8px 16px; border-radius: 999px; }
+.lookbook__nav { display: flex; align-items: center; gap: 20px; }
+.lookbook__arrow { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--paper);
+  font-size: 20px; line-height: 1; color: var(--text); cursor: pointer; transition: background .2s, color .2s, transform .2s; }
+.lookbook__arrow:hover { background: var(--ink); color: var(--text-on-dark); transform: scale(1.08); }
+.lookbook__dots { display: flex; gap: 8px; }
+.lookbook__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); border: none; padding: 0;
+  cursor: pointer; transition: background .2s, transform .2s; }
+.lookbook__dot.is-active { background: var(--volt); transform: scale(1.3); }
+
+/* ---- CTA ---- */
+.cta { background: var(--volt); padding: 140px 0; text-align: center; }
+.cta__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--ink); opacity: .6; margin-bottom: 20px; }
+.cta__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 6vw, 64px); line-height: 1.05; color: var(--ink); }
+.cta__sub { margin-top: 20px; font-size: 16px; color: var(--ink); opacity: .7; }
+.cta__form { margin-top: 36px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.cta__input { width: 320px; max-width: 100%; padding: 16px 20px; border-radius: 999px; border: none; font-size: 15px; background: var(--ink); color: var(--text-on-dark); }
+.cta__input::placeholder { color: var(--muted-on-dark); }
+.cta__btn { padding: 16px 28px; border-radius: 999px; border: none; background: var(--ink); color: var(--volt); font-weight: 700; font-size: 15px; cursor: pointer; transition: transform .25s cubic-bezier(.2,.8,.2,1); }
+.cta__done { margin-top: 24px; font-weight: 700; color: var(--ink); }
+.cta__done[hidden] { display: none; }
+
+/* ---- 푸터 ---- */
+.foot { background: var(--ink); padding: 32px 0; }
+.foot__inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.foot__brand { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-on-dark); }
+.foot__note { font-size: 12px; color: var(--muted-on-dark); }
+
+/* ---- 반응형(900px) ---- */
+@media (max-width: 900px) {
+  /* 좁은 화면에서는 블러 반경(고정 px)이 섹션 폭 대비 과하게 커져 번져 보이므로 줄임 */
+  .speedfield__blob { filter: blur(50px); }
+  .showcase__stage-wrap { height: 130vh; }
+  /* 위 .showcase 배경 그라데이션의 vh 스톱도 스테이지 높이 축소(180vh→130vh) 비율에 맞춰 재계산 */
+  .showcase { background: var(--ink)
+    linear-gradient(180deg, transparent 0, transparent 108vh, rgba(215,255,62,.16) 125vh, rgba(215,255,62,.10) 140vh, transparent 166vh); }
+  .showcase__visual { width: min(900px, 92vw); height: min(560px, 62vh); }
+  .showcase__content { padding-bottom: 80px; }
+  .showcase__content .container { padding-top: 48px; }
+  .showcase__title { margin-bottom: 48px; }
+  .feature-list { grid-template-columns: 1fr; row-gap: 40px; }
+  .feature-item:nth-child(even) { margin-top: 0; }
+  .specs__grid { grid-template-columns: repeat(2, 1fr); }
+  /* 좁은 화면에서는 좌(타이틀)/우(슬라이더) 2단이 들어갈 폭이 없어 세로로 쌓음 — 타이틀만 컨테이너
+     거터(24px)에 맞추고, 슬라이더는 데스크톱과 동일하게 화면 우측 끝까지 풀블리드로 흐르게 둠.
+     2026-10-29 7차: 스택 캐러셀도 모바일에선 폭이 부족해 3장 전부 보여주면 서로 거의 다 겹쳐버리므로
+     메인+다음 2장만 보이게 축소(그다음부터는 데스크톱과 동일하게 화면 밖 대기). */
+  .lookbook__layout { flex-direction: column; align-items: flex-start; gap: 28px; padding-left: 24px; }
+  .lookbook__head { flex: none; width: 100%; }
+  .lookbook__title { font-size: clamp(34px, 9vw, 52px); margin-bottom: 20px; }
+  .lookbook__slider { width: 100%; height: 64vw; }
+  /* 9차: 기본 규칙이 랭크 위치를 left로 쓰므로, 여기선 right로 되돌리는 김에 left:auto로 명시
+     리셋 — 안 하면 기본 규칙의 left 값이 같이 살아남아(둘 다 구체값이면 left가 우선) right가
+     무시되는 충돌이 생김. */
+  .lookbook__slide[data-rank="0"] { left: auto; right: 30vw; width: 54vw; height: 60vw; }
+  .lookbook__slide[data-rank="1"] { left: auto; right: 0; width: 32vw; height: 40vw; opacity: .7; }
+  .lookbook__slide[data-rank="2"], .lookbook__slide[data-rank="3"], .lookbook__slide[data-rank="4"] {
+    left: auto; right: -40vw; width: 32vw; height: 40vw; opacity: 0; }
+  .manifesto { padding: 96px 0; }
+  .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
+}
+
+/* 데스크톱이지만 타이틀 칸(440px)과 부딪힐 만큼 좁은 중간 구간(900~1300px) — 10차의 "타이틀 옆에
+   바싹 붙은 부채꼴 + 잔상" 구조를 카드 크기만 ~76% 비례 축소해서 그대로 적용(기본 구간과 같은
+   left 기준이라 두 구간이 일관된 느낌). 901px(이 구간 하한)에서 잔상(rank4)이 몇십px 정도 섹션
+   바깥으로 살짝 클리핑될 수 있지만, 어차피 블러 처리된 장식이라 체감상 문제 없음. */
+@media (max-width: 1300px) and (min-width: 901px) {
+  .lookbook__slider { height: 480px; }
+  .lookbook__slide[data-rank="0"] { left: 32px; width: 350px; height: 430px; }
+  .lookbook__slide[data-rank="1"] { left: 224px; width: 228px; height: 304px; }
+  .lookbook__slide[data-rank="2"] { left: 347px; width: 160px; height: 213px; }
+  .lookbook__slide[data-rank="3"] { left: 433px; width: 114px; height: 152px; }
+  .lookbook__slide[data-rank="4"] { left: 493px; width: 84px; height: 114px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { transition: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+  .hero__scroll span { animation: none; }
+  html { scroll-behavior: auto; }
+  .grain { display: none; }
+  .marquee__track { animation: none; }
+  .hero__word .letter { animation: none; opacity: 1; transform: none; filter: none; }
+  .spec-card, .nav__cta, .cta__btn { transition: none !important; transform: none !important; }
+  /* .lookbook__slide는 transform(translateY(-50%))을 세로 중앙정렬용 레이아웃값으로 쓰므로 transform까지
+     꺼버리면 카드가 위로 쏠려버림 — transition만 꺼서 랭크 전환이 애니메이션 없이 즉시 바뀌게만 함. */
+  .lookbook__slide { transition: none !important; }
+  /* 스크롤 스크러빙·핀드줌·배경 패럴럭스 전부 끔 — 정상 문서 흐름으로 */
+  .hero-wrap { height: auto; }
+  .hero { position: relative; }
+  .hero__inner { transform: none !important; opacity: 1 !important; filter: none !important; }
+  .manifesto { height: auto; padding: 120px 0; }
+  .manifesto__pin { position: relative; height: auto; }
+  .manifesto__text { transform: none !important; }
+  .showcase__stage-wrap { height: auto; }
+  .showcase__stage { position: relative; height: auto; padding: 96px 0; }
+  .showcase__shoe { transform: none !important; }
+  .showcase__glow, .showcase__ring { animation: none !important; opacity: .3; }
+  .showcase__title::after { content: none; }
+  .spec-card__num span[data-count] { animation: none !important; }
+  [data-speed] { transform: none !important; }
+}
