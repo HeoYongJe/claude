@@ -103,6 +103,18 @@ ul, ol { list-style: none; padding: 0; }
   transition: background .2s ease; }
 .t-cta--secondary:hover { background: rgba(30,41,59,.09); }
 .t-cta--secondary:hover .t-cta--secondary__icon { background: var(--muted); }
+/* 2026-11-01: 캡슐 버튼 3종(네비 "추천 랭킹", 히어로 "추천 랭킹 보기", "인기 여행국 전체 보기") 라벨
+   호버 — 요청: "마우스를 올리면 안에 텍스트가 위 또는 아래로 슬라이딩하면서 흐려졌다가 다시 선명한
+   상태로 나타나는" 라벨 스왑. 같은 텍스트를 담은 두 겹(`--out`/`--in`)을 포개두고(`overflow:hidden`
+   래퍼로 밖은 가림), 평소엔 `--out`만 제자리·`--in`은 아래쪽에 blur 상태로 숨어있다가, 호버 시 `--out`은
+   위로 올라가며 blur돼 사라지고 `--in`이 아래에서 위로 올라오며 선명해짐 — 칩 배경색 전환(기존 유지)과
+   같이 겹쳐 동작. 버튼마다 다른 클래스(`--nav`/`--hero`/`--secondary`) 대신 공용 `.t-cta__label`로
+   둬서 3곳에 중복 없이 한 번만 정의. `aria-hidden` 사본은 스크린리더 중복 낭독 방지. */
+.t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; }
+.t-cta__label-txt { display: block; transition: transform .45s cubic-bezier(.22,.68,0,1), filter .45s ease; }
+.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(6px); }
+.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(6px); }
+.t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in { transform: translateY(0); filter: blur(0); }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
 
@@ -471,6 +483,8 @@ ul, ol { list-style: none; padding: 0; }
   .t-pop__track { animation: none; }
   .t-pop-tile__fill { transition: none; }
   .t-pop-tile__btn { transition: none; }
+  .t-cta__label-txt--in { display: none; }
+  .t-cta__label-txt--out { transition: none; transform: none; filter: none; }
 }
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
