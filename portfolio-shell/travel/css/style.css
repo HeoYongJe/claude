@@ -110,14 +110,26 @@ ul, ol { list-style: none; padding: 0; }
    위로 올라가며 blur돼 사라지고 `--in`이 아래에서 위로 올라오며 선명해짐 — 칩 배경색 전환(기존 유지)과
    같이 겹쳐 동작. 버튼마다 다른 클래스(`--nav`/`--hero`/`--secondary`) 대신 공용 `.t-cta__label`로
    둬서 3곳에 중복 없이 한 번만 정의. `aria-hidden` 사본은 스크린리더 중복 낭독 방지.
-   **버그 수정(같은 날): "텍스트쉐도우 깔린 네모 박스처럼 보인다"는 지적** — 원인은 `blur(6px)`가
-   14~16px 볼드 한글 텍스트엔 너무 강해서, 전환 중간 지점(`--out`/`--in`이 딱 절반씩 겹치는 순간)엔
-   글자 형태가 다 뭉개져 두 겹이 합쳐진 불투명한 회색 사각 덩어리로 보였던 것(실제로 50% 지점을 강제로
-   재현해 확인) — `blur(2px)`로 낮춰서 전환 중에도 "흐려진 글자 두 줄이 교차"하는 걸로 보이게 수정. */
+   **재수정(같은 날, "여전히 어색하다" 피드백 — 브라우저에서 직접 여러 변형을 강제 재현해 테스트 후
+   결정):** `blur(6px)→2px` 완화만으로는 부족했음 — 진짜 원인은 blur 수치가 아니라 **`--out`/`--in`이
+   "같은 시간 동안 동시에" 움직여서, 둘 다 절반씩 클립된 채로 항상 겹쳐 보이는 구조** 자체였음(수학적으로
+   항상 정확히 50/50으로 박스를 나눠 채움 → 두 겹의 흐려진 글자 줄이 겹쳐 뭉개진 사각형으로 읽힘).
+   blur 수치(0/1/2/3px)와 "동시 vs 순차" 타이밍을 조합한 6개 변형을 실제로 만들어 전환 중간 지점을
+   강제 재현해 나란히 비교한 결과, **blur 크기와 무관하게 "동시"는 전부 두 줄이 겹쳐 보였고, "순차"
+   (`--in`에 `transition-delay`를 줘서 `--out`이 완전히 빠져나간 뒤에야 `--in`이 들어오기 시작)는
+   어느 블러값에서도 항상 한 줄만 보여 깨끗했음** — 구조적으로 겹칠 수 없게 만든 것(아래 수치 검증 참고:
+   `--out`은 0→-100% 이동, `--in`은 100%→0% 이동인데 둘이 동시면 두 레이어가 클립 박스를 항상 정확히
+   반반씩 나눠 채우지만, `--out`의 지속시간이 끝나는 시점에 `--in`이 지연 시작하면 `--out`이 클립 영역을
+   벗어나 있는 동안엔 `--in`이 아직 자기 박스 높이만큼 아래에 있어 둘 다 보이는 순간이 전혀 없음).
+   **최종**: `--out` `.19s`, `--in`은 `.15s` 지연 후 `.23s`(끝자락 `.04s`만 겹쳐 끊겨 보이지 않게 자연스러운
+   이음새만 줌) · blur는 겹침이 없어진 덕에 `3px`까지 올려도 깨끗해서 원래 의도("흐려졌다가 선명하게")가
+   더 또렷이 느껴지도록 유지. */
 .t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; }
-.t-cta__label-txt { display: block; transition: transform .45s cubic-bezier(.22,.68,0,1), filter .45s ease; }
-.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(2px); }
-.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(2px); }
+.t-cta__label-txt { display: block; }
+.t-cta__label-txt--out { transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(3px);
+  transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s, filter .23s ease .15s; }
+.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(3px); }
 .t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in { transform: translateY(0); filter: blur(0); }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
