@@ -109,11 +109,15 @@ ul, ol { list-style: none; padding: 0; }
    래퍼로 밖은 가림), 평소엔 `--out`만 제자리·`--in`은 아래쪽에 blur 상태로 숨어있다가, 호버 시 `--out`은
    위로 올라가며 blur돼 사라지고 `--in`이 아래에서 위로 올라오며 선명해짐 — 칩 배경색 전환(기존 유지)과
    같이 겹쳐 동작. 버튼마다 다른 클래스(`--nav`/`--hero`/`--secondary`) 대신 공용 `.t-cta__label`로
-   둬서 3곳에 중복 없이 한 번만 정의. `aria-hidden` 사본은 스크린리더 중복 낭독 방지. */
+   둬서 3곳에 중복 없이 한 번만 정의. `aria-hidden` 사본은 스크린리더 중복 낭독 방지.
+   **버그 수정(같은 날): "텍스트쉐도우 깔린 네모 박스처럼 보인다"는 지적** — 원인은 `blur(6px)`가
+   14~16px 볼드 한글 텍스트엔 너무 강해서, 전환 중간 지점(`--out`/`--in`이 딱 절반씩 겹치는 순간)엔
+   글자 형태가 다 뭉개져 두 겹이 합쳐진 불투명한 회색 사각 덩어리로 보였던 것(실제로 50% 지점을 강제로
+   재현해 확인) — `blur(2px)`로 낮춰서 전환 중에도 "흐려진 글자 두 줄이 교차"하는 걸로 보이게 수정. */
 .t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; }
 .t-cta__label-txt { display: block; transition: transform .45s cubic-bezier(.22,.68,0,1), filter .45s ease; }
-.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(6px); }
-.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(6px); }
+.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(2px); }
+.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(2px); }
 .t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in { transform: translateY(0); filter: blur(0); }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
