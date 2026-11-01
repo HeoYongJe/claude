@@ -123,14 +123,36 @@ ul, ol { list-style: none; padding: 0; }
    벗어나 있는 동안엔 `--in`이 아직 자기 박스 높이만큼 아래에 있어 둘 다 보이는 순간이 전혀 없음).
    **최종**: `--out` `.19s`, `--in`은 `.15s` 지연 후 `.23s`(끝자락 `.04s`만 겹쳐 끊겨 보이지 않게 자연스러운
    이음새만 줌) · blur는 겹침이 없어진 덕에 `3px`까지 올려도 깨끗해서 원래 의도("흐려졌다가 선명하게")가
-   더 또렷이 느껴지도록 유지. */
-.t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; }
+   더 또렷이 느껴지도록 유지.
+   **3차 수정(같은 날, "쉐도우 같은 밑줄이 희미하게 보인다 + 마우스 뗄 때 슬라이딩이 뚝 떨어진다"는
+   재지적 — 각각 직접 원인 분리해서 확인 후 수정):**
+   ① **호버 전 희미한 밑줄**: `--in`이 평소(호버 전)엔 `overflow:hidden` 래퍼 바로 아래(`translateY(100%)`)에
+   `blur(3px)` 상태로 숨어있는데, 블러가 번지는 빛이 `overflow:hidden`의 클립 경계를 살짝 넘어 새어
+   들어와 라벨 하단에 흐린 선으로 비쳤음(`--in`을 `display:none`으로 꺼보면 사라짐으로 확인) —
+   `overflow:hidden`만으론 블러 번짐을 완전히 막지 못하는 케이스라, `.t-cta__label`에
+   `clip-path:inset(0)`을 추가로 걸어 블러 렌더링 자체를 박스 경계에서 하드 클립(실제로 밑줄이
+   사라짐을 확인).
+   ② **마우스를 뗄 때 뚝 떨어짐**: `transition`이 `--out`/`--in` 각각의 **기본(호버 아님) 규칙에만**
+   선언돼 있어서, 들어갈 때(호버)·나갈 때(호버 해제) **양쪽에 항상 같은 타이밍**(`--in`은 항상
+   `.15s` 지연)이 적용됐던 게 원인 — 호버가 풀리는 순간엔 **`--in`(현재 보이는 중)이 먼저 즉시
+   빠져야** 자연스러운데, 기존 구조는 `--in`이 여전히 `.15s`를 가만히 멈춰있다가(그 사이 `--out`은
+   가려진 채 이미 조용히 복귀 중) 갑자기 움직이기 시작해 "멈췄다 뚝 떨어지는" 것처럼 보였음(JS로
+   호버 해제 0.05초 시점을 강제 재현해, 수정 전엔 `--in`이 전혀 안 움직였다가 수정 후엔 이미
+   26% 움직여 있음을 직접 확인). **`transition`을 "어느 방향으로 바뀔 때의 규칙인지" 기준으로
+   재배치** — 기본 규칙(=호버 해제 때 적용)엔 "지금 보이던 쪽이 지연 없이 즉시 빠지고, 지금 숨어있던
+   쪽이 지연 후 들어오는" 타이밍을, 호버 규칙(=호버 진입 때 적용)엔 반대로 둬서 양방향 모두 "먼저
+   빠진 뒤 나중에 들어옴" 구조가 대칭으로 성립하도록 함. */
+.t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; clip-path: inset(0); }
 .t-cta__label-txt { display: block; }
-.t-cta__label-txt--out { transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+.t-cta__label-txt--out { transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s, filter .23s ease .15s; }
 .t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(3px);
+  transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out {
+  transform: translateY(-100%); filter: blur(3px);
+  transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+.t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in {
+  transform: translateY(0); filter: blur(0);
   transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s, filter .23s ease .15s; }
-.t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out { transform: translateY(-100%); filter: blur(3px); }
-.t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in { transform: translateY(0); filter: blur(0); }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
 
