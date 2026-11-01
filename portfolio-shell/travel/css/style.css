@@ -142,17 +142,24 @@ ul, ol { list-style: none; padding: 0; }
    재배치** — 기본 규칙(=호버 해제 때 적용)엔 "지금 보이던 쪽이 지연 없이 즉시 빠지고, 지금 숨어있던
    쪽이 지연 후 들어오는" 타이밍을, 호버 규칙(=호버 진입 때 적용)엔 반대로 둬서 양방향 모두 "먼저
    빠진 뒤 나중에 들어옴" 구조가 대칭으로 성립하도록 함. */
+   **4차 수정(같은 날, "블러는 빼고 텍스트 슬라이딩만" 요청):** blur를 완전히 제거하고 순수 `transform`
+   슬라이드만 남김 — 겹침을 막는 "순차(스태거)" 타이밍 구조는 blur 유무와 무관하게 그대로 필요해서
+   유지(블러가 없으면 겹쳤을 때 두 줄이 또렷하게 보여 오히려 더 어색함).
+   **텍스트 세로 중앙 미세 보정**: `getBoundingClientRect`로 실측한 결과 라벨 박스 자체는 버튼 안에
+   정확히 중앙(위/아래 16.4px로 대칭)이었지만, **실제 글자 잉크 영역**(`Range.getBoundingClientRect`로
+   측정)은 위쪽 여백 15.73px·아래쪽 여백 16.94px로 약 1.2px 비대칭 — 폰트 자체의 행간 배분 때문에
+   박스는 중앙이어도 글자가 미세하게 위로 치우쳐 보였던 것. 모든 transform 값에 `translateY(.6px)`
+   보정을 더해(아래쪽 여백을 반으로 줄여 위/아래 16.33px로 재측정 후 일치 확인) 해결. */
 .t-cta__label { position: relative; display: inline-block; overflow: hidden; white-space: nowrap; vertical-align: top; clip-path: inset(0); }
-.t-cta__label-txt { display: block; }
-.t-cta__label-txt--out { transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s, filter .23s ease .15s; }
-.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(100%); filter: blur(3px);
-  transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+.t-cta__label-txt { display: block; transform: translateY(.6px); transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s; }
+.t-cta__label-txt--in { position: absolute; left: 0; top: 0; transform: translateY(calc(100% + .6px));
+  transition: transform .19s cubic-bezier(.3,0,.2,1); }
 .t-cta:hover .t-cta__label-txt--out, .t-pop__all:hover .t-cta__label-txt--out {
-  transform: translateY(-100%); filter: blur(3px);
-  transition: transform .19s cubic-bezier(.3,0,.2,1), filter .19s ease; }
+  transform: translateY(calc(-100% + .6px));
+  transition: transform .19s cubic-bezier(.3,0,.2,1); }
 .t-cta:hover .t-cta__label-txt--in, .t-pop__all:hover .t-cta__label-txt--in {
-  transform: translateY(0); filter: blur(0);
-  transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s, filter .23s ease .15s; }
+  transform: translateY(.6px);
+  transition: transform .23s cubic-bezier(.2,.8,.2,1) .15s; }
 .btn-ghost { font-size: 16px; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--border-strong); padding: 15px 26px; border-radius: 14px; }
 .t-cta-light { display: inline-block; margin-top: 36px; font-size: 17px; font-weight: 800; color: var(--accent); background: #fff; padding: 16px 32px; border-radius: 14px; cursor: pointer; transition: transform .15s; }
 
@@ -522,7 +529,7 @@ ul, ol { list-style: none; padding: 0; }
   .t-pop-tile__fill { transition: none; }
   .t-pop-tile__btn { transition: none; }
   .t-cta__label-txt--in { display: none; }
-  .t-cta__label-txt--out { transition: none; transform: none; filter: none; }
+  .t-cta__label-txt--out { transition: none; transform: translateY(.6px); }
 }
 
 /* ---- 랭킹 상세뷰 (나라 클릭) ---- */
