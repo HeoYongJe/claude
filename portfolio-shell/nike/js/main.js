@@ -141,65 +141,73 @@
     window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
 
     // 2026-11-02: "텍스트가 다 사라진 뒤에도 빈 화면을 스크롤 서너 번 더 해야 다음 섹션이 나온다,
-    // 한 번만 스크롤해도 바로 다음 섹션으로 넘어가는 원페이지 스크롤 방식으로" 요청 — 히어로 핀 구간
-    // 전체(80vh)를 원페이지로 바꾸는 대신(매니페스토·쇼케이스처럼 스크럽 자체가 연출인 구간은 그대로
-    // 둬야 함), 텍스트가 **시각적으로 이미 다 사라진 뒤 구간(핀의 마지막 22%, opacity<.22+blur로
-    // 사실상 안 보임)만** 마우스 휠 한 번에 다음 섹션 시작 지점으로 바로 넘기는 "부분 스냅"을 추가.
-    // 트랙패드 관성(짧은 휠 이벤트가 연속으로 쏟아짐)에 애니메이션이 씹히지 않도록, 스냅 중엔 모든
-    // 휠 입력을 막아뒀다가 끝나면 푼다. 위로 스크롤해 다시 빈 구간에 들어가려 할 때도 대칭으로 한 번에
-    // 건너뛰어, 양방향 다 "서너 번" 걸리던 구간이 전부 "한 번"으로 줄어듦. 휠 전용(터치는 wheel 이벤트가
-    // 안 쓰여 영향 없음 — 모바일은 애초에 핀 자체가 해제됨, 반응형 CSS 참고).
-    if (heroWrap) {
-      const HERO_DEAD_FROM = 0.78;
-      let heroSnapping = false;
-      function tweenScrollTo(target, duration) {
-        const startY = window.scrollY;
-        const delta = target - startY;
-        const t0 = performance.now();
-        function step(now) {
-          const t = Math.min(1, (now - t0) / duration);
-          const eased = 1 - Math.pow(1 - t, 3);
-          // html에 전역 `scroll-behavior:smooth`가 걸려 있어(css 참고) 두 인자짜리 scrollTo(x,y)를
-          // 쓰면 매 프레임 값이 그 CSS 스무딩과 다시 겹쳐 애니메이션이 서로 싸우며 엉뚱한 지점에
-          // 멈추는 버그가 있었음 — behavior:"auto"를 명시해 매 프레임 즉시 점프시키고, 이징 자체는
-          // 이미 위에서 직접 계산하므로(easeOutCubic) 전역 smooth와 중복되지 않게 함.
-          window.scrollTo({ top: startY + delta * eased, left: 0, behavior: "auto" });
-          if (t < 1) requestAnimationFrame(step);
-          else heroSnapping = false;
-        }
-        requestAnimationFrame(step);
+    // 한 번만 스크롤해도 바로 다음 섹션으로 넘어가는 원페이지 스크롤 방식으로" 요청 — 핀/스크럽 구간
+    // 전체를 원페이지로 바꾸는 대신, **스크럽 연출 자체는 이미 끝났는데 핀이 풀릴 때까지 스크롤을
+    // 더 받아야 하는 "꼬리 구간"에서만** 마우스 휠 한 번에 다음 섹션이 뷰포트를 꽉 채우는 지점으로
+    // 바로 넘기는 "부분 스냅"을 추가. 트랙패드 관성에 애니메이션이 씹히지 않도록 스냅 중엔 모든 휠
+    // 입력을 막아뒀다가 끝나면 풀고, 위로 스크롤해 꼬리 구간에 다시 들어가려 할 때도 대칭으로 한 번에
+    // 건너뜀. 휠 전용(터치는 wheel 이벤트가 안 쓰여 영향 없음 — 모바일은 핀 자체가 해제됨).
+    // 2026-11-02 추가: "히어로→매니페스토만 적용되니 어색하다, 전체적으로 적용하는 게 나을 것 같은데"
+    // — 매니페스토→쇼케이스 전환도 같은 패턴(스크럽이 range*0.75 지점에서 이미 끝나고 나머지 25%는
+    // "다 된 채로 더 스크롤해야 하는" 꼬리)이라 이 스냅 목록(`tails`)에 같이 추가. BY THE NUMBERS
+    // (specs) 이후는 sticky/스크럽이 아니라 카드를 쭉 읽으며 내려가는 보통의 문서 흐름이라 이 패턴
+    // 대상이 아님 — 사용자와 상의해 쇼케이스까지만으로 범위를 확정.
+    let snapping = false;
+    function tweenScrollTo(target, duration) {
+      const startY = window.scrollY;
+      const delta = target - startY;
+      const t0 = performance.now();
+      function step(now) {
+        const t = Math.min(1, (now - t0) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        // html에 전역 `scroll-behavior:smooth`가 걸려 있어(css 참고) 두 인자짜리 scrollTo(x,y)를
+        // 쓰면 매 프레임 값이 그 CSS 스무딩과 다시 겹쳐 애니메이션이 서로 싸우며 엉뚱한 지점에
+        // 멈추는 버그가 있었음 — behavior:"auto"를 명시해 매 프레임 즉시 점프시키고, 이징 자체는
+        // 이미 위에서 직접 계산하므로(easeOutCubic) 전역 smooth와 중복되지 않게 함.
+        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: "auto" });
+        if (t < 1) requestAnimationFrame(step);
+        else snapping = false;
       }
-      window.addEventListener("wheel", (e) => {
-        if (!bounds.hero || bounds.hero.range <= 0) return;
-        if (heroSnapping) { e.preventDefault(); return; }
-        const y = window.scrollY;
-        // 2026-11-02 추가 피드백: "이만큼밖에 안 내려와 — 아예 흰 배경이 (히어로 잔상 없이) 뷰포트를
-        // 완전히 덮게, 두 번째 섹션만 보이게" — 28%만큼만 오버슈트했더니 위 60%는 여전히 히어로
-        // 잔상(검정)이고 아래 40%만 흰 배경이라 "두 섹션이 걸쳐 보이는" 상태였음. 매니페스토가
-        // **뷰포트를 꽉 채우기 시작하는 지점**은 정확히 `manifesto.offsetTop`(=bottom+뷰포트 높이) —
-        // 거기까지 통째로 넘겨서 스냅 직후엔 화면에 매니페스토(흰 배경)만 보이도록 함.
-        const overshoot = window.innerHeight + 24;
-        const bottom = bounds.hero.start + bounds.hero.range;
-        const deadStart = bounds.hero.start + bounds.hero.range * HERO_DEAD_FROM;
-        // 2026-11-02 추가 피드백: "천천히 스크롤하면 바로 넘어가는데 빨리 하면 여전히 빈 공간이 나온다" —
-        // 원인은 "지금 위치가 죽은 구간 안인가"만 봤던 것. 마우스 휠을 빠르게 돌리면 휠 틱 하나의
-        // deltaY 자체가 죽은 구간 폭(약 215px)보다 커서, 그 틱이 적용되기 **전** 위치는 구간 앞이고
-        // 적용된 **후** 위치는 이미 구간을 통째로 건너뛴 뒤라 — 매 이벤트 시점의 "현재 위치"만 검사하는
-        // 방식으로는 그 틱 자체를 놓침. 이번 틱이 끝나면 대략 어디로 갈지(`y + e.deltaY`)까지 같이
-        // 봐서, "지금은 구간 밖이지만 이 틱으로 구간을 통과하게 된다"도 같이 잡아내도록 수정 —
-        // 스크롤 속도와 무관하게 항상 한 번에 걸림.
-        const projected = y + e.deltaY;
-        if (e.deltaY > 0 && y < bottom && projected >= deadStart) {
-          e.preventDefault();
-          heroSnapping = true;
-          tweenScrollTo(bottom + overshoot, 420);
-        } else if (e.deltaY < 0 && y > deadStart && (y <= bottom + overshoot + 40 || projected <= bottom + overshoot + 40)) {
-          e.preventDefault();
-          heroSnapping = true;
-          tweenScrollTo(deadStart, 420);
-        }
-      }, { passive: false });
+      requestAnimationFrame(step);
     }
+    window.addEventListener("wheel", (e) => {
+      if (snapping) { e.preventDefault(); return; }
+      const y = window.scrollY;
+      const projected = y + e.deltaY; // 이번 휠 틱이 끝나면 대략 어디로 갈지(빠른 스크롤 대응, 아래 참고)
+      // 각 핀 구간의 "꼬리 시작 지점(deadStart)"과 "다음 섹션이 뷰포트를 꽉 채우는 지점(nextStart)" —
+      // deadFrom은 그 구간 자신의 스크럽 진행률 공식이 이미 1에 도달해 더는 아무것도 안 바뀌는 지점
+      // (히어로는 opacity가 사실상 안 보이게 되는 .78, 매니페스토는 스크럽 공식 자체가 쓰는 .75).
+      const tails = [];
+      if (bounds.hero && bounds.hero.range > 0 && bounds.manifesto) {
+        tails.push({
+          deadStart: bounds.hero.start + bounds.hero.range * 0.78,
+          bottom: bounds.hero.start + bounds.hero.range,
+          nextStart: bounds.manifesto.start,
+        });
+      }
+      if (bounds.manifesto && bounds.manifesto.range > 0 && bounds.showcaseStage) {
+        tails.push({
+          deadStart: bounds.manifesto.start + bounds.manifesto.range * 0.75,
+          bottom: bounds.manifesto.start + bounds.manifesto.range,
+          nextStart: bounds.showcaseStage.start,
+        });
+      }
+      for (const tdef of tails) {
+        const target = tdef.nextStart + 24; // 다음 섹션 시작 지점 + 여유(경계 1px 안 남게)
+        if (e.deltaY > 0 && y < tdef.bottom && projected >= tdef.deadStart) {
+          e.preventDefault();
+          snapping = true;
+          tweenScrollTo(target, 420);
+          return;
+        }
+        if (e.deltaY < 0 && y > tdef.deadStart && (y <= target + 40 || projected <= target + 40)) {
+          e.preventDefault();
+          snapping = true;
+          tweenScrollTo(tdef.deadStart, 420);
+          return;
+        }
+      }
+    }, { passive: false });
 
     let smoothY = window.scrollY;
     function raf() {
