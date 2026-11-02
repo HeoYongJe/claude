@@ -181,11 +181,19 @@
         const overshoot = window.innerHeight + 24;
         const bottom = bounds.hero.start + bounds.hero.range;
         const deadStart = bounds.hero.start + bounds.hero.range * HERO_DEAD_FROM;
-        if (e.deltaY > 0 && y >= deadStart && y < bottom) {
+        // 2026-11-02 추가 피드백: "천천히 스크롤하면 바로 넘어가는데 빨리 하면 여전히 빈 공간이 나온다" —
+        // 원인은 "지금 위치가 죽은 구간 안인가"만 봤던 것. 마우스 휠을 빠르게 돌리면 휠 틱 하나의
+        // deltaY 자체가 죽은 구간 폭(약 215px)보다 커서, 그 틱이 적용되기 **전** 위치는 구간 앞이고
+        // 적용된 **후** 위치는 이미 구간을 통째로 건너뛴 뒤라 — 매 이벤트 시점의 "현재 위치"만 검사하는
+        // 방식으로는 그 틱 자체를 놓침. 이번 틱이 끝나면 대략 어디로 갈지(`y + e.deltaY`)까지 같이
+        // 봐서, "지금은 구간 밖이지만 이 틱으로 구간을 통과하게 된다"도 같이 잡아내도록 수정 —
+        // 스크롤 속도와 무관하게 항상 한 번에 걸림.
+        const projected = y + e.deltaY;
+        if (e.deltaY > 0 && y < bottom && projected >= deadStart) {
           e.preventDefault();
           heroSnapping = true;
           tweenScrollTo(bottom + overshoot, 420);
-        } else if (e.deltaY < 0 && y > deadStart && y <= bottom + overshoot + 40) {
+        } else if (e.deltaY < 0 && y > deadStart && (y <= bottom + overshoot + 40 || projected <= bottom + overshoot + 40)) {
           e.preventDefault();
           heroSnapping = true;
           tweenScrollTo(deadStart, 420);
