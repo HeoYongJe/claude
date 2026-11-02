@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261102c">
+<link rel="stylesheet" href="css/style.css?v=20261103a">
 </head>
 <body>
 
@@ -117,45 +117,46 @@
           </li>
         </ul>
       </div>
+
+      <!-- ============ SPEC HIGHLIGHTS (2026-11-03: "신발 내용 같다"는 피드백으로 쇼케이스와
+           한 PRODUCT 섹션으로 통합 — 독립 <section>이 아니라 .showcase__content의 형제 블록.
+           design.md Components "제품 쇼케이스" 10차 참고) ============ -->
+      <div class="specs">
+        <div class="container">
+          <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
+          <div class="specs__grid">
+            <div class="spec-card" data-reveal>
+              <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
+              <div class="spec-card__label">초경량 무게</div>
+            </div>
+            <div class="spec-card" data-reveal>
+              <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
+              <div class="spec-card__label">쿠셔닝 두께</div>
+            </div>
+            <div class="spec-card" data-reveal>
+              <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
+              <div class="spec-card__label">통기성 설계</div>
+            </div>
+            <div class="spec-card" data-reveal>
+              <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
+              <div class="spec-card__label">리사이클 소재</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ============ SPEC HIGHLIGHTS + LOOKBOOK — 흰 배경이 길게 이어지는 구간이라 밋밋하다는
-       2026-10-29 피드백으로 .speedfield 래퍼를 추가. 1차(얇은 스트로크 웨이브) → 2차(volt+오렌지+
-       크림슨 그라데이션 리본)를 거쳐, "그라데이션 빼고 포인트컬러(volt)만으로 블러 처리된 큼직한
-       덩어리를 배경처럼 배치해달라"는 3차 피드백으로 단순화 — 보조 액센트 전부 제거, volt 단색
-       블러 블롭 3개로 교체. design.md Colors/8차 항목 참고. ============ -->
+  <!-- ============ LOOKBOOK + CTA — 2026-11-03: "룩북하고 DROP SOON을 한 섹션으로" 피드백으로
+       통합(LOOKBOOK 액트). 기존 .speedfield 래퍼(흰 배경 위 volt 블러 블롭 3개로 이음새를 메우던
+       장치, 원래는 SPEC+LOOKBOOK을 묶던 것)를 그대로 재사용해 이제 LOOKBOOK+CTA를 묶음.
+       design.md Components "제품 쇼케이스" 10차 참고. ============ -->
   <div class="speedfield">
     <div class="speedfield__waveclip" aria-hidden="true">
       <div class="speedfield__blob speedfield__blob--a" data-speed="0.04"></div>
       <div class="speedfield__blob speedfield__blob--b" data-speed="0.07"></div>
       <div class="speedfield__blob speedfield__blob--c" data-speed="0.1"></div>
     </div>
-
-  <!-- ============ SPEC HIGHLIGHTS ============ -->
-  <section class="specs">
-    <div class="container">
-      <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
-      <div class="specs__grid">
-        <div class="spec-card" data-reveal>
-          <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
-          <div class="spec-card__label">초경량 무게</div>
-        </div>
-        <div class="spec-card" data-reveal>
-          <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
-          <div class="spec-card__label">쿠셔닝 두께</div>
-        </div>
-        <div class="spec-card" data-reveal>
-          <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
-          <div class="spec-card__label">통기성 설계</div>
-        </div>
-        <div class="spec-card" data-reveal>
-          <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
-          <div class="spec-card__label">리사이클 소재</div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <!-- ============ LOOKBOOK ============ -->
   <!-- 2026-10-30: 1~11차에 걸쳐 다듬어온 "랭크 기반 스택 캐러셀"(화살표/점 네비, 드래그)을 전면 폐기하고
@@ -221,10 +222,9 @@
       </button>
     </div>
   </section>
-  </div>
 
   <!-- ============ CTA ============ -->
-  <section class="cta" id="cta">
+  <div class="cta" id="cta">
     <div class="container">
       <p class="cta__kicker" data-reveal>DROP SOON</p>
       <h2 class="cta__title" data-reveal>가장 먼저,<br>가장 빠르게.</h2>
@@ -235,7 +235,8 @@
       </form>
       <p class="cta__done" hidden>신청 완료 — 드롭 소식을 가장 먼저 보내드릴게요.</p>
     </div>
-  </section>
+  </div>
+  </div>
 
   <!-- ============ FOOTER ============ -->
   <footer class="foot">

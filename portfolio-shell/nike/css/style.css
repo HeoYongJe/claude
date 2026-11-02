@@ -173,7 +173,10 @@ button, input { font: inherit; }
 @keyframes showcaseGlowPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.14); } }
 .showcase__shoe { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block;
   filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); will-change: transform; backface-visibility: hidden; }
-.showcase__content { padding: 0 0 120px; }
+/* 2026-11-03: 아래 .specs가 형제 블록으로 들어오면서 자기 몫의 top padding(140px)을 이미 들고
+   있어, 기존 120px bottom padding까지 더하면 기능 하이라이트~BY THE NUMBERS 사이가 과하게 벌어짐
+   — 0으로 줄여 specs의 padding만으로 자연스러운 간격이 나오게 함. */
+.showcase__content { padding: 0; }
 .showcase__content .container { padding-top: 64px; }
 .showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 18px; }
 .showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 4.4vw, 48px); color: var(--text-on-dark);
@@ -199,18 +202,22 @@ button, input { font: inherit; }
 .feature-item h3 { font-size: 22px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 8px; }
 .feature-item p { font-size: 15px; color: var(--muted-on-dark); line-height: 1.6; max-width: 360px; }
 
-/* ---- specs~lookbook 배경 장식 레이어 (2026-10-29 8차~10차) ----
+/* ---- lookbook~cta 배경 장식 레이어 (2026-10-29 8차~10차, 2026-11-03 11차) ----
    두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
-   두 섹션을 .speedfield로 묶고 흰 배경은 래퍼로 올린 뒤(.specs/.lookbook 자체 배경은 제거),
+   두 섹션을 .speedfield로 묶고 흰 배경은 래퍼로 올린 뒤(자체 배경은 제거),
    그 사이에 장식 레이어를 음수 z-index로 깐다. 흐릿한 블록 패럴럭스(.manifesto__bg 등)와 같은
    [data-speed] 공식을 그대로 재사용 — 별도 JS 없이 바로 작동(js/main.js의 범용 parallaxEls 루프).
    8차: 얇은 스트로크 웨이브+스피드라인 → "선으로만 찍찍 그은 느낌" 피드백으로 폐기.
    9차: volt→오렌지→크림슨 그라데이션 리본 2장 + 글로우로 교체 → "그라데이션 빼고 포인트컬러만으로
    블러 처리된 큼직한 덩어리를 배경처럼 배치해달라"는 피드백으로 다시 단순화.
-   10차(현재): 보조 액센트 전부 제거(design.md Colors 예외 조항도 철회 — 다시 volt 단일 포인트컬러
+   10차: 보조 액센트 전부 제거(design.md Colors 예외 조항도 철회 — 다시 volt 단일 포인트컬러
    규칙 그대로). `.speedfield__blob` 3개 — 각각 큰 원(border-radius:50%) + `background:var(--volt)`
    + 강한 blur로 또렷한 도형 윤곽 없이 "번진 빛 덩어리"만 남긴다. 위치를 서로 다른 모서리에 걸치게
-   배치(음수 inset 포함)해 화면 전체에 듬성듬성 떠 있는 느낌을 냄. */
+   배치(음수 inset 포함)해 화면 전체에 듬성듬성 떠 있는 느낌을 냄.
+   11차(2026-11-03, 현재): "룩북하고 DROP SOON을 한 섹션으로" 요청 — 이 래퍼가 묶던 대상이
+   SPEC+LOOKBOOK에서 LOOKBOOK+CTA로 바뀜(SPEC은 PRODUCT 섹션으로 이동, 아래 참고). 블롭 자체는
+   그대로 재사용(퍼센트 기반 위치라 새 래퍼 높이에도 큰 무리 없이 맞음), CTA는 자체 `--volt` 배경이라
+   블롭 위에 불투명하게 덮여도 자연스러움. */
 .speedfield { position: relative; z-index: 0; overflow: hidden; background: var(--paper); }
 .speedfield__waveclip { position: absolute; inset: -10% 0; overflow: hidden; z-index: -1; pointer-events: none; }
 .speedfield__blob { position: absolute; border-radius: 50%; aspect-ratio: 1; background: var(--volt); filter: blur(90px); }
@@ -219,8 +226,12 @@ button, input { font: inherit; }
 .speedfield__blob--c { width: 30vw; max-width: 480px; top: 76%; right: -10%; opacity: .3; }
 
 /* ---- 스펙 하이라이트 ---- */
+/* 2026-11-03: "신발 내용 같다"는 피드백으로 쇼케이스(.showcase, 어두운 --ink 배경)의 형제 블록으로
+   이동 — 독립 흰 배경 섹션이 아니게 된 만큼 kicker 색만 어두운 배경용(--muted-on-dark)으로 바꿈.
+   스펙 카드(.spec-card) 자체는 원래도 밝은 --paper2 카드라 배경이 어두워져도 그대로 밝게 떠
+   보여서 손댈 필요 없음(design.md Components "제품 쇼케이스" 10차 참고). */
 .specs { padding: 140px 0; }
-.specs__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 48px; text-align: center; }
+.specs__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 48px; text-align: center; }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
 .spec-card { text-align: center; padding: 40px 16px; background: var(--paper2); border-radius: 20px; transition: transform .25s; }
 .spec-card:hover { transform: translateY(-6px); }
@@ -388,7 +399,6 @@ button, input { font: inherit; }
   .speedfield__blob { filter: blur(50px); }
   .showcase__stage-wrap { height: 130vh; }
   .showcase__visual { width: min(900px, 92vw); height: min(560px, 62vh); }
-  .showcase__content { padding-bottom: 80px; }
   .showcase__content .container { padding-top: 48px; }
   .showcase__title { margin-bottom: 48px; }
   .feature-list { grid-template-columns: 1fr; row-gap: 40px; }
