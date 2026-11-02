@@ -140,6 +140,57 @@
     let resizeTimer;
     window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
 
+    // 2026-11-02: "텍스트가 다 사라진 뒤에도 빈 화면을 스크롤 서너 번 더 해야 다음 섹션이 나온다,
+    // 한 번만 스크롤해도 바로 다음 섹션으로 넘어가는 원페이지 스크롤 방식으로" 요청 — 히어로 핀 구간
+    // 전체(80vh)를 원페이지로 바꾸는 대신(매니페스토·쇼케이스처럼 스크럽 자체가 연출인 구간은 그대로
+    // 둬야 함), 텍스트가 **시각적으로 이미 다 사라진 뒤 구간(핀의 마지막 22%, opacity<.22+blur로
+    // 사실상 안 보임)만** 마우스 휠 한 번에 다음 섹션 시작 지점으로 바로 넘기는 "부분 스냅"을 추가.
+    // 트랙패드 관성(짧은 휠 이벤트가 연속으로 쏟아짐)에 애니메이션이 씹히지 않도록, 스냅 중엔 모든
+    // 휠 입력을 막아뒀다가 끝나면 푼다. 위로 스크롤해 다시 빈 구간에 들어가려 할 때도 대칭으로 한 번에
+    // 건너뛰어, 양방향 다 "서너 번" 걸리던 구간이 전부 "한 번"으로 줄어듦. 휠 전용(터치는 wheel 이벤트가
+    // 안 쓰여 영향 없음 — 모바일은 애초에 핀 자체가 해제됨, 반응형 CSS 참고).
+    if (heroWrap) {
+      const HERO_DEAD_FROM = 0.78;
+      let heroSnapping = false;
+      function tweenScrollTo(target, duration) {
+        const startY = window.scrollY;
+        const delta = target - startY;
+        const t0 = performance.now();
+        function step(now) {
+          const t = Math.min(1, (now - t0) / duration);
+          const eased = 1 - Math.pow(1 - t, 3);
+          // html에 전역 `scroll-behavior:smooth`가 걸려 있어(css 참고) 두 인자짜리 scrollTo(x,y)를
+          // 쓰면 매 프레임 값이 그 CSS 스무딩과 다시 겹쳐 애니메이션이 서로 싸우며 엉뚱한 지점에
+          // 멈추는 버그가 있었음 — behavior:"auto"를 명시해 매 프레임 즉시 점프시키고, 이징 자체는
+          // 이미 위에서 직접 계산하므로(easeOutCubic) 전역 smooth와 중복되지 않게 함.
+          window.scrollTo({ top: startY + delta * eased, left: 0, behavior: "auto" });
+          if (t < 1) requestAnimationFrame(step);
+          else heroSnapping = false;
+        }
+        requestAnimationFrame(step);
+      }
+      window.addEventListener("wheel", (e) => {
+        if (!bounds.hero || bounds.hero.range <= 0) return;
+        if (heroSnapping) { e.preventDefault(); return; }
+        const y = window.scrollY;
+        // 핀이 풀리는 정확한 지점(bottom)까지만 넘기면 화면상 다음 섹션이 1px도 안 보여(그 지점에서
+        // 매니페스토가 막 뷰포트 바닥에 닿기 시작하는 시점이라) "진짜 넘어갔다"는 느낌이 없었음 —
+        // 뷰포트 높이의 28%만큼 더 넘겨서 매니페스토 도입부가 확실히 눈에 들어오게 오버슈트.
+        const overshoot = window.innerHeight * 0.28;
+        const bottom = bounds.hero.start + bounds.hero.range;
+        const deadStart = bounds.hero.start + bounds.hero.range * HERO_DEAD_FROM;
+        if (e.deltaY > 0 && y >= deadStart && y < bottom) {
+          e.preventDefault();
+          heroSnapping = true;
+          tweenScrollTo(bottom + overshoot, 420);
+        } else if (e.deltaY < 0 && y > deadStart && y <= bottom + overshoot + 40) {
+          e.preventDefault();
+          heroSnapping = true;
+          tweenScrollTo(deadStart, 420);
+        }
+      }, { passive: false });
+    }
+
     let smoothY = window.scrollY;
     function raf() {
       const realY = window.scrollY;
