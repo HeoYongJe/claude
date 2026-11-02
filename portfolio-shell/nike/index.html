@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261030a">
+<link rel="stylesheet" href="css/style.css?v=20261102a">
 </head>
 <body>
 
@@ -77,6 +77,12 @@
          걸친 연속 그라데이션)은 그대로 유지(핀이 풀려야 아래 콘텐츠가 자연스럽게 등장). -->
     <div class="showcase__stage-wrap" data-showcase-stage-wrap>
       <div class="showcase__stage">
+        <!-- 2026-11-02: 커서 반응형 "Kinetic Grid" 배경 — 사용자 제공 React/Framer 컴포넌트(Originkit)를
+             바닐라 캔버스로 포팅(js/kineticGrid.js). design.md Motion §5 "마우스 정밀도 의존 디테일 레이어는
+             과함" 원칙과 충돌해 먼저 확인했고, 사용자가 "design.md는 포트폴리오 전반 기준, 바꿔달라면
+             그때그때 바꿔주면 된다"고 명시적으로 승인 — 신발 뒤 순수 배경 텍스처로만 깔림(주된 인터랙션
+             아님). 호버 가능한 포인터(desktop)에서만 커서 추종, 터치·reduced-motion은 정적 격자 1프레임만. -->
+        <canvas class="showcase__gridfx" data-showcase-gridfx aria-hidden="true"></canvas>
         <div class="showcase__visual">
           <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
           <div class="showcase__ring" data-showcase-ring aria-hidden="true"></div>
@@ -241,5 +247,6 @@
   </footer>
 
   <script src="js/main.js?v=20261030a"></script>
+  <script src="js/kineticGrid.js?v=20261102b"></script>
 </body>
 </html>
