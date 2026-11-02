@@ -51,7 +51,6 @@
   const showcaseStageWrap = document.querySelector("[data-showcase-stage-wrap]");
   const showcaseShoe = document.querySelector("[data-showcase-shoe]");
   const showcaseGlow = document.querySelector("[data-showcase-glow]");
-  const showcaseRing = document.querySelector("[data-showcase-ring]");
 
   // ---- 룩북: Fluid Hover Accordion ----
   // 2026-10-30: 1~11차 동안 다듬어온 랭크 기반 스택 캐러셀을 전면 폐기 — design.md Lookbook 항목 참고.
@@ -152,11 +151,15 @@
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
       if (heroInner && bounds.hero && bounds.hero.range > 0) {
         const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
-        const scale = 1 + progress * 0.9; // 1 -> 1.9 (전경, 빠르게 확대)
         // 2026-10-29: 기존 *1.6은 핀 구간의 62.5% 지점에서 이미 완전히 투명해져, 나머지 37.5%는
         // 아무것도 없는 빈 화면만 스크롤되는 "죽은 구간"이었음("여백이 너무 많아 미완성 같다" 피드백의
         // 원인). progress를 그대로 써서 핀이 풀리는 정확한 순간에 다 사라지도록 range 전체를 씀.
         const opacity = Math.max(0, 1 - progress);
+        // 2026-11-02: "텍스트가 사라지고 스크롤하면 탁 다음 섹션으로" 요청 — opacity 타이밍은 위에서
+        // 이미 핀 해제 순간에 정확히 0이 되지만, scale이 1.9까지 커지면서 overflow:hidden 경계에
+        // 텍스트가 먼저 잘려나가 "실제로 안 보이는" 시점이 opacity=0보다 한참 앞섰음(그 사이가 체감상
+        // 빈 구간). 최대 확대를 1.9→1.4로 낮춰 잘려나가는 시점과 opacity 0 시점을 거의 일치시킴.
+        const scale = 1 + progress * 0.4; // 1 -> 1.4 (전경, 확대하며 사라짐)
         // 2026-10-22: 입장 시 blur→선명(위 CSS [data-reveal])의 반대 방향 — 스크롤해서 다음 섹션으로
         // 넘어가는 동안 다시 흐려지도록 진행률에 블러를 바인딩(0 -> 14px, 입장 블러 세기와 동일하게 맞춤).
         const blur = progress * 14;
@@ -192,10 +195,10 @@
         const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
         const rise = (1 - progress) * 50; // 아래에서 살짝 떠오르며 자리 잡음
         showcaseShoe.style.transform = `translateY(${rise.toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${rotate.toFixed(2)}deg)`;
-        // 신발 뒤 글로우·링도 같은 진행률로 밝아짐 — "이펙트가 화려했으면" 피드백 반영(transform은
-        // 각자 CSS 무한 애니메이션이 소유하므로 opacity만 건드려 충돌 없음, css 참고).
-        if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.9).toFixed(3);
-        if (showcaseRing) showcaseRing.style.opacity = (progress * 0.8).toFixed(3);
+        // 신발 뒤 글로우도 같은 진행률로 밝아짐(transform은 CSS 무한 애니메이션이 소유하므로 opacity만
+        // 건드려 충돌 없음, css 참고). 2026-11-02: "그라데이션은 신발 한정으로 은은하게"에 맞춰 최대
+        // opacity도 .9→.5로 낮춤 — 회전 링(showcaseRing)은 요청대로 완전히 제거.
+        if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.5).toFixed(3);
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)

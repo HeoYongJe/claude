@@ -61,6 +61,12 @@ button, input { font: inherit; }
    (약 75vh)는 아무 콘텐츠 없는 어두운 화면만 스크롤되는 "죽은 구간"이었음. opacity를 progress 그대로
    써서 핀이 풀리는 정확한 순간에 텍스트가 사라지도록 맞추고(아래 js 참고), 핀 구간 자체도
    200vh→180vh로 살짝 줄여 전체 호흡을 타이트하게. */
+/* 2026-11-02: 그런데도 "히어로→매니페스토 사이 빈 구간" 체감이 남아있던 진짜 원인은 opacity 타이밍이
+   아니라 **scale**이었음 — 전경이 최대 1.9배까지 커지다 보니 `.hero`의 overflow:hidden 경계에 텍스트가
+   잘려나가 opacity가 실제로 0이 되기 한참 전부터 "눈에는 이미 안 보이는" 구간이 생겼던 것(수치는 계속
+   줄고 있었지만 시각적으로는 이미 사라진 뒤 한동안 빈 화면만 스크롤됨). 요청대로 "텍스트가 사라지고
+   탁 다음 섹션으로"가 되도록 scale 최댓값을 1.9→1.4로 낮춤(아래 js) — 확대·패스스루 느낌(유지 대상)은
+   살리면서, 잘려나가는 시점과 opacity가 0이 되는 시점이 거의 같아져 사라짐과 전환이 한 호흡으로 붙음. */
 .hero-wrap { height: 180vh; position: relative; }
 .hero { position: sticky; top: 0; height: 100vh; height: 100svh; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
 .hero__bg { position: absolute; inset: -10% -10%; background:
@@ -138,11 +144,13 @@ button, input { font: inherit; }
      로직 자체엔 버그가 없었음. 이후 `css/js` 로드에 `?v=20261023a` 버전 쿼리를 붙여 재발 방지.) */
 /* 2026-10-23 6차: "홀로그램 표현이 안 됨 — 3D·회전 다 빼고 신발을 강조하는 인터랙션+디자인으로
    시원시원하게" 요청으로 three.js 3D 렌더링을 전면 폐기, 평면 사진(assets/img/nike_s.png)으로 복귀.
-   스테이지 핀(스크롤에 따라 확대+기울어짐→정자세로 정리되는 2D 트랜스폼, js main.js 참고)과 배경
-   그라데이션 구조는 그대로 — 회전이 없어져 "한 바퀴 다 돌 시간"이 필요 없어진 만큼 스테이지 높이를
-   220vh→160vh로 줄이고 그라데이션 vh 스톱도 같은 비율로 재계산(83/96/108/128%). */
-.showcase { background: var(--ink)
-  linear-gradient(180deg, transparent 0, transparent 133vh, rgba(215,255,62,.16) 154vh, rgba(215,255,62,.10) 173vh, transparent 205vh); }
+   스테이지 핀(스크롤에 따라 확대+기울어짐→정자세로 정리되는 2D 트랜스폼, js main.js 참고)은 그대로 유지. */
+/* 2026-11-02 9차: "신발과 텍스트 사이의 그라데이션 없애고, 그라데이션은 신발 한정으로 가운데서
+   은은하게만 나오게" 요청 — 스테이지↔콘텐츠를 잇던 섹션 전체 세로 그라데이션(위 6차에서 만든 것)을
+   완전히 제거하고 평범한 단색 배경으로. "신발 강조" 역할은 이미 있던 `.showcase__glow`(신발 중심
+   라디얼 글로우) 하나로만 맡기고 그 레이어도 더 좁고 옅게 다듬음(아래 참고) — 그라데이션이 신발
+   바깥(텍스트 쪽)으로 번지지 않고 신발에만 한정됨. */
+.showcase { background: var(--ink); }
 .showcase__stage-wrap { position: relative; height: 160vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }
@@ -151,18 +159,18 @@ button, input { font: inherit; }
 .showcase__visual { position: relative; z-index: 1; width: min(1600px, 94vw); height: min(880px, 82vh); }
 /* 2026-10-29 7차: "신발이 밋밋하다, 이펙트·그라데이션·인터랙션이 화려했으면" 피드백 — 신발 뒤에
    볼트색 글로우(블러 라디얼, 숨쉬듯 펄스)와 점선 링(천천히 회전)을 추가해 정적인 사진 한 장이 아니라
-   에너지 있는 무대처럼 보이게 함. 둘 다 opacity는 스크롤 진행률에 js가 바인딩(신발이 자리 잡을수록
-   같이 밝아짐)하고, transform(펄스/회전)은 js가 건드리지 않는 별개 속성이라 충돌 없이 CSS만으로
-   끊임없이 돈다. 신발(static 엘리먼트)이 그 위에 그려지도록 position:relative+z-index를 명시. */
-.showcase__glow { position: absolute; left: 50%; top: 50%; width: 120%; height: 120%; transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(215,255,62,.38), rgba(215,255,62,.08) 45%, transparent 70%);
-  filter: blur(40px); z-index: 0; opacity: 0; pointer-events: none;
+   에너지 있는 무대처럼 보이게 함. opacity는 스크롤 진행률에 js가 바인딩(신발이 자리 잡을수록 같이
+   밝아짐)하고, transform(펄스)은 js가 건드리지 않는 별개 속성이라 충돌 없이 CSS만으로 끊임없이 돈다.
+   신발(static 엘리먼트)이 그 위에 그려지도록 position:relative+z-index를 명시. */
+/* 2026-11-02 9차: "빙글빙글 돌아가는 라인 인터랙션 빼줘" 요청으로 회전 링(`.showcase__ring`)은 완전히
+   제거(html/js도 같이 정리). 남은 글로우는 "그라데이션은 신발 한정으로 가운데서 은은하게" 요청에
+   맞춰 번지는 범위를 좁히고(120%→85%) 톤도 한 단계 낮춤(알파 .38→.22) — 신발 실루엣 바로 뒤에서만
+   살짝 비치는 정도로, 쇼케이스 전체에 퍼지는 느낌은 빠짐. */
+.showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(215,255,62,.22), rgba(215,255,62,.05) 40%, transparent 65%);
+  filter: blur(36px); z-index: 0; opacity: 0; pointer-events: none;
   animation: showcaseGlowPulse 4s ease-in-out infinite; }
 @keyframes showcaseGlowPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.14); } }
-.showcase__ring { position: absolute; left: 50%; top: 50%; width: 82%; height: 82%; transform: translate(-50%, -50%);
-  border: 1px dashed rgba(215,255,62,.4); border-radius: 50%; z-index: 0; opacity: 0; pointer-events: none;
-  animation: showcaseRingSpin 20s linear infinite; }
-@keyframes showcaseRingSpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 .showcase__shoe { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block;
   filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); will-change: transform; backface-visibility: hidden; }
 .showcase__content { padding: 0 0 120px; }
@@ -379,9 +387,6 @@ button, input { font: inherit; }
   /* 좁은 화면에서는 블러 반경(고정 px)이 섹션 폭 대비 과하게 커져 번져 보이므로 줄임 */
   .speedfield__blob { filter: blur(50px); }
   .showcase__stage-wrap { height: 130vh; }
-  /* 위 .showcase 배경 그라데이션의 vh 스톱도 스테이지 높이 축소(180vh→130vh) 비율에 맞춰 재계산 */
-  .showcase { background: var(--ink)
-    linear-gradient(180deg, transparent 0, transparent 108vh, rgba(215,255,62,.16) 125vh, rgba(215,255,62,.10) 140vh, transparent 166vh); }
   .showcase__visual { width: min(900px, 92vw); height: min(560px, 62vh); }
   .showcase__content { padding-bottom: 80px; }
   .showcase__content .container { padding-top: 48px; }
@@ -425,7 +430,7 @@ button, input { font: inherit; }
   .showcase__stage-wrap { height: auto; }
   .showcase__stage { position: relative; height: auto; padding: 96px 0; }
   .showcase__shoe { transform: none !important; }
-  .showcase__glow, .showcase__ring { animation: none !important; opacity: .3; }
+  .showcase__glow { animation: none !important; opacity: .3; }
   .showcase__title::after { content: none; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }
