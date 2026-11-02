@@ -173,10 +173,12 @@
         if (!bounds.hero || bounds.hero.range <= 0) return;
         if (heroSnapping) { e.preventDefault(); return; }
         const y = window.scrollY;
-        // 핀이 풀리는 정확한 지점(bottom)까지만 넘기면 화면상 다음 섹션이 1px도 안 보여(그 지점에서
-        // 매니페스토가 막 뷰포트 바닥에 닿기 시작하는 시점이라) "진짜 넘어갔다"는 느낌이 없었음 —
-        // 뷰포트 높이의 28%만큼 더 넘겨서 매니페스토 도입부가 확실히 눈에 들어오게 오버슈트.
-        const overshoot = window.innerHeight * 0.28;
+        // 2026-11-02 추가 피드백: "이만큼밖에 안 내려와 — 아예 흰 배경이 (히어로 잔상 없이) 뷰포트를
+        // 완전히 덮게, 두 번째 섹션만 보이게" — 28%만큼만 오버슈트했더니 위 60%는 여전히 히어로
+        // 잔상(검정)이고 아래 40%만 흰 배경이라 "두 섹션이 걸쳐 보이는" 상태였음. 매니페스토가
+        // **뷰포트를 꽉 채우기 시작하는 지점**은 정확히 `manifesto.offsetTop`(=bottom+뷰포트 높이) —
+        // 거기까지 통째로 넘겨서 스냅 직후엔 화면에 매니페스토(흰 배경)만 보이도록 함.
+        const overshoot = window.innerHeight + 24;
         const bottom = bounds.hero.start + bounds.hero.range;
         const deadStart = bounds.hero.start + bounds.hero.range * HERO_DEAD_FROM;
         if (e.deltaY > 0 && y >= deadStart && y < bottom) {
