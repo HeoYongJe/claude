@@ -201,6 +201,20 @@
     // 다른 쪽에서 또 터져서, 전 구간을 보통의 자연스러운 스크롤로 되돌림(design.md 11차 참고).
     function raf() {
       const realY = window.scrollY;
+      // 2026-11-03 14차: "매니페스토 텍스트 스케일 변화가 딱딱 끊긴다" — 원인은 이 함수 끝의 패럴럭스
+      // 루프가 매 프레임 getBoundingClientRect(읽기)와 style.transform(쓰기)을 섞어 호출하던 것.
+      // 그 직전에 히어로·매니페스토·쇼케이스가 이미 style을 여러 번 써둔 상태라, 패럴럭스 루프의 각
+      // getBoundingClientRect 호출마다 브라우저가 강제로 레이아웃을 다시 계산해야 했음(레이아웃
+      // 스래싱) — 섹션이 가장 무거운(큰 블러 배경 + 굵은 글씨) 매니페스토 구간에서 가장 두드러지게
+      // 프레임이 떨어져 보였을 것. 이 프레임에서 쓸 값을 먼저 전부 읽어두고(아래), 실제 style 변경은
+      // 전부 그 다음에 몰아서 하도록(쓰기 전용) 순서를 바꿔 섞이지 않게 함.
+      const viewportCenter = window.innerHeight / 2;
+      const parallaxOffsets = parallaxEls.map((el) => {
+        const speed = parseFloat(el.dataset.speed) || 0;
+        const rect = el.getBoundingClientRect();
+        const elCenter = rect.top + rect.height / 2;
+        return -(elCenter - viewportCenter) * speed;
+      });
 
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
       if (heroInner && bounds.hero && bounds.hero.range > 0) {
@@ -242,8 +256,13 @@
       // 3D 대신 순수 2D 트랜스폼(scale+rotate+translateY)만으로 "시원시원한" 임팩트를 냄. 배경
       // 그라데이션은 .showcase 섹션 전체에 걸친 정적 CSS라 여기선 안 건드림(css 참고, 스크롤에 따라
       // 저절로 드러남).
+      // 2026-11-03 14차: "확대가 다 끝난 시점에 페이지가 같이 스크롤된다" — 핀 범위 전체(range)를
+      // 다 써서 진행률이 딱 unpin 순간에 1이 됐더니, 관성 스크롤이 그 경계를 감속 없이 쭉 통과해버려
+      // "다 끝남"과 "페이지가 움직이기 시작함"이 같은 찰나에 겹쳐 보였음 — 매니페스토(÷0.75)와 같은
+      // 패턴으로 핀 범위의 80%에서 이미 확대가 끝나게 해서, 남은 20%는 "다 끝난 채로 잠깐 멈춰
+      // 있다가" 풀리는 여유를 둠.
       if (showcaseShoe && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
-        const progress = clamp01((realY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
+        const progress = clamp01((realY - bounds.showcaseStage.start) / (bounds.showcaseStage.range * 0.8));
         // 2026-10-29: "확대됐을 때 사이즈를 조금만 줄여줘" — 최대 스케일 1.15 -> 1.0.
         const scale = 0.75 + progress * 0.25; // 0.75 -> 1.0, 확대되며 등장
         const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
@@ -256,14 +275,9 @@
         if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.85).toFixed(3);
       }
 
-      // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)
-      const viewportCenter = window.innerHeight / 2;
-      parallaxEls.forEach((el) => {
-        const speed = parseFloat(el.dataset.speed) || 0;
-        const rect = el.getBoundingClientRect();
-        const elCenter = rect.top + rect.height / 2;
-        const offset = -(elCenter - viewportCenter) * speed;
-        el.style.transform = `translateY(${offset.toFixed(1)}px)`;
+      // 배경 패럴럭스 적용(쓰기만 — geometry는 이 함수 맨 위에서 이미 읽어둠)
+      parallaxEls.forEach((el, i) => {
+        el.style.transform = `translateY(${parallaxOffsets[i].toFixed(1)}px)`;
       });
 
       requestAnimationFrame(raf);
