@@ -207,18 +207,23 @@
         });
       }
       // 2026-11-03: "PRODUCT에서 LOOKBOOK으로 넘어갈 때도 원페이지 스크롤 적용해줘" / "검은 지점이
-      // 끝날 때 바로 다음 섹션이 나오게" — 처음엔 LOOKBOOK 시작 직전 고정 220px만 죽은 구간으로
-      // 쳤는데, 실제 빈 구간은 BY THE NUMBERS 카드가 끝난 뒤의 여백(specs 하단 패딩 + lookbook
-      // 상단 패딩, 꽤 김)이라 그보다 훨씬 좁았음 — 스냅이 걸리기 전에 그 여백·그라데이션이 먼저
-      // 눈에 보이고, 걸려도 목표 지점이 lookbook 상단 패딩 한복판이라 LOOKBOOK 제목이 화면 아래에
-      // 살짝만 걸치는 문제가 있었음. 죽은 구간 시작을 "카드가 실제로 끝나는 지점"(specsGrid 하단)
-      // 으로, 목표 지점을 "LOOKBOOK 제목이 내비 아래로 보이는 지점"(.lookbook .container 콘텐츠
-      // 시작 - 144, 내비 79.5px를 가리지 않게)으로 바꿔 여백 전체를 한 번에 건너뛰도록 함.
+      // 끝날 때 바로 다음 섹션이 나오게" — 죽은 구간 시작을 "카드가 실제로 끝나는 지점"(specsGrid
+      // 하단)으로, 목표 지점을 "LOOKBOOK 제목이 내비 아래로 보이는 지점"으로 맞춤.
+      // ⚠️ 2026-11-03 추가 수정: "룩북 쪽에서 위로 스크롤이 안 된다 / BY THE NUMBERS 끝나는 지점에서
+      // 계속 추가 스크롤만 된다" — 위 구현이 `bottom`(forward 트리거를 멈추는 경계)을
+      // `lookbookContent.start`로 잡았는데, 실제 착지 지점(target = nextStart+24)은 그보다 120px
+      // 더 앞(lookbookContent.start-120)이라 **착지한 자리 자체가 여전히 [deadStart, bottom) 구간
+      // 안**에 있었음 — 그래서 착지 직후 아주 조금만 더 스크롤해도 같은 자리로 다시 스냅되길
+      // 반복해 "꽉 막힌" 것처럼 보이고, 위로 스크롤해도 반대쪽 조건(스냅백)에 걸려 deadStart로
+      // 도로 튕겨나가길 반복했음. 히어로/매니페스토 꼬리는 착지 지점이 항상 그 구간의 `bottom`
+      // 보다 더 뒤(다음 섹션 쪽)에 있어서 이 문제가 없었던 것과 같은 구조로 맞춰, `bottom`을
+      // "착지 지점과 정확히 같은 값"으로 둬서 착지 후엔 더 이상 걸리지 않게 함.
       if (bounds.specsGrid && bounds.lookbookContent) {
+        const lookbookNextStart = bounds.lookbookContent.start - 144;
         tails.push({
           deadStart: bounds.specsGrid.bottom,
-          bottom: bounds.lookbookContent.start,
-          nextStart: bounds.lookbookContent.start - 144,
+          bottom: lookbookNextStart + 24, // == 착지 지점(target) 자체. 착지 후엔 y < bottom이 거짓이 되어 재트리거 안 됨.
+          nextStart: lookbookNextStart,
         });
       }
       for (const tdef of tails) {
