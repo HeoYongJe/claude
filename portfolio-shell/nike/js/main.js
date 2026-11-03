@@ -15,6 +15,20 @@
   document.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  // ---- 인앱 앵커 링크(nav의 #top·#cta) 전용 smooth scroll ----
+  // CSS 전역 scroll-behavior:smooth를 뺐기 때문(휠 스크롤이 끊겨 보이던 원인 — css 참고)에, 네비
+  // 링크 클릭 시의 부드러운 이동은 여기서 개별적으로 처리.
+  if (!reduceMotion) {
+    document.querySelectorAll('a[href^="#"]').forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const target = document.querySelector(link.getAttribute("href"));
+        if (!target) return;
+        e.preventDefault();
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+  }
+
   // ---- 등장 애니메이션(data-reveal) ----
   const revealEls = document.querySelectorAll("[data-reveal]");
   if (reduceMotion) {
