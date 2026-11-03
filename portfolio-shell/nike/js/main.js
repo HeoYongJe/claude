@@ -165,6 +165,13 @@
     let lastForwardLandKey = null;
     let lastForwardLandAt = -Infinity;
     const REVERSE_SNAP_COOLDOWN_MS = 900;
+    // 2026-11-03: reverse 조건이 "y > deadStart"만으로 무제한 범위를 허용해서, CTA 근처처럼 꼬리
+    // 구간에서 한참 떨어진 곳에서 빠르게(델타 큰) 위로 스크롤하면 그 한 번의 틱만으로 projected가
+    // target+40 밑으로 내려가 버려 룩북 타이틀을 거치지도 않고 곧장 deadStart로 점프해버림(재현 확인).
+    // forward 쪽은 "y < bottom"으로 이미 현재 위치를 제한하고 있는 것과 대칭으로, reverse도 착지
+    // 지점(target) 근처 REVERSE_ARM_ZONE_PX 안에서만 armed되게 제한 — 이 범위보다 멀리서 스크롤할
+    // 땐 일반 스크롤 그대로 두어 룩북 콘텐츠를 반드시 거치고 나서야 꼬리 쪽 스냅이 걸리게 함.
+    const REVERSE_ARM_ZONE_PX = 220;
     function tweenScrollTo(target, duration) {
       const startY = window.scrollY;
       const delta = target - startY;
@@ -243,7 +250,7 @@
           tweenScrollTo(target, 420);
           return;
         }
-        if (e.deltaY < 0 && y > tdef.deadStart && (y <= target + 40 || projected <= target + 40)) {
+        if (e.deltaY < 0 && y > tdef.deadStart && y <= target + REVERSE_ARM_ZONE_PX && (y <= target + 40 || projected <= target + 40)) {
           const justLanded = tdef.nextStart === lastForwardLandKey && performance.now() - lastForwardLandAt < REVERSE_SNAP_COOLDOWN_MS;
           if (justLanded) continue;
           e.preventDefault();
