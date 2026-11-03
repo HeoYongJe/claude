@@ -112,7 +112,8 @@
   const manifesto = document.querySelector("[data-manifesto]");
   const manifestoText = document.querySelector("[data-manifesto-scrub]");
   const marqueeEl = document.querySelector(".marquee");
-  const lookbookEl = document.querySelector(".lookbook");
+  const specsGridEl = document.querySelector(".specs__grid");
+  const lookbookContentEl = document.querySelector(".lookbook .container");
   // "섹션 전환이 밋밋하다"는 피드백(2026-10-20) — 전체 섹션을 덮는 대신, **배경 레이어만** 콘텐츠와
   // 살짝 다른 속도로 움직이게 해서 "고정된 배경 위로 콘텐츠가 지나가는" 듯한 깊이감만 준다.
   // 매니페스토·쇼케이스 배경(.manifesto__bg, .showcase__bg)은 가뿐과 동일한 [data-speed] 뷰포트 패럴럭스
@@ -131,9 +132,10 @@
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
         marquee: marqueeEl ? { start: marqueeEl.offsetTop } : null,
-        // lookbookEl은 position:relative인 .speedfield 안에 있어 offsetTop이 그 조상 기준으로 나옴
-        // (문서 기준 절대 위치가 아님) — getBoundingClientRect + scrollY로 절대 위치를 직접 계산.
-        lookbook: lookbookEl ? { start: lookbookEl.getBoundingClientRect().top + window.scrollY } : null,
+        // specsGridEl·lookbookContentEl은 position:relative인 .speedfield 영향권 근처에 있어
+        // offsetTop이 조상 기준으로 틀어질 수 있음 — getBoundingClientRect + scrollY로 절대 위치를 직접 계산.
+        specsGrid: specsGridEl ? { bottom: specsGridEl.getBoundingClientRect().bottom + window.scrollY } : null,
+        lookbookContent: lookbookContentEl ? { start: lookbookContentEl.getBoundingClientRect().top + window.scrollY } : null,
       };
     }
     measure();
@@ -183,9 +185,8 @@
       // 각 구간의 "꼬리 시작 지점(deadStart)"과 "다음 섹션이 뷰포트를 꽉 채우는 지점(nextStart)" —
       // 핀 구간(히어로·매니페스토)은 deadFrom이 그 구간 자신의 스크럽 진행률 공식이 이미 1에 도달해
       // 더는 아무것도 안 바뀌는 지점(히어로는 opacity가 사실상 안 보이게 되는 .78, 매니페스토는 스크럽
-      // 공식 자체가 쓰는 .75). 핀이 아닌 보통 흐름 구간(PRODUCT→LOOKBOOK)은 그런 진행률 공식이 없어서
-      // 그냥 경계 직전 고정 px(TAIL_MARGIN)를 죽은 구간으로 침.
-      const TAIL_MARGIN = 220;
+      // 공식 자체가 쓰는 .75). 핀이 아닌 보통 흐름 구간(PRODUCT→LOOKBOOK)은 그런 진행률 공식 대신,
+      // "마지막 실제 콘텐츠가 끝나는 지점"(specsGrid 하단)을 죽은 구간의 시작으로 씀 — 아래 참고.
       const tails = [];
       if (bounds.hero && bounds.hero.range > 0 && bounds.manifesto && bounds.marquee) {
         // 2026-11-03: "스크롤 시 marquee가 안 보인다" — 원래 다음 섹션(쇼케이스 스테이지) 시작점으로
@@ -205,14 +206,19 @@
           nextStart: bounds.marquee.start,
         });
       }
-      // 2026-11-03: "PRODUCT에서 LOOKBOOK으로 넘어갈 때도 원페이지 스크롤 적용해줘" — 여긴 핀이
-      // 아니라 보통 흐름이라 비어있는 "죽은 구간" 자체는 없지만, 액트 경계 일관성을 위해 LOOKBOOK
-      // 시작 직전 고정 거리(TAIL_MARGIN)를 "거의 다 왔으니 한 번에 넘기는" 구간으로 다룸.
-      if (bounds.lookbook) {
+      // 2026-11-03: "PRODUCT에서 LOOKBOOK으로 넘어갈 때도 원페이지 스크롤 적용해줘" / "검은 지점이
+      // 끝날 때 바로 다음 섹션이 나오게" — 처음엔 LOOKBOOK 시작 직전 고정 220px만 죽은 구간으로
+      // 쳤는데, 실제 빈 구간은 BY THE NUMBERS 카드가 끝난 뒤의 여백(specs 하단 패딩 + lookbook
+      // 상단 패딩, 꽤 김)이라 그보다 훨씬 좁았음 — 스냅이 걸리기 전에 그 여백·그라데이션이 먼저
+      // 눈에 보이고, 걸려도 목표 지점이 lookbook 상단 패딩 한복판이라 LOOKBOOK 제목이 화면 아래에
+      // 살짝만 걸치는 문제가 있었음. 죽은 구간 시작을 "카드가 실제로 끝나는 지점"(specsGrid 하단)
+      // 으로, 목표 지점을 "LOOKBOOK 제목이 내비 아래로 보이는 지점"(.lookbook .container 콘텐츠
+      // 시작 - 144, 내비 79.5px를 가리지 않게)으로 바꿔 여백 전체를 한 번에 건너뛰도록 함.
+      if (bounds.specsGrid && bounds.lookbookContent) {
         tails.push({
-          deadStart: bounds.lookbook.start - TAIL_MARGIN,
-          bottom: bounds.lookbook.start,
-          nextStart: bounds.lookbook.start,
+          deadStart: bounds.specsGrid.bottom,
+          bottom: bounds.lookbookContent.start,
+          nextStart: bounds.lookbookContent.start - 144,
         });
       }
       for (const tdef of tails) {

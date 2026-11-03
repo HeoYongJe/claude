@@ -244,7 +244,13 @@ button, input { font: inherit; }
 .spec-card__label { margin-top: 10px; font-size: 14px; font-weight: 600; color: var(--muted); }
 
 /* ---- 룩북 ---- */
-.lookbook { padding: 140px 0; overflow: hidden; }
+/* 2026-11-03: "룩북하고 알림신청 사이 간격 없애고, 하나로 묶으라니까" — 아코디언 패널이 끝난 뒤
+   lookbook 하단 패딩(140px) + cta 상단 패딩(140px)이 겹쳐 흰 배경 위에 280px짜리 빈 구간이 생기고,
+   그 뒤에야 volt색 CTA가 시작돼 두 섹션이 서로 분리된 "다른 페이지"처럼 보였음. feature-list→specs를
+   PRODUCT 한 섹션으로 합쳤을 때와 같은 방식 — 감싸는 쪽(lookbook) 하단 패딩은 비우고, cta 자신의
+   상단 패딩(140px) 하나만 남겨 간격을 절반으로 줄이고 두 블록이 이어 붙은 느낌을 내도록 함.
+   design.md Components "제품 쇼케이스" 참고. */
+.lookbook { padding: 140px 0 0; overflow: hidden; }
 /* 2026-10-30: 아래는 전부 폐기된 "랭크 기반 스택 캐러셀"(1~11차)의 시행착오 기록 — 코드는 Fluid Hover
    Accordion으로 교체됐지만, 같은 함정(고정 px, 화면 끝까지 채우기, 모바일 분기)을 또 밟지 않도록 기록은
    남겨둠. 새 구현 CSS는 이 주석 블록 다음부터. 자세한 폐기 배경·새 설계는 design.md Lookbook 항목 참고.
@@ -418,7 +424,8 @@ button, input { font: inherit; }
   .lookbook__panel-detail { padding: 20px 24px; }
   .lookbook__panel-detail-desc { max-width: none; }
   .manifesto { padding: 96px 0; }
-  .specs, .lookbook, .cta { padding-top: 88px; padding-bottom: 88px; }
+  .specs, .cta { padding-top: 88px; padding-bottom: 88px; }
+  .lookbook { padding-top: 88px; padding-bottom: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
