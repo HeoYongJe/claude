@@ -112,7 +112,7 @@
   const manifesto = document.querySelector("[data-manifesto]");
   const manifestoText = document.querySelector("[data-manifesto-scrub]");
   const marqueeEl = document.querySelector(".marquee");
-  const specsGridEl = document.querySelector(".specs__grid");
+  const lookbookSectionEl = document.querySelector(".lookbook");
   const lookbookContentEl = document.querySelector(".lookbook .container");
   // "섹션 전환이 밋밋하다"는 피드백(2026-10-20) — 전체 섹션을 덮는 대신, **배경 레이어만** 콘텐츠와
   // 살짝 다른 속도로 움직이게 해서 "고정된 배경 위로 콘텐츠가 지나가는" 듯한 깊이감만 준다.
@@ -132,9 +132,9 @@
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
         marquee: marqueeEl ? { start: marqueeEl.offsetTop } : null,
-        // specsGridEl·lookbookContentEl은 position:relative인 .speedfield 영향권 근처에 있어
+        // lookbookSectionEl·lookbookContentEl은 position:relative인 .speedfield 영향권 근처에 있어
         // offsetTop이 조상 기준으로 틀어질 수 있음 — getBoundingClientRect + scrollY로 절대 위치를 직접 계산.
-        specsGrid: specsGridEl ? { bottom: specsGridEl.getBoundingClientRect().bottom + window.scrollY } : null,
+        lookbookSection: lookbookSectionEl ? { top: lookbookSectionEl.getBoundingClientRect().top + window.scrollY } : null,
         lookbookContent: lookbookContentEl ? { start: lookbookContentEl.getBoundingClientRect().top + window.scrollY } : null,
       };
     }
@@ -161,6 +161,10 @@
     // (specs) 이후는 sticky/스크럽이 아니라 카드를 쭉 읽으며 내려가는 보통의 문서 흐름이라 이 패턴
     // 대상이 아님 — 사용자와 상의해 쇼케이스까지만으로 범위를 확정.
     let snapping = false;
+    // 2026-11-03: 착지 직후 반대 방향 스냅이 바로 재발동하는 걸 막기 위한 쿨다운(아래 reverse 분기 참고).
+    let lastForwardLandKey = null;
+    let lastForwardLandAt = -Infinity;
+    const REVERSE_SNAP_COOLDOWN_MS = 900;
     function tweenScrollTo(target, duration) {
       const startY = window.scrollY;
       const delta = target - startY;
@@ -207,22 +211,25 @@
         });
       }
       // 2026-11-03: "PRODUCT에서 LOOKBOOK으로 넘어갈 때도 원페이지 스크롤 적용해줘" / "검은 지점이
-      // 끝날 때 바로 다음 섹션이 나오게" — 죽은 구간 시작을 "카드가 실제로 끝나는 지점"(specsGrid
-      // 하단)으로, 목표 지점을 "LOOKBOOK 제목이 내비 아래로 보이는 지점"으로 맞춤.
-      // ⚠️ 2026-11-03 추가 수정: "룩북 쪽에서 위로 스크롤이 안 된다 / BY THE NUMBERS 끝나는 지점에서
-      // 계속 추가 스크롤만 된다" — 위 구현이 `bottom`(forward 트리거를 멈추는 경계)을
-      // `lookbookContent.start`로 잡았는데, 실제 착지 지점(target = nextStart+24)은 그보다 120px
-      // 더 앞(lookbookContent.start-120)이라 **착지한 자리 자체가 여전히 [deadStart, bottom) 구간
-      // 안**에 있었음 — 그래서 착지 직후 아주 조금만 더 스크롤해도 같은 자리로 다시 스냅되길
-      // 반복해 "꽉 막힌" 것처럼 보이고, 위로 스크롤해도 반대쪽 조건(스냅백)에 걸려 deadStart로
-      // 도로 튕겨나가길 반복했음. 히어로/매니페스토 꼬리는 착지 지점이 항상 그 구간의 `bottom`
-      // 보다 더 뒤(다음 섹션 쪽)에 있어서 이 문제가 없었던 것과 같은 구조로 맞춰, `bottom`을
-      // "착지 지점과 정확히 같은 값"으로 둬서 착지 후엔 더 이상 걸리지 않게 함.
-      if (bounds.specsGrid && bounds.lookbookContent) {
+      // 끝날 때 바로 다음 섹션이 나오게" — 목표 지점은 "LOOKBOOK 제목이 내비 아래로 보이는 지점"으로 맞춤(아래).
+      // ⚠️ 2026-11-03 재수정: deadStart를 "카드가 끝나는 지점"(specsGrid 하단)으로 뒀더니, 그 지점에
+      // 도달하기 한참 전부터(뷰포트가 섹션 높이보다 커서) 이미 LOOKBOOK의 흰 배경이 화면 아래쪽에
+      // 일반 스크롤로 자연스럽게 섞여 보이는 구간이 생겼음(유저가 "뚝뚝 끊긴다"며 캡처한 바로 그 상태) —
+      // 스냅이 발동하기도 전에 이미 섞인 모습을 다 보여준 뒤라 스냅 자체가 의미가 없었음. "검은 지점이
+      // 끝난다"를 문서 좌표가 아니라 "화면에 흰색이 한 픽셀이라도 보이기 시작하는 시점"으로 다시 정의 —
+      // deadStart = (specs 끝 = lookbook 시작 지점) − 뷰포트 높이. 이 지점을 넘어서자마자 치는 스크롤은
+      // 무조건 한 번에 착지 지점까지 완주되므로, 섞인 화면이 뷰포트에 정지 상태로는 노출되지 않음.
+      // ⚠️ 2026-11-03 세 번째 수정: "룩북에서 위로 스크롤이 안 된다" — forward 스냅이 착지하는 자리
+      // 자체가 reverse 트리거 조건(y <= target+40)을 항상 만족해서, 착지 직후 첫 위쪽 휠 입력이 바로
+      // 다시 deadStart로 튕겨 보내길 반복했음(아래로도 위로도 "막힌" 것처럼 보인 진짜 원인). 착지 후
+      // REVERSE_SNAP_COOLDOWN_MS 동안은 같은 꼬리의 reverse 스냅을 걸지 않고 자연스럽게 이어서
+      // 스크롤되도록 쿨다운을 추가(공용 로직, 아래 for 루프 참고) — 히어로·매니페스토 꼬리도 구조상
+      // 같은 문제가 있어 함께 적용.
+      if (bounds.lookbookSection && bounds.lookbookContent) {
         const lookbookNextStart = bounds.lookbookContent.start - 144;
         tails.push({
-          deadStart: bounds.specsGrid.bottom,
-          bottom: lookbookNextStart + 24, // == 착지 지점(target) 자체. 착지 후엔 y < bottom이 거짓이 되어 재트리거 안 됨.
+          deadStart: bounds.lookbookSection.top - window.innerHeight,
+          bottom: lookbookNextStart + 24,
           nextStart: lookbookNextStart,
         });
       }
@@ -231,10 +238,14 @@
         if (e.deltaY > 0 && y < tdef.bottom && projected >= tdef.deadStart) {
           e.preventDefault();
           snapping = true;
+          lastForwardLandKey = tdef.nextStart;
+          lastForwardLandAt = performance.now();
           tweenScrollTo(target, 420);
           return;
         }
         if (e.deltaY < 0 && y > tdef.deadStart && (y <= target + 40 || projected <= target + 40)) {
+          const justLanded = tdef.nextStart === lastForwardLandKey && performance.now() - lastForwardLandAt < REVERSE_SNAP_COOLDOWN_MS;
+          if (justLanded) continue;
           e.preventDefault();
           snapping = true;
           tweenScrollTo(tdef.deadStart, 420);
