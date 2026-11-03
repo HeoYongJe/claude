@@ -111,9 +111,6 @@
   const heroScrollEl = document.querySelector("[data-hero-scroll]");
   const manifesto = document.querySelector("[data-manifesto]");
   const manifestoText = document.querySelector("[data-manifesto-scrub]");
-  const marqueeEl = document.querySelector(".marquee");
-  const lookbookSectionEl = document.querySelector(".lookbook");
-  const lookbookContentEl = document.querySelector(".lookbook .container");
   // "섹션 전환이 밋밋하다"는 피드백(2026-10-20) — 전체 섹션을 덮는 대신, **배경 레이어만** 콘텐츠와
   // 살짝 다른 속도로 움직이게 해서 "고정된 배경 위로 콘텐츠가 지나가는" 듯한 깊이감만 준다.
   // 매니페스토·쇼케이스 배경(.manifesto__bg, .showcase__bg)은 가뿐과 동일한 [data-speed] 뷰포트 패럴럭스
@@ -131,11 +128,6 @@
         hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
-        marquee: marqueeEl ? { start: marqueeEl.offsetTop } : null,
-        // lookbookSectionEl·lookbookContentEl은 position:relative인 .speedfield 영향권 근처에 있어
-        // offsetTop이 조상 기준으로 틀어질 수 있음 — getBoundingClientRect + scrollY로 절대 위치를 직접 계산.
-        lookbookSection: lookbookSectionEl ? { top: lookbookSectionEl.getBoundingClientRect().top + window.scrollY } : null,
-        lookbookContent: lookbookContentEl ? { start: lookbookContentEl.getBoundingClientRect().top + window.scrollY } : null,
       };
     }
     measure();
@@ -148,142 +140,9 @@
     let resizeTimer;
     window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(measure, 150); });
 
-    // 2026-11-02: "텍스트가 다 사라진 뒤에도 빈 화면을 스크롤 서너 번 더 해야 다음 섹션이 나온다,
-    // 한 번만 스크롤해도 바로 다음 섹션으로 넘어가는 원페이지 스크롤 방식으로" 요청 — 핀/스크럽 구간
-    // 전체를 원페이지로 바꾸는 대신, **스크럽 연출 자체는 이미 끝났는데 핀이 풀릴 때까지 스크롤을
-    // 더 받아야 하는 "꼬리 구간"에서만** 마우스 휠 한 번에 다음 섹션이 뷰포트를 꽉 채우는 지점으로
-    // 바로 넘기는 "부분 스냅"을 추가. 트랙패드 관성에 애니메이션이 씹히지 않도록 스냅 중엔 모든 휠
-    // 입력을 막아뒀다가 끝나면 풀고, 위로 스크롤해 꼬리 구간에 다시 들어가려 할 때도 대칭으로 한 번에
-    // 건너뜀. 휠 전용(터치는 wheel 이벤트가 안 쓰여 영향 없음 — 모바일은 핀 자체가 해제됨).
-    // 2026-11-02 추가: "히어로→매니페스토만 적용되니 어색하다, 전체적으로 적용하는 게 나을 것 같은데"
-    // — 매니페스토→쇼케이스 전환도 같은 패턴(스크럽이 range*0.75 지점에서 이미 끝나고 나머지 25%는
-    // "다 된 채로 더 스크롤해야 하는" 꼬리)이라 이 스냅 목록(`tails`)에 같이 추가. BY THE NUMBERS
-    // (specs) 이후는 sticky/스크럽이 아니라 카드를 쭉 읽으며 내려가는 보통의 문서 흐름이라 이 패턴
-    // 대상이 아님 — 사용자와 상의해 쇼케이스까지만으로 범위를 확정.
-    let snapping = false;
-    // 2026-11-03: 착지 직후 반대 방향 스냅이 바로 재발동하는 걸 막기 위한 쿨다운(아래 forward/reverse
-    // 분기 공용 — 10차부터는 양방향 모두에 대칭 적용).
-    let lastForwardLandKey = null;
-    let lastForwardLandAt = -Infinity;
-    let lastReverseLandKey = null;
-    let lastReverseLandAt = -Infinity;
-    const SNAP_LAND_COOLDOWN_MS = 900;
-    // 2026-11-03: reverse 조건이 "y > deadStart"만으로 무제한 범위를 허용해서, CTA 근처처럼 꼬리
-    // 구간에서 한참 떨어진 곳에서 빠르게(델타 큰) 위로 스크롤하면 그 한 번의 틱만으로 projected가
-    // target+40 밑으로 내려가 버려 룩북 타이틀을 거치지도 않고 곧장 deadStart로 점프해버림(재현 확인).
-    // forward 쪽은 "y < bottom"으로 이미 현재 위치를 제한하고 있는 것과 대칭으로, reverse도 착지
-    // 지점(target) 근처 REVERSE_ARM_ZONE_PX 안에서만 armed되게 제한 — 이 범위보다 멀리서 스크롤할
-    // 땐 일반 스크롤 그대로 두어 룩북 콘텐츠를 반드시 거치고 나서야 꼬리 쪽 스냅이 걸리게 함.
-    const REVERSE_ARM_ZONE_PX = 220;
-    // 2026-11-03 10차: forward 쪽은 반대로 "projected >= deadStart"만 있고 "y가 deadStart에 얼마나
-    // 가까운지"는 안 봤음 — 쇼케이스처럼 deadStart보다 한참 위에서 트랙패드 관성으로 크게(델타 큰)
-    // 한 번에 스크롤하면, 그 한 틱만으로 projected가 deadStart를 넘어버려 PRODUCT(specs) 섹션을
-    // 한 프레임도 보여주지 않고 통째로 건너뛰거나, 카드/통계 그리드가 다 보이기도 전에 중간에서
-    // 잘려버림("product 상단/하단이 짤린다" 재현 확인 — specs 섹션 높이가 뷰포트보다 짧아서 더 잘 걸림).
-    // reverse와 대칭으로 "현재 위치도 deadStart 근처여야" armed되게 제한.
-    const FORWARD_ARM_ZONE_PX = 220;
-    function tweenScrollTo(target, duration) {
-      const startY = window.scrollY;
-      const delta = target - startY;
-      const t0 = performance.now();
-      function step(now) {
-        const t = Math.min(1, (now - t0) / duration);
-        const eased = 1 - Math.pow(1 - t, 3);
-        // html에 전역 `scroll-behavior:smooth`가 걸려 있어(css 참고) 두 인자짜리 scrollTo(x,y)를
-        // 쓰면 매 프레임 값이 그 CSS 스무딩과 다시 겹쳐 애니메이션이 서로 싸우며 엉뚱한 지점에
-        // 멈추는 버그가 있었음 — behavior:"auto"를 명시해 매 프레임 즉시 점프시키고, 이징 자체는
-        // 이미 위에서 직접 계산하므로(easeOutCubic) 전역 smooth와 중복되지 않게 함.
-        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: "auto" });
-        if (t < 1) requestAnimationFrame(step);
-        else snapping = false;
-      }
-      requestAnimationFrame(step);
-    }
-    window.addEventListener("wheel", (e) => {
-      if (snapping) { e.preventDefault(); return; }
-      const y = window.scrollY;
-      const projected = y + e.deltaY; // 이번 휠 틱이 끝나면 대략 어디로 갈지(빠른 스크롤 대응, 아래 참고)
-      // 각 구간의 "꼬리 시작 지점(deadStart)"과 "다음 섹션이 뷰포트를 꽉 채우는 지점(nextStart)" —
-      // 핀 구간(히어로·매니페스토)은 deadFrom이 그 구간 자신의 스크럽 진행률 공식이 이미 1에 도달해
-      // 더는 아무것도 안 바뀌는 지점(히어로는 opacity가 사실상 안 보이게 되는 .78, 매니페스토는 스크럽
-      // 공식 자체가 쓰는 .75). 핀이 아닌 보통 흐름 구간(PRODUCT→LOOKBOOK)은 그런 진행률 공식 대신,
-      // "마지막 실제 콘텐츠가 끝나는 지점"(specsGrid 하단)을 죽은 구간의 시작으로 씀 — 아래 참고.
-      const tails = [];
-      if (bounds.hero && bounds.hero.range > 0 && bounds.manifesto && bounds.marquee) {
-        // 2026-11-03: "스크롤 시 marquee가 안 보인다" — 원래 다음 섹션(쇼케이스 스테이지) 시작점으로
-        // 바로 넘겼더니, 매니페스토와 쇼케이스 사이에 끼어있는 장식 띠(.marquee)가 그 점프 범위 안에
-        // 통째로 들어있어 한 번도 화면에 걸리지 않고 건너뛰어졌음 — 다음 섹션이 아니라 marquee
-        // 시작점까지만 넘기도록 수정, 이후 marquee→쇼케이스는 원래대로 자연스럽게 스크롤됨.
-        tails.push({
-          deadStart: bounds.hero.start + bounds.hero.range * 0.78,
-          bottom: bounds.hero.start + bounds.hero.range,
-          nextStart: bounds.manifesto.start,
-        });
-      }
-      if (bounds.manifesto && bounds.manifesto.range > 0 && bounds.marquee) {
-        tails.push({
-          deadStart: bounds.manifesto.start + bounds.manifesto.range * 0.75,
-          bottom: bounds.manifesto.start + bounds.manifesto.range,
-          nextStart: bounds.marquee.start,
-        });
-      }
-      // 2026-11-03: "PRODUCT에서 LOOKBOOK으로 넘어갈 때도 원페이지 스크롤 적용해줘" / "검은 지점이
-      // 끝날 때 바로 다음 섹션이 나오게" — 목표 지점은 "LOOKBOOK 제목이 내비 아래로 보이는 지점"으로 맞춤(아래).
-      // ⚠️ 2026-11-03 재수정: deadStart를 "카드가 끝나는 지점"(specsGrid 하단)으로 뒀더니, 그 지점에
-      // 도달하기 한참 전부터(뷰포트가 섹션 높이보다 커서) 이미 LOOKBOOK의 흰 배경이 화면 아래쪽에
-      // 일반 스크롤로 자연스럽게 섞여 보이는 구간이 생겼음(유저가 "뚝뚝 끊긴다"며 캡처한 바로 그 상태) —
-      // 스냅이 발동하기도 전에 이미 섞인 모습을 다 보여준 뒤라 스냅 자체가 의미가 없었음. "검은 지점이
-      // 끝난다"를 문서 좌표가 아니라 "화면에 흰색이 한 픽셀이라도 보이기 시작하는 시점"으로 다시 정의 —
-      // deadStart = (specs 끝 = lookbook 시작 지점) − 뷰포트 높이. 이 지점을 넘어서자마자 치는 스크롤은
-      // 무조건 한 번에 착지 지점까지 완주되므로, 섞인 화면이 뷰포트에 정지 상태로는 노출되지 않음.
-      // ⚠️ 2026-11-03 세 번째 수정: "룩북에서 위로 스크롤이 안 된다" — forward 스냅이 착지하는 자리
-      // 자체가 reverse 트리거 조건(y <= target+40)을 항상 만족해서, 착지 직후 첫 위쪽 휠 입력이 바로
-      // 다시 deadStart로 튕겨 보내길 반복했음(아래로도 위로도 "막힌" 것처럼 보인 진짜 원인). 착지 후
-      // REVERSE_SNAP_COOLDOWN_MS 동안은 같은 꼬리의 reverse 스냅을 걸지 않고 자연스럽게 이어서
-      // 스크롤되도록 쿨다운을 추가(공용 로직, 아래 for 루프 참고) — 히어로·매니페스토 꼬리도 구조상
-      // 같은 문제가 있어 함께 적용.
-      // 2026-11-03 10차: 룩북+CTA를 합친 실제 콘텐츠 길이가 짧아서(현재 레이아웃 기준 target이 페이지
-      // 최대 스크롤 위치에서 불과 9px 안쪽), reverse 쪽 "착지 지점 근처" 판정이 룩북·CTA 거의 전체를
-      // 덮어버려 그 구간 어디서 위로 스크롤해도 곧장 PRODUCT 쪽으로 튕겨나갔음(재현 확인) — 튕겨나간
-      // 자리에서 작은 반대 방향 떨림만 있어도 forward가 바로 재발동해 왕복하며 "위로 스크롤이 막힌"
-      // 것처럼 보였던 것도 이 때문. 히어로·매니페스토 꼬리와 달리 이 구간(specs→lookbook)의 "꼬리"는
-      // 진짜 빈 공간이 아니라 룩북 타이틀이라는 실제 콘텐츠라, reverse 스냅 자체를 이 꼬리에서만 끈다
-      // (forward만 유지 — 내려갈 때 뭉개진 전환을 막는 원래 목적은 그대로 살림).
-      if (bounds.lookbookSection && bounds.lookbookContent) {
-        const lookbookNextStart = bounds.lookbookContent.start - 144;
-        tails.push({
-          deadStart: bounds.lookbookSection.top - window.innerHeight,
-          bottom: lookbookNextStart + 24,
-          nextStart: lookbookNextStart,
-          reverse: false,
-        });
-      }
-      for (const tdef of tails) {
-        const target = tdef.nextStart + 24; // 다음 섹션 시작 지점 + 여유(경계 1px 안 남게)
-        const canReverse = tdef.reverse !== false;
-        if (e.deltaY > 0 && y < tdef.bottom && y >= tdef.deadStart - FORWARD_ARM_ZONE_PX && projected >= tdef.deadStart) {
-          const justReverseLanded = canReverse && tdef.deadStart === lastReverseLandKey && performance.now() - lastReverseLandAt < SNAP_LAND_COOLDOWN_MS;
-          if (justReverseLanded) continue;
-          e.preventDefault();
-          snapping = true;
-          lastForwardLandKey = tdef.nextStart;
-          lastForwardLandAt = performance.now();
-          tweenScrollTo(target, 420);
-          return;
-        }
-        if (canReverse && e.deltaY < 0 && y > tdef.deadStart && y <= target + REVERSE_ARM_ZONE_PX && (y <= target + 40 || projected <= target + 40)) {
-          const justForwardLanded = tdef.nextStart === lastForwardLandKey && performance.now() - lastForwardLandAt < SNAP_LAND_COOLDOWN_MS;
-          if (justForwardLanded) continue;
-          e.preventDefault();
-          snapping = true;
-          lastReverseLandKey = tdef.deadStart;
-          lastReverseLandAt = performance.now();
-          tweenScrollTo(tdef.deadStart, 420);
-          return;
-        }
-      }
-    }, { passive: false });
-
+    // 2026-11-03: 휠 가로채서 픽셀 좌표로 다음 섹션에 강제 스냅시키던 "부분 스냅"(tails) 시스템을
+    // 통째로 제거 — 경계 케이스(섹션 길이, 뷰포트 크기, 스크롤 속도 조합)가 끝없이 나오고 고칠 때마다
+    // 다른 쪽에서 또 터져서, 전 구간을 보통의 자연스러운 스크롤로 되돌림(design.md 11차 참고).
     let smoothY = window.scrollY;
     function raf() {
       const realY = window.scrollY;
