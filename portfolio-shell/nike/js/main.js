@@ -129,30 +129,46 @@
   // 조합마다 새 엣지 케이스가 나올 구조 자체가 아님.
   if (!reduceMotion) {
     let wheelTarget = window.scrollY;
+    // 2026-11-03 16차: "왜 전반적으로 딱딱 끊기냐"는 재질문 끝에 실측으로 잡은 진짜 버그 — 매 프레임
+    // `cur`를 `window.scrollY`로 다시 읽어서 다음 걸음을 계산했는데, 브라우저는 scrollTop을 정수
+    // 픽셀로 반올림해서 저장/보고함. diff가 줄어들며 한 걸음(diff*0.15)이 1px보다 작아지면, 그
+    // 작은 이동분이 반올림에 먹혀 실제 스크롤 위치가 전혀 안 바뀌고(`cur`가 영원히 같은 정수),
+    // 따라서 `diff`도 똑같이 반복되면서 `Math.abs(diff) < 0.5`에 영영 도달하지 못하는 무한 루프에
+    // 빠졌음(실측: 휠을 완전히 멈춘 뒤에도 wheelStep이 초당 180회 이상 영원히 돌고 있었음 — 다른
+    // 스크롤 처리와 메인 스레드를 나눠 쓰며 간헐적 끊김을 만든 실제 원인). **반올림되는
+    // `window.scrollY`를 다음 계산에 다시 쓰지 않고, 정밀한 내부 상태(`wheelY`)를 JS 쪽에서만
+    // 누적**하도록 변경 — scrollTo로 "쓰기"만 하고 "읽어서 되돌아오지" 않으므로 반올림 손실이
+    // 누적 계산에 섞이지 않음.
+    let wheelY = window.scrollY;
     const maxScrollY = () => document.documentElement.scrollHeight - window.innerHeight;
     function wheelStep() {
       // 외부(앵커 클릭의 scrollIntoView)에서 wheelAnimating을 꺼뒀다면 여기서 바로 멈춤 — 안 그러면
       // 이미 예약된 이 프레임이 한 번 더 돌면서 옛 목표로 끌어당겨버림.
       if (!wheelAnimating) return;
-      const cur = window.scrollY;
-      const diff = wheelTarget - cur;
+      const diff = wheelTarget - wheelY;
       if (Math.abs(diff) < 0.5) {
-        window.scrollTo(0, wheelTarget);
+        wheelY = wheelTarget;
+        window.scrollTo(0, wheelY);
         wheelAnimating = false;
         return;
       }
-      window.scrollTo(0, cur + diff * 0.15);
+      wheelY += diff * 0.15;
+      window.scrollTo(0, wheelY);
       requestAnimationFrame(wheelStep);
     }
     window.addEventListener("wheel", (e) => {
       e.preventDefault();
       wheelTarget = Math.min(maxScrollY(), Math.max(0, wheelTarget + e.deltaY));
-      if (!wheelAnimating) { wheelAnimating = true; requestAnimationFrame(wheelStep); }
+      if (!wheelAnimating) {
+        wheelY = window.scrollY; // 유휴 상태였다면(스크롤바 드래그 등으로 위치가 바뀌었을 수 있음) 실제 위치에서 다시 시작
+        wheelAnimating = true;
+        requestAnimationFrame(wheelStep);
+      }
     }, { passive: false });
     // 휠이 아닌 다른 경로(스크롤바 드래그, 키보드, 앵커 클릭의 scrollIntoView)로 위치가 바뀌었을 때
     // 목표값이 낡은 채로 남아있으면, 다음 휠 입력이 그 낡은 목표에서부터 다시 출발해 엉뚱한 지점으로
     // 튀어버림 — 휠 애니메이션 중이 아닐 때는 목표값을 실제 위치로 계속 동기화해둠.
-    window.addEventListener("scroll", () => { if (!wheelAnimating) wheelTarget = window.scrollY; }, { passive: true });
+    window.addEventListener("scroll", () => { if (!wheelAnimating) { wheelTarget = window.scrollY; wheelY = window.scrollY; } }, { passive: true });
   }
 
   // ---- rAF 루프: 히어로 줌아웃 스크럽 + 매니페스토 핀드줌 스크럽 + 쇼케이스 비주얼 스크럽
@@ -179,12 +195,25 @@
   if (!reduceMotion) {
     const clamp01 = (v) => Math.min(1, Math.max(0, v));
     let bounds = {};
+    // raf 루프 유휴-정지용 상태 — measure()가 이 아래 kickRaf()를 바로 호출하므로(측정값이 바뀌면
+    // 깨우기 위해), let 선언이 measure() 정의/첫 호출보다 먼저 와야 함(아니면 "초기화 전 접근"
+    // ReferenceError로 measure() 자체가 터지고, 그 아래 코드 전체가 안 돌게 됨 — 실제로 겪은 버그).
+    let lastRafY = null;
+    let idleFrames = 0;
+    let rafQueued = false;
+    function kickRaf() {
+      idleFrames = 0;
+      if (!rafQueued) { rafQueued = true; requestAnimationFrame(raf); }
+    }
     function measure() {
       bounds = {
         hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
         manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
       };
+      // 바뀐 bounds를 화면에 바로 반영 — 아래 raf 루프가 유휴 상태로 멈춰있던 중이면(가만히 있을 때)
+      // 깨워서 최소 한 프레임은 새 bounds로 다시 그리게 함.
+      kickRaf();
     }
     measure();
     // 안전장치: 초기 measure()는 스크립트 실행 시점(웹폰트가 아직 안 끝났을 수 있는 때) 한 번만 도는데,
@@ -199,7 +228,15 @@
     // 2026-11-03: 휠 가로채서 픽셀 좌표로 다음 섹션에 강제 스냅시키던 "부분 스냅"(tails) 시스템을
     // 통째로 제거 — 경계 케이스(섹션 길이, 뷰포트 크기, 스크롤 속도 조합)가 끝없이 나오고 고칠 때마다
     // 다른 쪽에서 또 터져서, 전 구간을 보통의 자연스러운 스크롤로 되돌림(design.md 11차 참고).
+    // 2026-11-03 15차: "그래도 딱딱 끊긴다"는 재확인 끝에 실측으로 찾은 진짜 버그 — 이 루프가
+    // 스크롤을 전혀 안 해도 멈추지 않고 영원히 돌고 있었음(가만히 2초 동안 rAF 722회 호출 확인,
+    // 즉 아무 변화가 없는데도 초당 300회 이상 getBoundingClientRect 읽기 + style 쓰기를 반복).
+    // 이 유휴 상태의 배경 작업이 메인 스레드를 계속 깎아먹다가, 실제 휠 관성 스크롤(아래)이 같은
+    // 스레드에서 scrollTo를 호출해야 하는 순간과 간헐적으로 부딪히며 끊김을 만든 것으로 보임 —
+    // 스크롤 위치가 몇 프레임 연속으로 그대로면(더 반영할 변화가 없으면) 루프를 완전히 멈추고,
+    // 스크롤·리사이즈가 다시 일어날 때만(`kickRaf`) 재시작하도록 변경(상태 선언은 위 measure() 근처로 옮김).
     function raf() {
+      rafQueued = false;
       const realY = window.scrollY;
       // 2026-11-03 14차: "매니페스토 텍스트 스케일 변화가 딱딱 끊긴다" — 원인은 이 함수 끝의 패럴럭스
       // 루프가 매 프레임 getBoundingClientRect(읽기)와 style.transform(쓰기)을 섞어 호출하던 것.
@@ -280,9 +317,22 @@
         el.style.transform = `translateY(${parallaxOffsets[i].toFixed(1)}px)`;
       });
 
-      requestAnimationFrame(raf);
+      // 스크롤 위치가 그대로면 더 반영할 변화가 없다는 뜻 — 몇 프레임만 더 지켜보다 멈춤(완전히
+      // 정지된 순간 바로 멈추면 트윈·관성이 막 끝나가는 미세한 끝자락을 놓칠 수 있어 약간의 여유를 둠).
+      if (realY === lastRafY) {
+        idleFrames++;
+      } else {
+        idleFrames = 0;
+        lastRafY = realY;
+      }
+      if (idleFrames < 6) {
+        rafQueued = true;
+        requestAnimationFrame(raf);
+      }
     }
-    requestAnimationFrame(raf);
+    kickRaf();
+    window.addEventListener("scroll", kickRaf, { passive: true });
+    window.addEventListener("resize", kickRaf);
   } else if (manifestoText) {
     manifestoText.style.opacity = 1;
     manifestoText.style.transform = "scale(1)";
