@@ -1,5 +1,8 @@
 (function () {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // 커스텀 휠 관성 스크롤(아래)이 진행 중인지 — 앵커 클릭의 scrollIntoView처럼 다른 경로로
+  // 스크롤이 움직일 때 이 루프가 계속 옛 목표 지점으로 끌어당기지 않도록, 두 블록이 공유해서 쓴다.
+  let wheelAnimating = false;
 
   // ---- 상단 진행 바 ----
   const progressBar = document.querySelector(".progress__bar");
@@ -24,6 +27,9 @@
         const target = document.querySelector(link.getAttribute("href"));
         if (!target) return;
         e.preventDefault();
+        // 아래 커스텀 휠 관성 루프가 아직 돌고 있으면(직전까지 휠을 굴리다 바로 클릭한 경우)
+        // 옛 휠 목표 지점으로 계속 끌어당겨서 이 smooth scroll과 서로 싸우게 됨 — 먼저 꺼둠.
+        wheelAnimating = false;
         target.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
@@ -114,11 +120,47 @@
     countEls.forEach((el) => countIO.observe(el));
   }
 
+  // ---- 커스텀 휠 스무스 스크롤 ----
+  // 2026-11-03: 전역 scroll-behavior:smooth를 뺀 뒤(휠 틱마다 애니메이션이 서로 끊기던 문제 해결,
+  // design.md 12차) 휠 스크롤 자체는 네이티브 그대로라 "여전히 딱딱 끊긴다"는 피드백 — 휠 이벤트를
+  // 가로채 누적 목표 스크롤 지점을 만들고, 매 프레임 실제 scrollY를 그 목표로 lerp해 보내는 관성
+  // 스크롤을 직접 구현. ⚠️ 11차에서 걷어낸 "tails" 스냅과는 근본적으로 다른 코드 — 목표 지점은
+  // 오직 휠 입력의 누적값일 뿐 섹션 경계·방향별 분기 조건이 전혀 없어서, 그때처럼 섹션 길이·뷰포트
+  // 조합마다 새 엣지 케이스가 나올 구조 자체가 아님.
+  if (!reduceMotion) {
+    let wheelTarget = window.scrollY;
+    const maxScrollY = () => document.documentElement.scrollHeight - window.innerHeight;
+    function wheelStep() {
+      // 외부(앵커 클릭의 scrollIntoView)에서 wheelAnimating을 꺼뒀다면 여기서 바로 멈춤 — 안 그러면
+      // 이미 예약된 이 프레임이 한 번 더 돌면서 옛 목표로 끌어당겨버림.
+      if (!wheelAnimating) return;
+      const cur = window.scrollY;
+      const diff = wheelTarget - cur;
+      if (Math.abs(diff) < 0.5) {
+        window.scrollTo(0, wheelTarget);
+        wheelAnimating = false;
+        return;
+      }
+      window.scrollTo(0, cur + diff * 0.15);
+      requestAnimationFrame(wheelStep);
+    }
+    window.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      wheelTarget = Math.min(maxScrollY(), Math.max(0, wheelTarget + e.deltaY));
+      if (!wheelAnimating) { wheelAnimating = true; requestAnimationFrame(wheelStep); }
+    }, { passive: false });
+    // 휠이 아닌 다른 경로(스크롤바 드래그, 키보드, 앵커 클릭의 scrollIntoView)로 위치가 바뀌었을 때
+    // 목표값이 낡은 채로 남아있으면, 다음 휠 입력이 그 낡은 목표에서부터 다시 출발해 엉뚱한 지점으로
+    // 튀어버림 — 휠 애니메이션 중이 아닐 때는 목표값을 실제 위치로 계속 동기화해둠.
+    window.addEventListener("scroll", () => { if (!wheelAnimating) wheelTarget = window.scrollY; }, { passive: true });
+  }
+
   // ---- rAF 루프: 히어로 줌아웃 스크럽 + 매니페스토 핀드줌 스크럽 + 쇼케이스 비주얼 스크럽
   //      + [data-speed] 배경 패럴럭스 ----
-  // 실제 스크롤 위치를 바로 쓰지 않고 lerp로 보간한 "스무스 스크롤 값"을 스크럽 계산에 써서
-  // 트랙패드·휠 스크롤의 미세한 끊김이 그대로 전달되지 않고 부드럽게 쫓아가는 느낌을 만든다
-  // (가뿐 히어로 패럴럭스의 lerp(0.09) 패턴과 동일 — 2026-10-19, "스크롤 효과가 더 부드러웠으면" 피드백 반영).
+  // 2026-11-03: 스크럽 계산에 실제 scrollY를 바로 씀(이전엔 별도 lerp로 한 번 더 보간한 smoothY를
+  // 썼는데, 휠 스크롤 자체가 위 커스텀 관성으로 이미 부드러워진 지금은 그 위에 또 lerp를 얹으면
+  // 핀이 풀리는 경계에서 "실제 스크롤은 이미 끝났는데 트랜스폼만 계속 따라오는" 이중 지연이 생김 —
+  // 쇼케이스에서 "신발이 커지는 도중에 페이지도 같이 내려간다"는 피드백의 원인이었음).
   const heroWrap = document.querySelector(".hero-wrap");
   const heroInner = document.querySelector("[data-hero-scrub]");
   const heroBg = document.querySelector("[data-hero-bg]");
@@ -157,17 +199,12 @@
     // 2026-11-03: 휠 가로채서 픽셀 좌표로 다음 섹션에 강제 스냅시키던 "부분 스냅"(tails) 시스템을
     // 통째로 제거 — 경계 케이스(섹션 길이, 뷰포트 크기, 스크롤 속도 조합)가 끝없이 나오고 고칠 때마다
     // 다른 쪽에서 또 터져서, 전 구간을 보통의 자연스러운 스크롤로 되돌림(design.md 11차 참고).
-    let smoothY = window.scrollY;
     function raf() {
       const realY = window.scrollY;
-      // 0.085 → 0.06: 마우스 휠처럼 값이 뚝뚝 끊겨 들어오는 입력에서도 체감되는 끊김이 있었음(2026-10-19 피드백) —
-      // 보간 폭을 더 키워서(=더 천천히 따라가서) 개별 휠 틱들이 뭉개져 보이도록.
-      smoothY += (realY - smoothY) * 0.06;
-      if (Math.abs(realY - smoothY) < 0.05) smoothY = realY;
 
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
       if (heroInner && bounds.hero && bounds.hero.range > 0) {
-        const progress = clamp01((smoothY - bounds.hero.start) / bounds.hero.range);
+        const progress = clamp01((realY - bounds.hero.start) / bounds.hero.range);
         // 2026-10-29: 기존 *1.6은 핀 구간의 62.5% 지점에서 이미 완전히 투명해져, 나머지 37.5%는
         // 아무것도 없는 빈 화면만 스크롤되는 "죽은 구간"이었음("여백이 너무 많아 미완성 같다" 피드백의
         // 원인). progress를 그대로 써서 핀이 풀리는 정확한 순간에 다 사라지도록 range 전체를 씀.
@@ -193,7 +230,7 @@
       // range의 75% 지점에서 이미 progress=1에 도달하게 해서(÷0.75), 완전히 확대된 채로 잠깐
       // "멈춰 있다가" sticky가 풀리도록(급작스러운 핸드오프 방지용 호흡).
       if (manifestoText && bounds.manifesto && bounds.manifesto.range > 0) {
-        const progress = clamp01((smoothY - bounds.manifesto.start) / (bounds.manifesto.range * 0.75));
+        const progress = clamp01((realY - bounds.manifesto.start) / (bounds.manifesto.range * 0.75));
         // 2026-10-29: 시작 크기 0.5→0.65, opacity 램프 ×2.5→×3 — 히어로 쪽 여백 수정과 짝으로
         // 텍스트가 더 일찍·더 또렷하게 잡혀서 핸드오프가 타이트하게 느껴지도록.
         const scale = 0.65 + progress * 0.5;
@@ -206,16 +243,17 @@
       // 그라데이션은 .showcase 섹션 전체에 걸친 정적 CSS라 여기선 안 건드림(css 참고, 스크롤에 따라
       // 저절로 드러남).
       if (showcaseShoe && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
-        const progress = clamp01((smoothY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
+        const progress = clamp01((realY - bounds.showcaseStage.start) / bounds.showcaseStage.range);
         // 2026-10-29: "확대됐을 때 사이즈를 조금만 줄여줘" — 최대 스케일 1.15 -> 1.0.
         const scale = 0.75 + progress * 0.25; // 0.75 -> 1.0, 확대되며 등장
         const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
         const rise = (1 - progress) * 50; // 아래에서 살짝 떠오르며 자리 잡음
         showcaseShoe.style.transform = `translateY(${rise.toFixed(1)}px) scale(${scale.toFixed(3)}) rotate(${rotate.toFixed(2)}deg)`;
         // 신발 뒤 글로우도 같은 진행률로 밝아짐(transform은 CSS 무한 애니메이션이 소유하므로 opacity만
-        // 건드려 충돌 없음, css 참고). 2026-11-02: "그라데이션은 신발 한정으로 은은하게"에 맞춰 최대
-        // opacity도 .9→.5로 낮춤 — 회전 링(showcaseRing)은 요청대로 완전히 제거.
-        if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.5).toFixed(3);
+        // 건드려 충돌 없음, css 참고). 2026-11-03: "신발 강조 글로우 좀 더 강조해줘" 요청으로 최대
+        // opacity를 .5→.85로 다시 올림(9차 때 .5로 낮췄던 걸 되돌리되 9차보다는 살짝 낮게 — 완전
+        // 불투명한 .9보다는 은은함을 유지).
+        if (showcaseGlow) showcaseGlow.style.opacity = (progress * 0.85).toFixed(3);
       }
 
       // 배경 패럴럭스: 각 섹션 배경이 콘텐츠보다 느리게(요소중심이 뷰포트중심과 가까울수록 변위 0에 수렴)

@@ -168,10 +168,13 @@ button, input { font: inherit; }
 /* 2026-11-02 9차: "빙글빙글 돌아가는 라인 인터랙션 빼줘" 요청으로 회전 링(`.showcase__ring`)은 완전히
    제거(html/js도 같이 정리). 남은 글로우는 "그라데이션은 신발 한정으로 가운데서 은은하게" 요청에
    맞춰 번지는 범위를 좁히고(120%→85%) 톤도 한 단계 낮춤(알파 .38→.22) — 신발 실루엣 바로 뒤에서만
-   살짝 비치는 정도로, 쇼케이스 전체에 퍼지는 느낌은 빠짐. */
+   살짝 비치는 정도로, 쇼케이스 전체에 퍼지는 느낌은 빠짐.
+   2026-11-03 13차: "신발 강조 글로우 좀 더 강조해줘" 요청으로 다시 올림 — 핵심 알파 .22→.42, 중간
+   정지점도 더 밝게(.05→.16) 해서 중심부가 또렷이 밝아 보이게, 블러도 36px→30px로 살짝 줄여 번짐
+   대신 윤곽이 또렷한 "조명" 느낌에 가깝게. 최대 opacity는 js에서 .5→.85로 올림(아래 참고). */
 .showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(215,255,62,.22), rgba(215,255,62,.05) 40%, transparent 65%);
-  filter: blur(36px); z-index: 0; opacity: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(215,255,62,.42), rgba(215,255,62,.16) 40%, transparent 65%);
+  filter: blur(30px); z-index: 0; opacity: 0; pointer-events: none;
   animation: showcaseGlowPulse 4s ease-in-out infinite; }
 @keyframes showcaseGlowPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.14); } }
 .showcase__shoe { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block;
