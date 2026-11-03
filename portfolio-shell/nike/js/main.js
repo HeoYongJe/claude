@@ -161,10 +161,13 @@
     // (specs) 이후는 sticky/스크럽이 아니라 카드를 쭉 읽으며 내려가는 보통의 문서 흐름이라 이 패턴
     // 대상이 아님 — 사용자와 상의해 쇼케이스까지만으로 범위를 확정.
     let snapping = false;
-    // 2026-11-03: 착지 직후 반대 방향 스냅이 바로 재발동하는 걸 막기 위한 쿨다운(아래 reverse 분기 참고).
+    // 2026-11-03: 착지 직후 반대 방향 스냅이 바로 재발동하는 걸 막기 위한 쿨다운(아래 forward/reverse
+    // 분기 공용 — 10차부터는 양방향 모두에 대칭 적용).
     let lastForwardLandKey = null;
     let lastForwardLandAt = -Infinity;
-    const REVERSE_SNAP_COOLDOWN_MS = 900;
+    let lastReverseLandKey = null;
+    let lastReverseLandAt = -Infinity;
+    const SNAP_LAND_COOLDOWN_MS = 900;
     // 2026-11-03: reverse 조건이 "y > deadStart"만으로 무제한 범위를 허용해서, CTA 근처처럼 꼬리
     // 구간에서 한참 떨어진 곳에서 빠르게(델타 큰) 위로 스크롤하면 그 한 번의 틱만으로 projected가
     // target+40 밑으로 내려가 버려 룩북 타이틀을 거치지도 않고 곧장 deadStart로 점프해버림(재현 확인).
@@ -172,6 +175,13 @@
     // 지점(target) 근처 REVERSE_ARM_ZONE_PX 안에서만 armed되게 제한 — 이 범위보다 멀리서 스크롤할
     // 땐 일반 스크롤 그대로 두어 룩북 콘텐츠를 반드시 거치고 나서야 꼬리 쪽 스냅이 걸리게 함.
     const REVERSE_ARM_ZONE_PX = 220;
+    // 2026-11-03 10차: forward 쪽은 반대로 "projected >= deadStart"만 있고 "y가 deadStart에 얼마나
+    // 가까운지"는 안 봤음 — 쇼케이스처럼 deadStart보다 한참 위에서 트랙패드 관성으로 크게(델타 큰)
+    // 한 번에 스크롤하면, 그 한 틱만으로 projected가 deadStart를 넘어버려 PRODUCT(specs) 섹션을
+    // 한 프레임도 보여주지 않고 통째로 건너뛰거나, 카드/통계 그리드가 다 보이기도 전에 중간에서
+    // 잘려버림("product 상단/하단이 짤린다" 재현 확인 — specs 섹션 높이가 뷰포트보다 짧아서 더 잘 걸림).
+    // reverse와 대칭으로 "현재 위치도 deadStart 근처여야" armed되게 제한.
+    const FORWARD_ARM_ZONE_PX = 220;
     function tweenScrollTo(target, duration) {
       const startY = window.scrollY;
       const delta = target - startY;
@@ -232,17 +242,28 @@
       // REVERSE_SNAP_COOLDOWN_MS 동안은 같은 꼬리의 reverse 스냅을 걸지 않고 자연스럽게 이어서
       // 스크롤되도록 쿨다운을 추가(공용 로직, 아래 for 루프 참고) — 히어로·매니페스토 꼬리도 구조상
       // 같은 문제가 있어 함께 적용.
+      // 2026-11-03 10차: 룩북+CTA를 합친 실제 콘텐츠 길이가 짧아서(현재 레이아웃 기준 target이 페이지
+      // 최대 스크롤 위치에서 불과 9px 안쪽), reverse 쪽 "착지 지점 근처" 판정이 룩북·CTA 거의 전체를
+      // 덮어버려 그 구간 어디서 위로 스크롤해도 곧장 PRODUCT 쪽으로 튕겨나갔음(재현 확인) — 튕겨나간
+      // 자리에서 작은 반대 방향 떨림만 있어도 forward가 바로 재발동해 왕복하며 "위로 스크롤이 막힌"
+      // 것처럼 보였던 것도 이 때문. 히어로·매니페스토 꼬리와 달리 이 구간(specs→lookbook)의 "꼬리"는
+      // 진짜 빈 공간이 아니라 룩북 타이틀이라는 실제 콘텐츠라, reverse 스냅 자체를 이 꼬리에서만 끈다
+      // (forward만 유지 — 내려갈 때 뭉개진 전환을 막는 원래 목적은 그대로 살림).
       if (bounds.lookbookSection && bounds.lookbookContent) {
         const lookbookNextStart = bounds.lookbookContent.start - 144;
         tails.push({
           deadStart: bounds.lookbookSection.top - window.innerHeight,
           bottom: lookbookNextStart + 24,
           nextStart: lookbookNextStart,
+          reverse: false,
         });
       }
       for (const tdef of tails) {
         const target = tdef.nextStart + 24; // 다음 섹션 시작 지점 + 여유(경계 1px 안 남게)
-        if (e.deltaY > 0 && y < tdef.bottom && projected >= tdef.deadStart) {
+        const canReverse = tdef.reverse !== false;
+        if (e.deltaY > 0 && y < tdef.bottom && y >= tdef.deadStart - FORWARD_ARM_ZONE_PX && projected >= tdef.deadStart) {
+          const justReverseLanded = canReverse && tdef.deadStart === lastReverseLandKey && performance.now() - lastReverseLandAt < SNAP_LAND_COOLDOWN_MS;
+          if (justReverseLanded) continue;
           e.preventDefault();
           snapping = true;
           lastForwardLandKey = tdef.nextStart;
@@ -250,11 +271,13 @@
           tweenScrollTo(target, 420);
           return;
         }
-        if (e.deltaY < 0 && y > tdef.deadStart && y <= target + REVERSE_ARM_ZONE_PX && (y <= target + 40 || projected <= target + 40)) {
-          const justLanded = tdef.nextStart === lastForwardLandKey && performance.now() - lastForwardLandAt < REVERSE_SNAP_COOLDOWN_MS;
-          if (justLanded) continue;
+        if (canReverse && e.deltaY < 0 && y > tdef.deadStart && y <= target + REVERSE_ARM_ZONE_PX && (y <= target + 40 || projected <= target + 40)) {
+          const justForwardLanded = tdef.nextStart === lastForwardLandKey && performance.now() - lastForwardLandAt < SNAP_LAND_COOLDOWN_MS;
+          if (justForwardLanded) continue;
           e.preventDefault();
           snapping = true;
+          lastReverseLandKey = tdef.deadStart;
+          lastReverseLandAt = performance.now();
           tweenScrollTo(tdef.deadStart, 420);
           return;
         }

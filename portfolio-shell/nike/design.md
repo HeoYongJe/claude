@@ -250,6 +250,37 @@
   armed**: 그보다 멀리서 스크롤할 땐 일반 스크롤 그대로 두어 룩북 콘텐츠를 반드시 거치고 나서야
   꼬리 스냅이 걸리게 함. `scrollTo` 스파이로 재검증 — CTA 쪽 먼 거리에서는 호출 0회(스냅 안 걸림),
   경계 근처(220px 안)에서는 정상적으로 deadStart까지 트윈 호출됨.
+  ⚠️ **10차(2026-11-03): 9차 배포 직후에도 "내려가는 건 PRODUCT만 빼고 다 괜찮은데 올라가는 게
+  문제, 맨 마지막 찍고 위로 스크롤하면 룩북 상단이 짤리고, 거기서 또 올라가면 아예 멈춘다"** —
+  실제 배포 레이아웃으로 다시 재현해보니 두 가지 근본 원인이 남아있었음:
+  1) **forward도 비대칭 문제가 있었음**: 9차에서 reverse에만 `ARM_ZONE`을 넣었는데, forward 쪽
+     조건(`y < bottom && projected >= deadStart`)에는 "현재 위치가 deadStart에 얼마나 가까운지"
+     제한이 전혀 없었음 — PRODUCT(specs) 섹션 높이가 뷰포트보다 짧아서, 쇼케이스처럼 한참 위에서
+     트랙패드 관성으로 크게(델타 큰) 한 번에 스크롤하면 그 한 틱만으로 `projected`가 deadStart를
+     넘어버려 PRODUCT 카드/BY THE NUMBERS를 한 프레임도 안 보여주고 통째로 건너뛰거나 중간에서
+     잘라버림("product 상단/하단이 짤린다"의 정체). forward에도 대칭으로 `FORWARD_ARM_ZONE_PX`
+     (220px, deadStart 기준 `y >= deadStart - 220`)를 추가.
+  2) **진짜 근본 원인 — 이 꼬리는 "deadStart~target" 사이에 reverse ARM_ZONE을 아무리 좁혀도 못
+     고치는 구조였음**: 현재 레이아웃에서 룩북+CTA를 합친 실제 콘텐츠 길이가 짧아서, forward의
+     착지 지점(target)이 **페이지가 스크롤될 수 있는 최대 위치에서 불과 ~9px 안쪽**(측정: target
+     8267.6 vs maxScrollY 8259)에 있음. 즉 "착지 지점 근처"를 뜻하는 reverse 판정(`y<=target+40`
+     또는 `ARM_ZONE` 220px)이 룩북+CTA 섹션 **거의 전체**를 덮어버려서, CTA 바닥이든 룩북 중간이든
+     위로 스크롤만 하면 사실상 항상 reverse가 걸려 PRODUCT 쪽으로 튕겨나갔음. 튕겨나간 자리
+     (deadStart)에서 트랙패드 특유의 미세한 반대 방향 떨림만 있어도 forward가 바로 재발동해
+     deadStart↔target을 핑퐁처럼 왕복 — 이게 "룩북 상단이 짤린다" / "위로 스크롤이 아예 안 된다"
+     둘 다의 실제 정체였음(둘 다 같은 핑퐁의 다른 순간을 찍은 것). 히어로·매니페스토 꼬리의
+     "진짜 빈 핀 구간"과 달리, 이 꼬리(specs→lookbook)의 deadStart~target 사이는 **룩북 타이틀이라는
+     실제 콘텐츠**라 reverse로 건너뛰어도 되는 구간이 아니었음 — **이 꼬리에서만 reverse 스냅
+     자체를 끔**(`reverse: false`, forward만 유지해 내려갈 때 뭉개진 전환 막던 원래 목적은 보존).
+     부수적으로, forward-land 직후 reverse 재발동을 막던 쿨다운과 대칭으로 reverse-land 직후
+     forward 재발동을 막는 쿨다운도 추가(`lastReverseLandKey`/`lastReverseLandAt`, 히어로·매니페스토
+     꼬리의 레이턴트 핑퐁 가능성 방지).
+     **검증**: `scrollTo` 스파이로 (a) 쇼케이스 쪽 먼 지점(y=6000)에서 큰 델타(1200) 플릭 → 호출
+     0회(PRODUCT 안 건너뜀), (b) deadStart 근처(y=7000)에서 일반 델타(150) → 정상 트윈, (c) 페이지
+     최하단(maxScrollY)에서 위로 스크롤 → 호출 0회(더 이상 reverse 안 걸림) 확인. 이어서 실제 휠
+     스크롤로 쇼케이스→PRODUCT(카드 4개+BY THE NUMBERS 전부)→LOOKBOOK 타이틀→패널 5개→CTA까지
+     내려갔다가, CTA 바닥에서부터 위로 끝까지(LOOKBOOK 타이틀 → BY THE NUMBERS → PRODUCT) 한 번도
+     끊기거나 튕기지 않고 스크롤되는 것을 스크린샷으로 확인.
 - **스크롤 스크러빙(제품 쇼케이스)**: 1회성 reveal이 아니라, 섹션 스크롤 진행률(0~1)에 실시간으로 바인딩해서 비주얼이
   계속 회전(`rotate`)·확대(`scale`)·글로우 강도가 변함 — Apple 제품 페이지처럼 "스크롤이 곧 애니메이션 타임라인"(유지).
 - **스펙 숫자**: 뷰포트 진입 시 `scale(0.3)+blur`에서 오버슈트 있는 큰 팝업(elastic) + 0→실제값 카운트업. 작은
