@@ -181,8 +181,9 @@
   const heroInner = document.querySelector("[data-hero-scrub]");
   const heroBg = document.querySelector("[data-hero-bg]");
   const heroScrollEl = document.querySelector("[data-hero-scroll]");
-  const manifesto = document.querySelector("[data-manifesto]");
-  const manifestoText = document.querySelector("[data-manifesto-scrub]");
+  // 2026-11-04: 매니페스토 텍스트는 더 이상 스크롤 스크럽이 아니라 1회성 입자 등장 효과로 교체됨
+  // (js/manifestoVaporize.js) — 여기선 더 이상 매니페스토 요소를 안 건드림. 배경 패럴럭스
+  // (.manifesto__bg, [data-speed])는 그대로 유지(아래 parallaxEls가 계속 처리).
   // "섹션 전환이 밋밋하다"는 피드백(2026-10-20) — 전체 섹션을 덮는 대신, **배경 레이어만** 콘텐츠와
   // 살짝 다른 속도로 움직이게 해서 "고정된 배경 위로 콘텐츠가 지나가는" 듯한 깊이감만 준다.
   // 매니페스토·쇼케이스 배경(.manifesto__bg, .showcase__bg)은 가뿐과 동일한 [data-speed] 뷰포트 패럴럭스
@@ -208,7 +209,6 @@
     function measure() {
       bounds = {
         hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
-        manifesto: manifesto ? { start: manifesto.offsetTop, range: manifesto.offsetHeight - window.innerHeight } : null,
         showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
       };
       // 바뀐 bounds를 화면에 바로 반영 — 아래 raf 루프가 유휴 상태로 멈춰있던 중이면(가만히 있을 때)
@@ -277,18 +277,6 @@
         if (heroBg) heroBg.style.transform = `scale(${(1 + progress * 0.15).toFixed(3)})`;
       }
 
-      // 매니페스토: 섹션(220vh) 내 sticky 구간 진행률 0→1에 텍스트 scale 0.5→1.15 바인딩.
-      // range의 75% 지점에서 이미 progress=1에 도달하게 해서(÷0.75), 완전히 확대된 채로 잠깐
-      // "멈춰 있다가" sticky가 풀리도록(급작스러운 핸드오프 방지용 호흡).
-      if (manifestoText && bounds.manifesto && bounds.manifesto.range > 0) {
-        const progress = clamp01((realY - bounds.manifesto.start) / (bounds.manifesto.range * 0.75));
-        // 2026-10-29: 시작 크기 0.5→0.65, opacity 램프 ×2.5→×3 — 히어로 쪽 여백 수정과 짝으로
-        // 텍스트가 더 일찍·더 또렷하게 잡혀서 핸드오프가 타이트하게 느껴지도록.
-        const scale = 0.65 + progress * 0.5;
-        manifestoText.style.transform = `scale(${scale.toFixed(3)})`;
-        manifestoText.style.opacity = Math.min(1, progress * 3).toFixed(3);
-      }
-
       // 쇼케이스 스테이지: 신발 사진이 살짝 기울어진 채 작게 시작해 확대되며 정자세로 "탁" 정리됨 —
       // 3D 대신 순수 2D 트랜스폼(scale+rotate+translateY)만으로 "시원시원한" 임팩트를 냄. 배경
       // 그라데이션은 .showcase 섹션 전체에 걸친 정적 CSS라 여기선 안 건드림(css 참고, 스크롤에 따라
@@ -333,9 +321,6 @@
     kickRaf();
     window.addEventListener("scroll", kickRaf, { passive: true });
     window.addEventListener("resize", kickRaf);
-  } else if (manifestoText) {
-    manifestoText.style.opacity = 1;
-    manifestoText.style.transform = "scale(1)";
   }
 
   // ---- 마퀴 트랙 폭 안전장치(가뿐 인기여행지 티커와 동일 패턴) ----
