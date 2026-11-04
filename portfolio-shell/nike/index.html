@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261103e">
+<link rel="stylesheet" href="css/style.css?v=20261104b">
 </head>
 <body>
 
@@ -41,22 +41,22 @@
     </header>
   </div>
 
-  <!-- ============ MANIFESTO (핀드 줌텍스트 — 섹션이 길고, 안쪽 텍스트는 sticky로 고정된 채 scale) ============ -->
-  <!-- 2026-11-04: 스크롤에 핀으로 묶여 크기가 커지던 매니페스토 연출을, 뷰포트에 들어오는 순간 한 번
-       "촤라락" 흩어진 입자가 모여 텍스트를 이루는 1회성 효과로 교체(사용자 제공 React "Text Vaporize"
-       Originkit 컴포넌트를 바닐라 캔버스로 포팅 — js/manifestoVaporize.js 참고, kineticGrid.js와 같은
-       패턴). 스크롤 위치에 안 묶이므로 더 이상 sticky 핀 구간(220vh)이 필요 없어 평범한 섹션으로 단순화
-       — "히어로→매니페스토 전환이 스크롤 인터랙션 때문에 어색하다" 피드백의 그 스크롤 종속성 자체를 없앰. -->
+  <!-- ============ MANIFESTO (타이핑 텍스트) ============ -->
+  <!-- 2026-11-04 17차: 입자 등장(캔버스, js/manifestoVaporize.js)을 다시 사용자 제공 React
+       "Typewriter" Originkit 컴포넌트 기반의 "한 글자씩 타이핑"으로 교체(js/manifestoTypewriter.js,
+       기존 텍스트 노드를 그대로 토큰화해 타이핑 — 캔버스 없음). 원본은 여러 문구를 계속 지우고 다시
+       치는 컴포넌트지만, 여기선 문구 1개를 한 번만 치고 끝(삭제·순환 없음) — IntersectionObserver
+       threshold 0.5로 섹션이 화면 중간쯤 보였을 때 시작, 섹션을 벗어났다가 다시 들어오면 처음부터
+       재생. -->
   <section class="manifesto">
     <div class="manifesto__bg" data-speed="0.15" aria-hidden="true"></div>
     <div class="container">
       <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
-      <div class="manifesto__textwrap" data-manifesto-vaporize>
+      <div class="manifesto__textwrap" data-manifesto-typewriter>
         <p class="manifesto__text">
           위대함은 타고나지 않는다.<br>
           매일, 한 걸음씩 <em>만들어진다.</em>
         </p>
-        <canvas class="manifesto__canvas" aria-hidden="true"></canvas>
       </div>
     </div>
   </section>
@@ -252,6 +252,6 @@
 
   <script src="js/main.js?v=20261104a"></script>
   <script src="js/kineticGrid.js?v=20261102b"></script>
-  <script src="js/manifestoVaporize.js?v=20261104c"></script>
+  <script src="js/manifestoTypewriter.js?v=20261104d"></script>
 </body>
 </html>

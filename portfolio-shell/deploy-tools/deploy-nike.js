@@ -8,7 +8,7 @@ const cfg = require("../deploy.config.js");
 const LOCAL_ROOT = path.join(__dirname, "..", "nike");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/nike";
 
-const FILES = ["index.html", "css/style.css", "js/main.js", "js/kineticGrid.js", "js/manifestoVaporize.js", "assets/img/nike_s.png"];
+const FILES = ["index.html", "css/style.css", "js/main.js", "js/kineticGrid.js", "js/manifestoTypewriter.js", "assets/img/nike_s.png"];
 
 (async () => {
   const client = new ftp.Client(20000);
