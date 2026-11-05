@@ -300,14 +300,16 @@ void main() {
     return t * t * (3 - 2 * t);
   }
   const SIDE_BIAS_RAMP = 500;
-  const SIDE_PUSH = 0.3;
-  const WOBBLE_DAMP_MAX = 0.8;
-  // 2026-11-05 29차: "전환이 여전히 뚝 끊긴다" — CSS 고정 opacity(.showcase 배경)는 섹션 DOM 경계를
-  // 넘는 순간 그 값이 통째로 적용돼 절벽처럼 보였음. 이 베일(html/css 참고)의 opacity를 위 sideBias와
-  // 정확히 같은 값으로 매 프레임 직접 설정해, 위치가 옆으로 비켜가는 것과 같은 리듬으로 서서히
-  // 덮이고 걷히게 함(최댓값 .8 — 완전히 안 보이게 하진 않고 "아주 약하게"는 남김).
+  // 2026-11-05 30차: "PRODUCT 안쪽이 너무 안 보인다(거의 완전히 깜깜함)" — SIDE_PUSH(핵을 더 밀어냄)와
+  // VEIL_MAX_OPACITY(덮개)가 둘 다 세게 걸려 있어서 겹쳐지며 사실상 완전히 꺼져버렸던 것(핵이 이미
+  // 원래도 모서리 밖으로 나가있는데 거기에 추가로 0.3을 더 밀어내면 falloff가 거의 다 죽이는 구간까지
+  // 가버림 + 그 위에 덮개 0.8까지 더해짐 = 이중으로 꺼짐). 둘 다 완화 — SIDE_PUSH 0.3→0.12,
+  // WOBBLE_DAMP_MAX 0.8→0.5, VEIL_MAX_OPACITY 0.8→0.45(덮개가 더 투명해져 더 많이 비침). 신발과
+  // 겹치지 않을 정도로만 옆으로 비켜가되, "아주 약하게는" 계속 보이도록.
+  const SIDE_PUSH = 0.12;
+  const WOBBLE_DAMP_MAX = 0.5;
   const waveveil = document.querySelector("[data-showcase-waveveil]");
-  const VEIL_MAX_OPACITY = 0.8;
+  const VEIL_MAX_OPACITY = 0.45;
 
   // 2026-11-05 22차: 더 이상 히어로 핀 구간에만 존재하는 배경이 아니라 "항상 떠 있는" 페이지 배경이라
   // IntersectionObserver(특정 요소가 화면에 있는지)는 더 이상 쓸 대상이 없음 — 탭이 백그라운드일 때만
