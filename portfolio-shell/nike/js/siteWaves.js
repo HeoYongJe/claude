@@ -38,17 +38,24 @@
   // 비례해 무한히 멀어지는 대신, `Math.sin/cos(scrollY*SCROLL_PAN_SPEED)`로 일정 반경 안을 왕복하도록
   // 교체** — 스크롤에 계속 반응해 움직이되(요청 그대로), 아무리 많이 스크롤해도 패턴의 "밝은 구간"
   // 밖으로 영영 벗어나지 않음.
-  const POS_X = -0.34, POS_Y = -0.12;
-  const ORBIT_RADIUS = 0.2, ORBIT_SPEED = 0.09;
-  const SCROLL_PAN_RADIUS = 0.22, SCROLL_PAN_SPEED = 0.0012;
-  const THETA = 1.58, TWIST = 0.5, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
+  // ⚠️ 25차(같은 날): "괜찮은데 너무 튄다, 조금만 더 죽이고, 위치를 사이드나 사선으로 빼서 덩쿨
+  // 느낌으로" — 소용돌이 핵을 화면 바깥(모서리)으로 밀어내 타이틀 영역엔 가는 줄기 몇 가닥만 걸쳐
+  // 보이게 하려 했음. ⚠️ 처음 시도(POS_X만 -0.34→-0.62로 키움)는 거의 안 움직였는데, TILT가 -1.69rad
+  // (~-97°)라 `rot(p,-TILT)`에서 거의 90도 회전이 걸려 p.x/p.y 기여도가 사실상 "맞바뀌어" 있었던
+  // 것(실측: cos(97°)≈-0.12, sin(97°)≈0.99라 p.x 변화는 회전 후 p'.y에 거의 다 들어가고, 화면 좌우
+  // 배치는 오히려 POS_Y가 주도함) — 즉 이 셰이더에서 POS_X/POS_Y는 화면의 가로/세로와 직접 대응하지
+  // 않음. 브라우저로 값을 바꿔가며 직접 확인해 **POS_Y를 크게(0.6) 줘서 소용돌이 핵을 우상단 모서리
+  // 밖으로 밀어냄** — 화면엔 그 모서리에서 대각선으로 드리워지는 가는 줄기만 걸쳐 보이는 "덩쿨" 구도.
+  // THETA(선 다발의 기울기)도 1.58→1.32로 더 눕혀 사선으로 드리워지는 느낌을 더함.
+  const POS_X = -0.1, POS_Y = 0.6;
+  const ORBIT_RADIUS = 0.14, ORBIT_SPEED = 0.09;
+  const SCROLL_PAN_RADIUS = 0.3, SCROLL_PAN_SPEED = 0.0012;
+  const THETA = 1.32, TWIST = 0.5, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
   const WAVE_AMOUNT = 0.197, WAVE_SCALE = 2.48;
   const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 2.9;
   const COLOR_TRAVEL = -0.32, COLOR_CYCLE = 2.0;
-  // 2026-11-05 23차: "전체적으로 가독성이 떨어진다"는 피드백(2번과 같은 결) — 전체 밝기를 0.55→0.34로
-  // 더 낮춤. 위 ①②③로 소용돌이의 가장 밝은 핵이 텍스트 뒤에 고정돼 있지 않게 된 것과 합쳐, 어느
-  // 스크롤 위치에서도 텍스트 대비가 과하게 떨어지는 구간이 줄어들도록 함.
-  const INTENSITY = 0.34;
+  // 25차: "너무 튄다, 조금만 더 죽여달라" — 0.34→0.24.
+  const INTENSITY = 0.24;
   // 스크롤할수록 웨이브 흐름 패턴 자체도 같이 흘러가도록(카메라 이동과는 별개로 패턴의 위상도 변화).
   const SCROLL_TO_FLOW = 0.00055;
 
