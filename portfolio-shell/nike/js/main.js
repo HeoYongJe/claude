@@ -200,7 +200,10 @@
   // 뷰포트 안에서 위치가 바뀌어 패럴럭스가 성립함. 히어로 배경(.hero__bg)은 **sticky로 고정된 .hero 안**이라
   // 뷰포트 기준 위치가 안 바뀌어 같은 공식이 통하지 않음 → 아래 히어로 블록에서 progress에 직접 바인딩해
   // "배경은 전경보다 훨씬 느리게 확대"되는 걸로 같은 효과를 냄.
-  const parallaxEls = [...document.querySelectorAll("[data-speed]")];
+  // 2026-11-05: 사선 스레드(diag-line, css/html 참고)의 "컨텐츠가 선을 따라 내려온다" 효과를 위해
+  // data-speed-x(가로 드리프트)를 추가 — 세로용 data-speed와 같은 공식을 x축에도 그대로 적용. 둘 다
+  // 없는 요소는 안 모이게 기존 선택자에 or 조건만 더함(data-speed만 있던 기존 요소는 동작 그대로).
+  const parallaxEls = [...document.querySelectorAll("[data-speed], [data-speed-x]")];
 
   if (!reduceMotion) {
     const clamp01 = (v) => Math.min(1, Math.max(0, v));
@@ -263,10 +266,12 @@
       // 전부 그 다음에 몰아서 하도록(쓰기 전용) 순서를 바꿔 섞이지 않게 함.
       const viewportCenter = window.innerHeight / 2;
       const parallaxOffsets = parallaxEls.map((el) => {
-        const speed = parseFloat(el.dataset.speed) || 0;
+        const speedY = parseFloat(el.dataset.speed) || 0;
+        const speedX = parseFloat(el.dataset.speedX) || 0;
         const rect = el.getBoundingClientRect();
         const elCenter = rect.top + rect.height / 2;
-        return -(elCenter - viewportCenter) * speed;
+        const dist = elCenter - viewportCenter; // 뷰포트 중앙으로부터의 거리(같은 값을 x·y 둘 다에 씀)
+        return { dx: -dist * speedX, dy: -dist * speedY };
       });
 
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
@@ -318,7 +323,8 @@
 
       // 배경 패럴럭스 적용(쓰기만 — geometry는 이 함수 맨 위에서 이미 읽어둠)
       parallaxEls.forEach((el, i) => {
-        el.style.transform = `translateY(${parallaxOffsets[i].toFixed(1)}px)`;
+        const { dx, dy } = parallaxOffsets[i];
+        el.style.transform = `translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px)`;
       });
 
       // 스크롤 위치가 그대로면 더 반영할 변화가 없다는 뜻 — 몇 프레임만 더 지켜보다 멈춤(완전히
