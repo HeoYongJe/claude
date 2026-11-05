@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261106a">
+<link rel="stylesheet" href="css/style.css?v=20261106c">
 </head>
 <body>
 
@@ -67,10 +67,12 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT (2026-11-06 40차: 신발 스테이지/기능 하이라이트/BY THE NUMBERS를
-       패널 3개로 나눴던 39차를 되돌리고, 한 화면(.showcase, 스냅 패널 1개) 안에 전부 들어오는
-       레이아웃으로 재구성 — 신발(좌) / 타이틀+기능 리스트(우) 2단, 그 아래 BY THE NUMBERS를
-       가로 한 줄로. design.md Motion §5 40차 참고. ============ -->
+  <!-- ============ PRODUCT (2026-11-06 41차: "옹졸해 보인다, 크게크게 시원하게, 레이아웃이 너무
+       정직하다(=뻔한 2단+풀폭 바) — 트렌디하게 자유분방하게" 피드백으로 재구성. 신발이 2개 행
+       (타이틀+기능 리스트 / BY THE NUMBERS)에 걸쳐 왼쪽을 크게 차지하고, 오른쪽만 위아래로 쌓이는
+       비대칭 L자 구성 — 신발 아래 왼쪽엔 여백만 남아 "여기저기 꽉 채운 정직한 그리드"에서 벗어남.
+       신발·타이틀·숫자 전부 큼직하게 키우고, BY THE NUMBERS는 흰 박스 카드 대신 신발처럼 큰
+       아웃라인 숫자를 어두운 배경에 직접 얹는 에디토리얼 톤으로. design.md Motion §5 41차 참고. ============ -->
   <section class="showcase" id="showcase">
     <div class="showcase__inner container">
       <p class="showcase__kicker" data-reveal>PRODUCT</p>
@@ -80,50 +82,57 @@
           <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
         </div>
         <div class="showcase__info">
-          <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
+          <h2 class="showcase__title" data-reveal>디테일이<br>성능이 된다</h2>
           <ul class="feature-list">
             <li class="feature-item" data-reveal data-reveal-dir="left">
               <span class="feature-item__num">01</span>
-              <h3>반응형 쿠셔닝</h3>
-              <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
+              <div class="feature-item__text">
+                <h3>반응형 쿠셔닝</h3>
+                <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
+              </div>
             </li>
             <li class="feature-item" data-reveal data-reveal-dir="right">
               <span class="feature-item__num">02</span>
-              <h3>초경량 니트 갑피</h3>
-              <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
+              <div class="feature-item__text">
+                <h3>초경량 니트 갑피</h3>
+                <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
+              </div>
             </li>
             <li class="feature-item" data-reveal data-reveal-dir="left">
               <span class="feature-item__num">03</span>
-              <h3>에너지 리턴 아웃솔</h3>
-              <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
+              <div class="feature-item__text">
+                <h3>에너지 리턴 아웃솔</h3>
+                <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
+              </div>
             </li>
             <li class="feature-item" data-reveal data-reveal-dir="right">
               <span class="feature-item__num">04</span>
-              <h3>올데이 핏</h3>
-              <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
+              <div class="feature-item__text">
+                <h3>올데이 핏</h3>
+                <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
+              </div>
             </li>
           </ul>
         </div>
-      </div>
-
-      <div class="specs">
-        <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
-        <div class="specs__grid">
-          <div class="spec-card" data-reveal data-reveal-dir="left">
-            <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
-            <div class="spec-card__label">초경량 무게</div>
-          </div>
-          <div class="spec-card" data-reveal data-reveal-dir="right">
-            <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
-            <div class="spec-card__label">쿠셔닝 두께</div>
-          </div>
-          <div class="spec-card" data-reveal data-reveal-dir="left">
-            <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
-            <div class="spec-card__label">통기성 설계</div>
-          </div>
-          <div class="spec-card" data-reveal data-reveal-dir="right">
-            <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
-            <div class="spec-card__label">리사이클 소재</div>
+        <div class="specs">
+          <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
+          <div class="specs__grid">
+            <div class="spec-card" data-reveal data-reveal-dir="left">
+              <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
+              <div class="spec-card__label">초경량 무게</div>
+            </div>
+            <div class="spec-card" data-reveal data-reveal-dir="right">
+              <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
+              <div class="spec-card__label">쿠셔닝 두께</div>
+            </div>
+            <div class="spec-card" data-reveal data-reveal-dir="left">
+              <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
+              <div class="spec-card__label">통기성 설계</div>
+            </div>
+            <div class="spec-card" data-reveal data-reveal-dir="right">
+              <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
+              <div class="spec-card__label">리사이클 소재</div>
+            </div>
           </div>
         </div>
       </div>

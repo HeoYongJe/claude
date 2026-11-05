@@ -203,19 +203,28 @@ button, input { font: inherit; }
    스포트라이트(글로우)로 공들여 다듬어둔 "집중 모먼트"라 공통 .site-waves가 끼어들면 주목도를
    다툼(그물 kineticGrid를 뺀 것과 같은 이유).
    ⚠️ 2026-11-06 40차: 웨이브 배경 자체를 걷어내며(위 §1 참고) 신발 스테이지/기능 하이라이트/
-   BY THE NUMBERS를 패널 3개로 나눴던 구조(39차)도 함께 되돌림 — "PRODUCT가 한 화면 안에 다
-   들어오게, 신발은 왼쪽, 설명은 오른쪽, 그 아래 BY THE NUMBERS"라는 요청으로 `.showcase` 하나가
-   다시 스냅 패널 1개가 되고, 그 안에서 2단 그리드(신발|정보) + 하단 스펙 바로 레이아웃을 짬. 신발
-   등장은 여전히(39차와 동일하게) 패널이 뷰포트에 들어올 때 1회 재생되는 CSS 키프레임
-   (`.showcase__main.is-active`, js IntersectionObserver). */
+   BY THE NUMBERS를 패널 3개로 나눴던 구조(39차)도 함께 되돌림 — `.showcase` 하나가 다시 스냅
+   패널 1개가 되고, 그 안에서 2단 그리드(신발|정보) + 하단 스펙 바로 레이아웃을 짬.
+   ⚠️ 2026-11-06 41차: "옹졸해 보인다, 크게크게 시원하게. 레이아웃이 너무 정직하다(뻔한 2단+풀폭
+   바), 트렌디하게 자유분방하게" — 40차의 "2단 + 그 아래 풀폭 바"는 모든 모서리가 가지런히 맞는
+   대칭 그리드라 "정직"(=뻔함)해 보였던 것으로 판단, 비대칭 L자 구성으로 재설계:
+   `.showcase__main`을 2열×2행 그리드로 바꾸고 **신발(`.showcase__visual`)이 두 행 전부를
+   세로로 가로질러**(`grid-row:1/3`) 왼쪽을 크게 차지, 오른쪽 좁은 칼럼에만 위(타이틀+기능
+   리스트)·아래(BY THE NUMBERS)가 쌓임 — 신발 왼쪽 아래는 일부러 비워둬서(= 콘텐츠로 안 채움)
+   "여백 자체가 레이아웃"인 에디토리얼 구성이 됨. 신발·타이틀·숫자 크기도 전부 큰 폭으로 키움
+   (아래 각 규칙 참고). 신발 등장은 여전히(39차와 동일) 패널이 뷰포트에 들어올 때 1회 재생되는
+   CSS 키프레임(`.showcase__main.is-active`, js IntersectionObserver). */
 .showcase { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; background: var(--ink);
   scroll-snap-align: start; }
-.showcase__inner { width: 100%; padding: 96px 24px 40px; }
-.showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
-/* 2단 그리드: 왼쪽 신발, 오른쪽 타이틀+기능 리스트 — 39차까지는 신발을 "메인 비주얼"처럼 화면을
-   꽉 채웠지만(최대 1600×880), 이제 같은 화면에 설명·스펙까지 다 들어가야 해서 훨씬 작아짐. */
-.showcase__main { display: grid; grid-template-columns: 1.05fr 1fr; gap: 32px; align-items: center; margin-bottom: 36px; }
-.showcase__visual { position: relative; width: 100%; height: clamp(220px, 34vh, 400px); }
+.showcase__inner { width: 100%; padding: 90px 24px 32px; }
+.showcase__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 16px; }
+/* L자 비대칭 그리드: 신발이 두 행(타이틀+기능 리스트 행 / BY THE NUMBERS 행)에 걸쳐 왼쪽 전체를
+   차지, 오른쪽 좁은 칼럼에 두 블록이 세로로 쌓임 — 40차의 "2단+풀폭 바" 대칭 구조를 깨는 핵심. */
+.showcase__main { display: grid; grid-template-columns: 1.3fr 1fr; grid-template-rows: auto auto; column-gap: 56px; row-gap: 28px; }
+/* 신발을 "메인 비주얼"처럼 크게 — 40차의 clamp(220,34vh,400)에서 거의 1.4배로 키움. 두 행에
+   걸치므로 자기 칸 안에서 세로 중앙 정렬. */
+.showcase__visual { grid-column: 1; grid-row: 1 / 3; position: relative; width: 100%; align-self: center;
+  height: clamp(320px, 50vh, 560px); }
 .showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(215,255,62,.42), rgba(215,255,62,.16) 40%, transparent 65%);
   filter: blur(30px); z-index: 0; opacity: 0; pointer-events: none;
@@ -228,21 +237,29 @@ button, input { font: inherit; }
   opacity: 0; transform: translateY(50px) scale(.75) rotate(-8deg); }
 .showcase__main.is-active .showcase__shoe { animation: showcaseShoeIn .9s cubic-bezier(.22,1,.36,1) forwards; }
 @keyframes showcaseShoeIn { from { opacity: 0; transform: translateY(50px) scale(.75) rotate(-8deg); } to { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); } }
-.showcase__info { display: flex; flex-direction: column; justify-content: center; }
-.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(24px, 2.6vw, 34px); color: var(--text-on-dark);
-  margin-bottom: 24px; position: relative; }
+.showcase__info { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; justify-content: center; }
+/* 타이틀: 24~34px(40차) → 매니페스토·룩북급 디스플레이 사이즈로 키우고 2줄로(html에서 <br>) —
+   "크게크게 시원하게" 요청의 핵심. */
+.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(36px, 4vw, 52px); line-height: 1.05;
+  color: var(--text-on-dark); margin-bottom: 28px; position: relative; word-break: keep-all; }
 .showcase__title[data-reveal] { transform: translateY(46px) scale(.88);
   transition: opacity .75s cubic-bezier(.34,1.56,.64,1), transform .9s cubic-bezier(.34,1.56,.64,1), filter .9s cubic-bezier(.2,.7,.2,1); }
 .showcase__title[data-reveal].is-revealed { transform: translateY(0) scale(1); }
-/* 기능 리스트: 39차의 2열 + 52~84px 아웃라인 숫자(화면을 거의 다 쓰는 전용 패널 기준 사이즈)는
-   이제 신발과 한 화면을 나눠 쓰는 좁은 칸에 안 맞아 1열 + 숫자 크게 축소로 압축. */
-.feature-list { list-style: none; display: flex; flex-direction: column; gap: 16px; }
-.feature-item { display: flex; align-items: baseline; gap: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.14); }
-.feature-item__num { flex: none; font-family: var(--font-display); font-size: 20px; font-weight: 700;
-  letter-spacing: -.02em; color: transparent; -webkit-text-stroke: 1.5px rgba(215,255,62,.55); }
-.feature-item h3 { display: inline; font-size: 15px; font-weight: 700; color: var(--text-on-dark); }
-.feature-item p { display: inline; font-size: 13px; color: var(--muted-on-dark); line-height: 1.5; }
-.feature-item h3::after { content: " — "; color: var(--muted-on-dark); font-weight: 400; }
+/* 기능 리스트: 40차의 20px 숫자는 "옹졸해 보인다"는 지적의 큰 원인 — 큰 아웃라인 숫자(다른
+   섹션의 feature-item__num 톤과 통일)로 키우고 줄도 세로로 분리(제목/설명 한 줄 압축 대신 각자
+   줄 차지)해 호흡을 줌. */
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+.feature-item { display: flex; align-items: flex-start; gap: 18px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.14); }
+.feature-item__num { flex: none; font-family: var(--font-display); font-size: 32px; font-weight: 700; line-height: 1;
+  letter-spacing: -.02em; color: transparent; -webkit-text-stroke: 1.5px rgba(215,255,62,.6); }
+/* 버그(구현 중 발견): num·h3·p가 .feature-item의 직계 flex 자식 3개로 나란히 놓여 있어서, 제목이
+   매우 좁은 칸에 갇혀 "반응형 쿠셔" + "닝"처럼 음절 단위로 어색하게 줄바꿈됐음 — h3+p를
+   .feature-item__text로 묶어 [숫자 | 텍스트블록] 2칸 구성으로 바꾸고, 그 블록 안에서 h3(제목)가
+   먼저, p(설명)가 그 아래 줄에 오도록(기본 block 흐름) 수정. min-width:0은 flex 자식의 기본값
+   (min-width:auto)이 내용 폭만큼 넘치는 걸 막기 위함. */
+.feature-item__text { flex: 1 1 auto; min-width: 0; }
+.feature-item h3 { font-size: 17px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 4px; word-break: keep-all; }
+.feature-item p { font-size: 13px; color: var(--muted-on-dark); line-height: 1.5; }
 
 /* ---- lookbook~cta 배경 장식 레이어 (2026-10-29 8차~10차, 2026-11-03 11차) ----
    두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
@@ -277,24 +294,24 @@ button, input { font: inherit; }
 .speedfield__blob--b { width: 38vw; max-width: 620px; top: 48%; left: -12%; opacity: .26; }
 .speedfield__blob--c { width: 30vw; max-width: 480px; top: 76%; right: -10%; opacity: .3; }
 
-/* ---- 스펙 하이라이트 ---- */
-/* 2026-11-06 40차: "PRODUCT가 한 화면에 다 들어오게" — 전용 스냅 패널(100svh)이었던 구조를 걷어내고
-   `.showcase__main`(신발|정보 2단) 바로 아래 압축된 가로 바 하나로. 카드 패딩·숫자 크기를 큰 폭으로
-   줄이고 위쪽에 얇은 구분선만 둬서 "같은 화면의 하단 바"처럼 읽히게 함. */
-.specs { border-top: 1px solid rgba(255,255,255,.12); padding-top: 24px; }
-.specs__kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 16px; }
-.specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-.spec-card { text-align: center; padding: 16px 8px; background: var(--paper2); border-radius: 14px; transition: transform .25s; }
-.spec-card:hover { transform: translateY(-4px); }
-/* 2026-11-05 23차: body 기본 글자색이 다크 테마(on-dark, 밝은색)로 바뀌면서 이 카드(밝은 --paper2
-   섬)만 상속으로 흰 글자가 떠 거의 안 보이던 버그 — 이 카드 안 숫자만 명시적으로 어두운 --text. */
-.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: 26px; letter-spacing: -.01em; color: var(--text); }
+/* ---- 스펙 하이라이트(BY THE NUMBERS) ---- */
+/* 2026-11-06 41차: "옹졸해 보인다, 레이아웃이 너무 정직하다" 피드백 — 40차의 흰 박스 카드 4개
+   가로 일렬(사무용 대시보드처럼 보였던 원인 중 하나)을 완전히 버리고, 신발 뒤 어두운 배경 위에
+   직접 얹는 **큰 아웃라인 숫자**(feature-item__num과 같은 에디토리얼 톤)로 교체. `.showcase__main`
+   그리드의 오른쪽 좁은 칼럼(2행)에 들어가므로 2×2 배치, 짝수 칸만 아래로 내려 쓴 비대칭 스태거
+   (feature-list의 원조 스태거드 패턴과 같은 어휘)로 "너무 가지런하다"는 인상을 깨뜨림. */
+.specs { grid-column: 2; grid-row: 2; }
+.specs__kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 20px; }
+.specs__grid { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 28px; row-gap: 22px; }
+.spec-card:nth-child(even) { margin-top: 24px; }
+.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(32px, 3.4vw, 46px); line-height: 1;
+  letter-spacing: -.01em; color: transparent; -webkit-text-stroke: 1.5px var(--volt); }
 .spec-card__num span[data-count] { display: inline-block; }
 /* 숫자 팝업(카운트업 시작과 함께 JS가 is-popped를 붙임) — 작은 페이드가 아니라 크게 튀어 들어오는 느낌 */
 .spec-card__num span[data-count].is-popped { animation: numPop .7s cubic-bezier(.17,.89,.32,1.4) both; }
 @keyframes numPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.spec-card__num span:not([data-count]) { font-size: 14px; margin-left: 1px; color: var(--muted); }
-.spec-card__label { margin-top: 4px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.spec-card__num span:not([data-count]) { font-size: 16px; margin-left: 2px; color: var(--muted-on-dark); -webkit-text-stroke: 0; }
+.spec-card__label { margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--muted-on-dark); }
 
 /* ---- 룩북 ---- */
 /* 2026-11-03: "룩북하고 알림신청 사이 간격 없애고, 하나로 묶으라니까" — 아코디언 패널이 끝난 뒤
@@ -469,13 +486,17 @@ button, input { font: inherit; }
 @media (max-width: 900px) {
   /* 좁은 화면에서는 블러 반경(고정 px)이 섹션 폭 대비 과하게 커져 번져 보이므로 줄임 */
   .speedfield__blob { filter: blur(50px); }
-  /* 2026-11-06 40차: 신발|정보 2단 그리드를 모바일에서는 세로로 쌓음(신발 위, 설명 아래) — 한
-     화면에 다 넣는 건 데스크톱 기준 요청이라 모바일은 기존처럼 스냅 패널 안에서 더 스크롤해도
-     되는 하이브리드로 둠(§39차부터 유지해온 타협). */
+  /* 2026-11-06 40/41차: 신발|정보 비대칭 L자 그리드를 모바일에서는 세로 1단(신발→타이틀/기능→
+     BY THE NUMBERS, DOM 순서 그대로)으로 쌓음 — 한 화면에 다 넣는 건 데스크톱 기준 요청이라
+     모바일은 기존처럼 스냅 패널 안에서 더 스크롤해도 되는 하이브리드로 둠(§39차부터 유지해온
+     타협). grid-row:1/3로 두 행을 가로지르던 신발도 1단에서는 의미 없어져 auto로 리셋. */
   .showcase__inner { padding-top: 88px; }
-  .showcase__main { grid-template-columns: 1fr; gap: 24px; }
-  .showcase__visual { height: 44vh; }
+  .showcase__main { grid-template-columns: 1fr; grid-template-rows: auto; gap: 24px; }
+  .showcase__visual { grid-column: auto; grid-row: auto; height: 44vh; }
+  .showcase__info { grid-column: auto; grid-row: auto; }
+  .specs { grid-column: auto; grid-row: auto; }
   .specs__grid { grid-template-columns: repeat(2, 1fr); }
+  .spec-card:nth-child(even) { margin-top: 0; }
   /* 모바일은 호버가 없으므로 가로 아코디언을 세로로 눕힘 — 패널이 화면 폭 꽉 찬 가로 띠(접힌 높이
      84px)로 쌓이고, 탭하면 js가 붙인 .is-active가 height를 키움(위 hover 전용 규칙은 pointer:fine에
      갇혀 있어 터치에선 애초에 안 걸림 — :focus-visible만 공통으로 계속 작동). */
