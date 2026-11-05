@@ -70,19 +70,6 @@ button, input { font: inherit; }
    줄고 있었지만 시각적으로는 이미 사라진 뒤 한동안 빈 화면만 스크롤됨). 요청대로 "텍스트가 사라지고
    탁 다음 섹션으로"가 되도록 scale 최댓값을 1.9→1.4로 낮춤(아래 js) — 확대·패스스루 느낌(유지 대상)은
    살리면서, 잘려나가는 시점과 opacity가 0이 되는 시점이 거의 같아져 사라짐과 전환이 한 호흡으로 붙음. */
-/* ---- 사선 스레드(diag-line, 2026-11-05) ----
-   "배경이 사선으로 전체 사이트를 가로지르고, 그 선을 따라 컨텐츠가 내려오는" 요청 — 섹션마다 독립된
-   짧은 선분(viewBox 0~100 기준 x1/x2로 시작·끝 위치만 지정)을 쓰되, 한 섹션의 하단 출구 x%를 다음
-   섹션의 상단 진입 x%와 정확히 맞춰서(모든 섹션이 풀블리드 100vw라 x%가 곧 같은 화면 좌표) 눈에는
-   페이지 전체를 관통하는 하나의 선처럼 보이게 함. 경로: 히어로(10→30) → 매니페스토(30→50) →
-   (마퀴는 너무 얇아 건너뜀) → 쇼케이스 스테이지(50→74) → (스펙 카드 그리드는 선과 겹치면 지저분해
-   건너뜀) → 룩북(74→50, 중앙으로 모이며 CTA의 볼트 단색 블록에 스며들듯 마무리). 색은 새로 들이지
-   않고 포인트컬러(volt) 한 색을 낮은 불투명도의 얇은 선으로만 써서 design.md §2 "volt 남용 금지"를
-   어기지 않도록 함(heroWaves와 같은 논리). vector-effect:non-scaling-stroke로 viewBox 비균등 스케일
-   (preserveAspectRatio:none, 섹션마다 가로/세로 비율이 다름)에도 선 두께는 화면 기준으로 일정하게 유지. */
-.diag-line { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.diag-line line { stroke: var(--volt); stroke-width: 1.4; opacity: .16; vector-effect: non-scaling-stroke; }
-
 .hero-wrap { height: 180vh; position: relative; }
 .hero { position: sticky; top: 0; height: 100vh; height: 100svh; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; }
 .hero__bg { position: absolute; inset: -10% -10%; background:
@@ -274,7 +261,7 @@ button, input { font: inherit; }
    PRODUCT 한 섹션으로 합쳤을 때와 같은 방식 — 감싸는 쪽(lookbook) 하단 패딩은 비우고, cta 자신의
    상단 패딩(140px) 하나만 남겨 간격을 절반으로 줄이고 두 블록이 이어 붙은 느낌을 내도록 함.
    design.md Components "제품 쇼케이스" 참고. */
-.lookbook { position: relative; padding: 140px 0 0; overflow: hidden; }
+.lookbook { padding: 140px 0 0; overflow: hidden; }
 /* 2026-10-30: 아래는 전부 폐기된 "랭크 기반 스택 캐러셀"(1~11차)의 시행착오 기록 — 코드는 Fluid Hover
    Accordion으로 교체됐지만, 같은 함정(고정 px, 화면 끝까지 채우기, 모바일 분기)을 또 밟지 않도록 기록은
    남겨둠. 새 구현 CSS는 이 주석 블록 다음부터. 자세한 폐기 배경·새 설계는 design.md Lookbook 항목 참고.
@@ -470,6 +457,6 @@ button, input { font: inherit; }
   .showcase__shoe { transform: none !important; }
   .showcase__glow { animation: none !important; opacity: .3; }
   .spec-card__num span[data-count] { animation: none !important; }
-  [data-speed], [data-speed-x] { transform: none !important; }
+  [data-speed] { transform: none !important; }
   .manifesto__char-in { animation: none !important; opacity: 1; transform: none; }
 }

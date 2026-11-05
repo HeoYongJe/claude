@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261105b">
+<link rel="stylesheet" href="css/style.css?v=20261105a">
 </head>
 <body>
 
@@ -38,11 +38,6 @@
       <div class="hero__bg" data-hero-bg aria-hidden="true">
         <canvas class="hero__waves" data-hero-waves aria-hidden="true"></canvas>
       </div>
-      <!-- 2026-11-05: 사선 스레드 시작점(10%→30%) — css §사선 스레드 참고. 히어로는 sticky로 핀돼
-           있어 패럴럭스(data-speed) 공식이 안 통하므로(js 주석 참고) 여기만 움직임 없이 정적으로 둠. -->
-      <svg class="diag-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <line x1="10" y1="0" x2="30" y2="100"></line>
-      </svg>
       <div class="hero__inner" data-hero-scrub>
         <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
         <h1 class="hero__word" data-reveal>NIKE</h1>
@@ -62,17 +57,9 @@
        재생. -->
   <section class="manifesto">
     <div class="manifesto__bg" data-speed="0.15" aria-hidden="true"></div>
-    <!-- 2026-11-05: 사선 스레드 이어짐(30%→50%, 히어로 출구 30%와 일치) — css §사선 스레드 참고.
-         이 섹션은 sticky가 아니라 보통 흐름이라 data-speed 패럴럭스가 정상 작동(아래 kicker의
-         data-speed-x와 같은 공식 — js §패럴럭스 참고)해 은은히 깊이감을 줌. -->
-    <svg class="diag-line" data-speed="0.08" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <line x1="30" y1="0" x2="50" y2="100"></line>
-    </svg>
     <div class="container">
       <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
-      <!-- data-speed-x는 여기(래퍼)에만 — data-reveal 요소에 직접 달면 매 프레임 JS가 쓰는 transform이
-           등장 페이드업(CSS transition의 translateY)을 덮어써 애니메이션이 깨짐(js §패럴럭스 참고). -->
-      <div class="manifesto__textwrap" data-manifesto-typewriter data-speed-x="0.05">
+      <div class="manifesto__textwrap" data-manifesto-typewriter>
         <p class="manifesto__text">
           위대함은 타고나지 않는다.<br>
           매일, 한 걸음씩 <em>만들어진다.</em>
@@ -105,12 +92,6 @@
              그때그때 바꿔주면 된다"고 명시적으로 승인 — 신발 뒤 순수 배경 텍스처로만 깔림(주된 인터랙션
              아님). 호버 가능한 포인터(desktop)에서만 커서 추종, 터치·reduced-motion은 정적 격자 1프레임만. -->
         <canvas class="showcase__gridfx" data-showcase-gridfx aria-hidden="true"></canvas>
-        <!-- 2026-11-05: 사선 스레드 이어짐(50%→74%, 매니페스토 출구 50%와 일치) — css §사선 스레드 참고.
-             이 스테이지는 sticky로 핀돼 있어 패럴럭스(data-speed)가 안 통하므로(히어로와 동일 이유)
-             정적으로만 둠. -->
-        <svg class="diag-line" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-          <line x1="50" y1="0" x2="74" y2="100"></line>
-        </svg>
         <div class="showcase__visual">
           <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
           <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
@@ -119,8 +100,7 @@
     </div>
 
     <div class="showcase__content">
-      <!-- data-speed-x는 reveal 요소가 아닌 이 래퍼에 — 이유는 매니페스토 쪽 주석과 동일(js §패럴럭스). -->
-      <div class="container" data-speed-x="0.05">
+      <div class="container">
         <p class="showcase__kicker" data-reveal>PRODUCT</p>
         <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
         <ul class="feature-list">
@@ -196,15 +176,7 @@
        디테일 텍스트가 드러남. 폐기 배경·설계 근거는 design.md Lookbook 항목 참고.
        PLACEHOLDER: 각 패널의 실사 이미지는 .ph-visual 배경(그라데이션)을 지우고 <img>로 교체 예정. -->
   <section class="lookbook">
-    <!-- 2026-11-05: 사선 스레드 마무리(74%→50%, 쇼케이스 스테이지 출구 74%와 일치) — 중앙으로 모이며
-         다음 CTA의 볼트 단색 블록에 스며들듯 끝남. css §사선 스레드 참고. 보통 흐름 섹션이라
-         data-speed 패럴럭스도 정상 작동. -->
-    <svg class="diag-line" data-speed="0.08" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <line x1="74" y1="0" x2="50" y2="100"></line>
-    </svg>
-    <!-- data-speed-x는 reveal 요소가 아닌 이 래퍼에 — 이유는 매니페스토 쪽 주석과 동일(js §패럴럭스).
-         쇼케이스(50→74, 우측)와 반대로 이 섹션의 선은 좌측(74→50)으로 모이므로 음수. -->
-    <div class="container" data-speed-x="-0.05">
+    <div class="container">
       <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
       <h2 class="lookbook__title" data-reveal>어디서든,<br>당신의 속도로</h2>
     </div>
@@ -285,7 +257,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261105b"></script>
+  <script src="js/main.js?v=20261105a"></script>
   <script src="js/kineticGrid.js?v=20261102b"></script>
   <script src="js/manifestoTypewriter.js?v=20261105a"></script>
   <script src="js/heroWaves.js?v=20261105a"></script>
