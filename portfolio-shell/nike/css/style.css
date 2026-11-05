@@ -175,14 +175,15 @@ button, input { font: inherit; }
    바깥(텍스트 쪽)으로 번지지 않고 신발에만 한정됨. */
 /* 2026-11-05 27차: "PRODUCT부터는 배경 웨이브가 따로 노는 것 같다" 피드백 — 신발이 이미 전용
    스포트라이트(글로우)로 공들여 다듬어둔 "집중 모먼트"라 공통 .site-waves가 끼어들면 주목도를
-   다툼(그물 kineticGrid를 뺀 것과 같은 이유). .showcase에 불투명 배경을 다시 줘서 이 섹션 전체
-   (스테이지+콘텐츠+BY THE NUMBERS) 동안은 캔버스를 가림 — CTA가 이미 쓰는 것과 같은 방식(불투명
-   배경으로 캔버스를 덮음). 룩북에서 다시 보이기 시작해 흐름이 이어짐.
-   ⚠️ 28차(같은 날): "전환이 너무 뚝 끊긴다" — 완전 불투명 대신 살짝 반투명(.9)으로 바꿔 웨이브가
-   아주 희미하게 비치게 함. 그와 동시에(js/siteWaves.js 참고) 이 구간에서는 핵 자체를 평소보다 더
-   가장자리로 밀어내 가운데(신발)를 가로지르지 않고 옆으로 비켜가도록 처리 — 완전히 가리지 않아도
-   신발과 안 겹침. */
-.showcase { background: rgba(10, 10, 10, .9); }
+   다툼(그물 kineticGrid를 뺀 것과 같은 이유).
+   ⚠️ 28차(같은 날): 처음엔 `.showcase`에 불투명/반투명(.9) 배경을 고정 CSS로 줘서 캔버스를 덮었는데,
+   ⚠️ 29차(같은 날): "전환이 여전히 뚝 끊긴다, 배경이 아예 안 보인다" — 고정 CSS 불투명도는 섹션
+   DOM 경계를 넘는 순간 그 값이 통째로 적용돼, 웨이브의 위치가 아무리 부드럽게 램프돼도 "덮개" 자체는
+   절벽처럼 나타났던 것이 진짜 원인. **고정 배경 대신 `.showcase__waveveil`이라는 전용 레이어를 두고,
+   그 opacity를 js/siteWaves.js가 매 프레임 scrollY 기준으로 직접 계산**(위치 램프와 같은 sideBias)해
+   위치 이동과 정확히 같은 리듬으로 서서히 덮이고 걷히게 함(html/js 참고). */
+.showcase { position: relative; }
+.showcase__waveveil { position: absolute; inset: 0; background: var(--ink); opacity: 0; pointer-events: none; }
 .showcase__stage-wrap { position: relative; height: 160vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }

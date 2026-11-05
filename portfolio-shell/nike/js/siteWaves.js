@@ -302,6 +302,12 @@ void main() {
   const SIDE_BIAS_RAMP = 500;
   const SIDE_PUSH = 0.3;
   const WOBBLE_DAMP_MAX = 0.8;
+  // 2026-11-05 29차: "전환이 여전히 뚝 끊긴다" — CSS 고정 opacity(.showcase 배경)는 섹션 DOM 경계를
+  // 넘는 순간 그 값이 통째로 적용돼 절벽처럼 보였음. 이 베일(html/css 참고)의 opacity를 위 sideBias와
+  // 정확히 같은 값으로 매 프레임 직접 설정해, 위치가 옆으로 비켜가는 것과 같은 리듬으로 서서히
+  // 덮이고 걷히게 함(최댓값 .8 — 완전히 안 보이게 하진 않고 "아주 약하게"는 남김).
+  const waveveil = document.querySelector("[data-showcase-waveveil]");
+  const VEIL_MAX_OPACITY = 0.8;
 
   // 2026-11-05 22차: 더 이상 히어로 핀 구간에만 존재하는 배경이 아니라 "항상 떠 있는" 페이지 배경이라
   // IntersectionObserver(특정 요소가 화면에 있는지)는 더 이상 쓸 대상이 없음 — 탭이 백그라운드일 때만
@@ -325,6 +331,7 @@ void main() {
       const exitDone = smoothstep(showcaseBounds.bottom, showcaseBounds.bottom + SIDE_BIAS_RAMP, window.scrollY);
       sideBias = enter * (1 - exitDone);
     }
+    if (waveveil) waveveil.style.opacity = (sideBias * VEIL_MAX_OPACITY).toFixed(3);
     const wobbleScale = 1 - sideBias * WOBBLE_DAMP_MAX;
     const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
     const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
