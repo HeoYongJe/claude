@@ -188,7 +188,6 @@
   // 쇼케이스에서 "신발이 커지는 도중에 페이지도 같이 내려간다"는 피드백의 원인이었음).
   const heroWrap = document.querySelector(".hero-wrap");
   const heroInner = document.querySelector("[data-hero-scrub]");
-  const heroBg = document.querySelector("[data-hero-bg]");
   const heroScrollEl = document.querySelector("[data-hero-scroll]");
   // 2026-11-04: 매니페스토 텍스트는 더 이상 스크롤 스크럽이 아니라 1회성 입자 등장 효과로 교체됨
   // (js/manifestoVaporize.js) — 여기선 더 이상 매니페스토 요소를 안 건드림. 배경 패럴럭스
@@ -288,9 +287,6 @@
         heroInner.style.opacity = opacity.toFixed(3);
         heroInner.style.filter = `blur(${blur.toFixed(1)}px)`;
         if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - progress * 4).toFixed(3);
-        // 배경은 전경보다 훨씬 느리게(1 -> 1.15) — "background-attachment"처럼 배경은 거의 제자리,
-        // 콘텐츠만 그 위를 빠르게 지나가는 듯한 깊이감.
-        if (heroBg) heroBg.style.transform = `scale(${(1 + progress * 0.15).toFixed(3)})`;
       }
 
       // 쇼케이스 스테이지: 신발 사진이 살짝 기울어진 채 작게 시작해 확대되며 정자세로 "탁" 정리됨 —

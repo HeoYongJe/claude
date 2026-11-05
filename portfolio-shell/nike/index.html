@@ -11,9 +11,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261105a">
+<link rel="stylesheet" href="css/style.css?v=20261105c">
 </head>
 <body>
+
+  <!-- 2026-11-05 22차: 히어로 전용이던 WebGL 웨이브(구 js/heroWaves.js)를 페이지 전체의 고정(fixed)
+       배경으로 승격(js/siteWaves.js) — "히어로 배경 인터렉션이 전체 섹션에 걸쳐 내려오고, 그걸 따라
+       아이템이 생기는 디자인"을 원한다는 요청으로, 섹션마다 완전한 블랙/화이트 대비를 쓰던 기존
+       언어 대신 이 캔버스 하나를 전 구간 배경으로 통일(아래 섹션들의 배경색이 투명해진 이유).
+       design.md Motion §5 21차 참고. -->
+  <canvas class="site-waves" data-site-waves aria-hidden="true"></canvas>
 
   <!-- 어두운 섹션 위 은은한 그레인(필름 질감) -->
   <div class="grain" aria-hidden="true"></div>
@@ -30,14 +37,6 @@
   <!-- ============ HERO (스크롤 줌아웃 전환 — hero-wrap이 추가 높이를 주고 hero는 sticky) ============ -->
   <div class="hero-wrap" id="top">
     <header class="hero">
-      <!-- 2026-11-05: 사용자가 제공한 React/Three.js "Striped Waves" Originkit 컴포넌트를 바닐라
-           WebGL로 포팅(js/heroWaves.js) — 기존 정적 라디얼 그라데이션 2장 위에 흐르는 볼트색 웨이브를
-           그려 첫 화면 임팩트를 키움. 커서 추적 없는 순수 시간 기반 앰비언트 모션(hover 기능은 포팅에서
-           제외)이라 design.md Motion §5의 "마우스 정밀도 의존 레이어" 논쟁과 무관. WebGL 실패·
-           reduced-motion에서는 캔버스가 아예 안 그려지고 기존 그라데이션이 폴백으로 남음. -->
-      <div class="hero__bg" data-hero-bg aria-hidden="true">
-        <canvas class="hero__waves" data-hero-waves aria-hidden="true"></canvas>
-      </div>
       <div class="hero__inner" data-hero-scrub>
         <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
         <h1 class="hero__word" data-reveal>NIKE</h1>
@@ -56,7 +55,6 @@
        threshold 0.5로 섹션이 화면 중간쯤 보였을 때 시작, 섹션을 벗어났다가 다시 들어오면 처음부터
        재생. -->
   <section class="manifesto">
-    <div class="manifesto__bg" data-speed="0.15" aria-hidden="true"></div>
     <div class="container">
       <p class="manifesto__kicker" data-reveal>MANIFESTO</p>
       <div class="manifesto__textwrap" data-manifesto-typewriter>
@@ -257,9 +255,9 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261105a"></script>
+  <script src="js/main.js?v=20261105c"></script>
   <script src="js/kineticGrid.js?v=20261102b"></script>
   <script src="js/manifestoTypewriter.js?v=20261105a"></script>
-  <script src="js/heroWaves.js?v=20261105a"></script>
+  <script src="js/siteWaves.js?v=20261105a"></script>
 </body>
 </html>

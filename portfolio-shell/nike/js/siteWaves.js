@@ -1,41 +1,41 @@
-// ---- 히어로 배경 "Striped Waves"(WebGL) ----
-// 2026-11-05: 사용자가 제공한 React/Three.js 기반 "Striped Waves" Originkit 컴포넌트를 바닐라 WebGL로
-// 포팅. 커서 반응형 글로우(원본의 hover 기능)는 빼고 순수 시간 기반 앰비언트 모션만 사용 — 마우스를
-// 전혀 안 보므로 design.md Motion §5 "마우스 정밀도 의존 디테일 레이어" 논쟁과 애초에 무관. 밀도(density)·
-// 숨쉬기(breath) 등 이 포팅에서 쓰지 않는 원본 파라미터는 제거해 유니폼 개수를 줄임. 색은 사이트
-// 포인트컬러(volt, #D7FF3E) 한 색의 밝기 변주 3단으로만 구성 — 새 색을 들이지 않음(design.md §2 "volt는
-// 한 곳에만, 남용 금지"를 어기지 않도록).
+// ---- 사이트 전체 배경 "Striped Waves"(WebGL, 2026-11-05 22차) ----
+// 구 js/heroWaves.js(히어로 전용, .hero__bg 안에서만 그려짐)를 페이지 전체의 position:fixed 배경으로
+// 승격 — "히어로에서 돌아가는 배경 인터렉션이 전체 섹션에 걸쳐 내려오고, 그 인터렉션을 따라 아이템이
+// 생기는 디자인"이라는 요청. 섹션별 완전 블랙/화이트 배경은 대부분 투명해졌고(css 참고), 이 캔버스
+// 하나가 스크롤 내내 모든 섹션 뒤에서 그대로 유지된다. "아이템이 웨이브를 따라 생긴다"는 느낌은 별도
+// 좌표 추적 없이 기존 [data-reveal] + IntersectionObserver(순서대로 등장, main.js)로 충분하다는 사용자
+// 확인에 따라 — 배경이 하나로 이어져 보이는 것만으로 "같은 흐름 위에 아이템이 얹힌다"는 체감이 남.
+// design.md Motion §5 21~22차 참고.
 (function () {
   "use strict";
-  const canvas = document.querySelector("[data-hero-waves]");
+  const canvas = document.querySelector("[data-site-waves]");
   if (!canvas) return;
-  const host = canvas.parentElement; // .hero__bg
-  const heroWrap = document.querySelector(".hero-wrap");
-  if (!host || !heroWrap) return;
 
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; // body의 단색 --ink가 폴백
 
   const gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false });
-  if (!gl) return; // .hero__bg의 기존 라디얼 그라데이션(css)이 그대로 폴백으로 남음
+  if (!gl) return;
 
-  // 히어로가 화면 전체를 덮는 큰 캔버스라 쇼케이스의 2D 격자(kineticGrid)보다 픽셀당 비용이 크므로
-  // DPR을 더 낮게 캡(성능 보호).
+  // 페이지 전체에 걸쳐 항상 떠 있는 배경이라 쇼케이스의 2D 격자(kineticGrid)보다 노출 시간이 훨씬
+  // 길다 — DPR 캡은 기존과 동일하게 보수적으로 유지.
   const MAX_DPR = 1.5;
   const LAYERS = 48;
 
-  // ---- 원본 "Striped Waves" preset 2 근사값(흐르는 물결 느낌) ----
+  // ---- 원본 "Striped Waves" preset 2 근사값 + 2026-11-05 히어로 단계에서 맞춘 조정값 그대로 ----
+  // (이 캔버스는 전에도 .hero__bg가 뷰포트 크기를 그대로 채우는 레이어였으므로, 뷰포트 전체를 채우는
+  // 지금과 셰이더가 보는 종횡비 자체는 동일 — 재튜닝 없이 그대로 재사용, 배포 전 화면으로 재확인함.)
   const FLOW_SPEED = 0.909, FLOW_DIR = 1.24, PHASE = 32.41;
   const ZOOM = 2.04, TILT = -1.69, POS_X = -0.01, POS_Y = 0.06;
-  // 2026-11-05 1차 테스트 후 조정: 원본 preset은 가로로 넓은 랜드스케이프 캔버스 기준이라, 히어로처럼
-  // 세로로 좁은 영역에 그대로 쓰면(cssPixel 계산이 uRes.y 기준이라 세로폭이 좁을수록 가로 분포도
-  // 좁게 눌림) 선들이 한 덩어리로 뭉쳐 화면 중앙을 가로지르는 굵은 리본 하나처럼 보여 NIKE 타이틀을
-  // 가려버렸음(스크린샷으로 확인). SPREAD를 크게 올려 선들이 화면 폭 전체로 퍼지게 하고, INTENSITY로
-  // 전체 밝기를 낮춰 "타이틀 뒤에서 은은히 흐르는 배경"이 되도록 함.
   const THETA = 1.58, TWIST = 0.39, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
   const WAVE_AMOUNT = 0.197, WAVE_SCALE = 2.48;
   const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 2.9;
   const COLOR_TRAVEL = -0.32, COLOR_CYCLE = 2.0;
   const INTENSITY = 0.55;
+  // 2026-11-05 22차: "그 인터렉션을 따라 내려온다"는 요청 — 시간만이 아니라 스크롤 위치도 흐름 위상에
+  // 더해서, 스크롤할수록 웨이브가 함께 흘러가는 게 체감되도록 함(순수 시간 기반이면 스크롤을 멈춰도
+  // 계속 똑같이 흐르기만 해서 "스크롤에 연동된다"는 느낌이 약함). 값이 크면 스크롤 중 웨이브가 너무
+  // 빠르게 요동쳐 어지러우므로 작은 계수로 아주 은은하게만.
+  const SCROLL_TO_FLOW = 0.00055;
 
   const C1 = [0xd7 / 255, 0xff / 255, 0x3e / 255]; // volt
   const C2 = [0x4b / 255, 0x5a / 255, 0x12 / 255]; // volt, 어둡게(그림자 쪽)
@@ -164,7 +164,7 @@ void main() {
     gl.shaderSource(sh, src);
     gl.compileShader(sh);
     if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-      console.error("heroWaves shader:", gl.getShaderInfoLog(sh));
+      console.error("siteWaves shader:", gl.getShaderInfoLog(sh));
       gl.deleteShader(sh);
       return null;
     }
@@ -179,7 +179,7 @@ void main() {
   gl.attachShader(prog, fs);
   gl.linkProgram(prog);
   if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-    console.error("heroWaves link:", gl.getProgramInfoLog(prog));
+    console.error("siteWaves link:", gl.getProgramInfoLog(prog));
     return;
   }
   gl.useProgram(prog);
@@ -220,10 +220,10 @@ void main() {
   gl.uniform1f(u("uTilt"), TILT);
   gl.uniform1f(u("uZoom"), ZOOM);
 
+  // 2026-11-05 22차: 더 이상 .hero__bg라는 호스트 요소가 없음 — fixed 배경이라 뷰포트 크기 그대로 씀.
   function build() {
-    const r = host.getBoundingClientRect();
-    const w = Math.max(1, Math.round(r.width));
-    const h = Math.max(1, Math.round(r.height));
+    const w = Math.max(1, window.innerWidth);
+    const h = Math.max(1, window.innerHeight);
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     const bw = Math.max(1, Math.round(w * dpr));
     const bh = Math.max(1, Math.round(h * dpr));
@@ -234,30 +234,19 @@ void main() {
     }
   }
   build();
-  // kineticGrid.js와 동일한 이유(웹폰트 로드 전/후 레이아웃이 바뀔 수 있음) — 재측정.
-  document.fonts.ready.then(build);
-  window.addEventListener("load", build);
   let resizeTimer;
   window.addEventListener("resize", () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(build, 150);
   });
 
-  // 히어로가 화면 밖(핀 구간을 다 지나간 뒤)일 땐 rAF를 돌지 않음 — kineticGrid.js와 동일한 성능 보호 패턴.
-  let inView = false;
-  const io = new IntersectionObserver((entries) => {
-    inView = entries[0].isIntersecting;
-    if (inView) requestAnimationFrame(frame);
-  });
-  io.observe(heroWrap);
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && inView) requestAnimationFrame(frame);
-  });
-
+  // 2026-11-05 22차: 더 이상 히어로 핀 구간에만 존재하는 배경이 아니라 "항상 떠 있는" 페이지 배경이라
+  // IntersectionObserver(특정 요소가 화면에 있는지)는 더 이상 쓸 대상이 없음 — 탭이 백그라운드일 때만
+  // 중단(기존과 동일한 이유: 안 보이는 동안 GPU를 돌릴 이유가 없음).
   let clock = 0;
   let last = performance.now();
   function frame(now) {
-    if (!inView || document.hidden) return;
+    if (document.hidden) return;
     const dt = Math.min(Math.max((now - last) / 1000, 0), 0.05);
     last = now;
     clock += dt;
@@ -265,9 +254,16 @@ void main() {
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     gl.uniform2f(u("uRes"), canvas.width, canvas.height);
     gl.uniform1f(u("uDpr"), dpr);
-    gl.uniform1f(u("uFlow"), clock * FLOW_SPEED * FLOW_DIR + PHASE);
+    gl.uniform1f(u("uFlow"), clock * FLOW_SPEED * FLOW_DIR + PHASE + window.scrollY * SCROLL_TO_FLOW);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
   }
+  requestAnimationFrame(frame);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      last = performance.now();
+      requestAnimationFrame(frame);
+    }
+  });
 })();
