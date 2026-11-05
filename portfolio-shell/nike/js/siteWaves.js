@@ -273,6 +273,36 @@ void main() {
     resizeTimer = setTimeout(build, 150);
   });
 
+  // 2026-11-05 28차: "신발이 가운데 있는데 배경이 통과하면 이상해 보여서 뺐던 건데, PRODUCT로 넘어갈
+  // 땐 배경이 옆으로 비켜서 내려가게 해달라" — .showcase(PRODUCT, 신발이 화면 중앙에 오는 구간) 범위를
+  // 측정해두고, 그 범위에 가까워질수록(SIDE_BIAS_RAMP 폭으로 완만하게) 핵을 평소보다 더 멀리
+  // 가장자리로 밀어내고(SIDE_PUSH) 공전·스크롤 흔들림도 줄여서(WOBBLE_DAMP_MAX) 신발이 있는 화면
+  // 중앙을 가로지르지 않고 그 구간 내내 옆으로 비켜 있게 함. 경계에서 "뚝" 끊기지 않도록 앞뒤로
+  // 부드럽게 램프.
+  let showcaseBounds = null;
+  function measureShowcase() {
+    const el = document.querySelector(".showcase");
+    if (!el) { showcaseBounds = null; return; }
+    const r = el.getBoundingClientRect();
+    const top = r.top + window.scrollY;
+    showcaseBounds = { top, bottom: top + el.offsetHeight };
+  }
+  measureShowcase();
+  document.fonts.ready.then(measureShowcase);
+  window.addEventListener("load", measureShowcase);
+  let showcaseResizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(showcaseResizeTimer);
+    showcaseResizeTimer = setTimeout(measureShowcase, 150);
+  });
+  function smoothstep(edge0, edge1, x) {
+    const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+  }
+  const SIDE_BIAS_RAMP = 500;
+  const SIDE_PUSH = 0.3;
+  const WOBBLE_DAMP_MAX = 0.8;
+
   // 2026-11-05 22차: 더 이상 히어로 핀 구간에만 존재하는 배경이 아니라 "항상 떠 있는" 페이지 배경이라
   // IntersectionObserver(특정 요소가 화면에 있는지)는 더 이상 쓸 대상이 없음 — 탭이 백그라운드일 때만
   // 중단(기존과 동일한 이유: 안 보이는 동안 GPU를 돌릴 이유가 없음).
@@ -289,12 +319,19 @@ void main() {
     gl.uniform1f(u("uDpr"), dpr);
     gl.uniform1f(u("uFlow"), clock * FLOW_SPEED * FLOW_DIR + PHASE + window.scrollY * SCROLL_TO_FLOW);
 
-    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS;
-    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS;
+    let sideBias = 0;
+    if (showcaseBounds) {
+      const enter = smoothstep(showcaseBounds.top - SIDE_BIAS_RAMP, showcaseBounds.top, window.scrollY);
+      const exitDone = smoothstep(showcaseBounds.bottom, showcaseBounds.bottom + SIDE_BIAS_RAMP, window.scrollY);
+      sideBias = enter * (1 - exitDone);
+    }
+    const wobbleScale = 1 - sideBias * WOBBLE_DAMP_MAX;
+    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
+    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
     const scrollPhase = window.scrollY * SCROLL_PAN_SPEED;
-    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS;
-    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS;
-    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY);
+    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS * wobbleScale;
+    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS * wobbleScale;
+    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY + sideBias * SIDE_PUSH);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
