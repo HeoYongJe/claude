@@ -128,6 +128,14 @@
   // 오직 휠 입력의 누적값일 뿐 섹션 경계·방향별 분기 조건이 전혀 없어서, 그때처럼 섹션 길이·뷰포트
   // 조합마다 새 엣지 케이스가 나올 구조 자체가 아님.
   if (!reduceMotion) {
+    // 2026-11-05: "descent.mattebso.com처럼 묵직하고 스무스하게" 요청 — 두 가지를 조정.
+    // 1) WHEEL_EASE를 0.15 -> 0.11로 낮춰 같은 휠 입력에도 더 천천히·묵직하게 수렴하도록(관성이
+    //    도중에 "툭" 끊기지 않고 길게 감속하는 느낌).
+    // 2) 트랙패드는 한 이벤트의 deltaY가 마우스 휠보다 훨씬 커질 수 있어(기기·OS마다 편차가 큼),
+    //    그대로 누적하면 트랙패드로 쓸 때만 목표 지점이 한 번에 크게 튀어 "묵직함"이 깨짐 — 이벤트당
+    //    반영폭에 상한(WHEEL_DELTA_CAP)을 둬서 입력 기기와 무관하게 관성 느낌이 일정하게 유지되도록 함.
+    const WHEEL_EASE = 0.11;
+    const WHEEL_DELTA_CAP = 140;
     let wheelTarget = window.scrollY;
     // 2026-11-03 16차: "왜 전반적으로 딱딱 끊기냐"는 재질문 끝에 실측으로 잡은 진짜 버그 — 매 프레임
     // `cur`를 `window.scrollY`로 다시 읽어서 다음 걸음을 계산했는데, 브라우저는 scrollTop을 정수
@@ -152,13 +160,14 @@
         wheelAnimating = false;
         return;
       }
-      wheelY += diff * 0.15;
+      wheelY += diff * WHEEL_EASE;
       window.scrollTo(0, wheelY);
       requestAnimationFrame(wheelStep);
     }
     window.addEventListener("wheel", (e) => {
       e.preventDefault();
-      wheelTarget = Math.min(maxScrollY(), Math.max(0, wheelTarget + e.deltaY));
+      const delta = Math.max(-WHEEL_DELTA_CAP, Math.min(WHEEL_DELTA_CAP, e.deltaY));
+      wheelTarget = Math.min(maxScrollY(), Math.max(0, wheelTarget + delta));
       if (!wheelAnimating) {
         wheelY = window.scrollY; // 유휴 상태였다면(스크롤바 드래그 등으로 위치가 바뀌었을 수 있음) 실제 위치에서 다시 시작
         wheelAnimating = true;
@@ -195,6 +204,13 @@
 
   if (!reduceMotion) {
     const clamp01 = (v) => Math.min(1, Math.max(0, v));
+    // 2026-11-05: 스크럽 트랜스폼이 scrollY 진행률에 선형(1:1)으로 묶여 있으면 "스크롤한 만큼만
+    // 정직하게 따라오는" 느낌이라 descent 같은 사이트의 영화적인 가속/감속 느낌이 안 남 — progress를
+    // 쓰기 직전에 이징을 한 번 먹여서, 같은 스크롤량이라도 시각적 변화는 천천히 시작했다가 빨라지거나
+    // (easeOutCubic, 쇼케이스처럼 "확 등장" 느낌) 양끝이 부드럽게 눌리는(easeInOutCubic, 히어로처럼
+    // 은은히 사라지는 느낌) 식으로 달라지게 함.
+    const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+    const easeInOutCubic = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
     let bounds = {};
     // raf 루프 유휴-정지용 상태 — measure()가 이 아래 kickRaf()를 바로 호출하므로(측정값이 바뀌면
     // 깨우기 위해), let 선언이 measure() 정의/첫 호출보다 먼저 와야 함(아니면 "초기화 전 접근"
@@ -255,7 +271,7 @@
 
       // 히어로: hero-wrap의 추가 높이(100vh)만큼 스크롤하는 동안 진행률 0→1
       if (heroInner && bounds.hero && bounds.hero.range > 0) {
-        const progress = clamp01((realY - bounds.hero.start) / bounds.hero.range);
+        const progress = easeInOutCubic(clamp01((realY - bounds.hero.start) / bounds.hero.range));
         // 2026-10-29: 기존 *1.6은 핀 구간의 62.5% 지점에서 이미 완전히 투명해져, 나머지 37.5%는
         // 아무것도 없는 빈 화면만 스크롤되는 "죽은 구간"이었음("여백이 너무 많아 미완성 같다" 피드백의
         // 원인). progress를 그대로 써서 핀이 풀리는 정확한 순간에 다 사라지도록 range 전체를 씀.
@@ -287,7 +303,7 @@
       // 패턴으로 핀 범위의 80%에서 이미 확대가 끝나게 해서, 남은 20%는 "다 끝난 채로 잠깐 멈춰
       // 있다가" 풀리는 여유를 둠.
       if (showcaseShoe && bounds.showcaseStage && bounds.showcaseStage.range > 0) {
-        const progress = clamp01((realY - bounds.showcaseStage.start) / (bounds.showcaseStage.range * 0.8));
+        const progress = easeOutCubic(clamp01((realY - bounds.showcaseStage.start) / (bounds.showcaseStage.range * 0.8)));
         // 2026-10-29: "확대됐을 때 사이즈를 조금만 줄여줘" — 최대 스케일 1.15 -> 1.0.
         const scale = 0.75 + progress * 0.25; // 0.75 -> 1.0, 확대되며 등장
         const rotate = -8 + progress * 8; // -8deg -> 0deg, 비스듬했다가 정자세로 정리
