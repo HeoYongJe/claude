@@ -27,13 +27,20 @@
   // 2026-11-05 23차: "너무 가운데에서만 돈다, 나선형 느낌을 원한다" 피드백 — 세 가지로 대응.
   // ① 기준 위치(POS_X/POS_Y)를 화면 정중앙(-0.01, 0.06)에서 좌상단 쪽으로 옮겨 소용돌이 핵이 항상
   //    한가운데 고정돼 있지 않게 함. ② 그 기준점을 중심으로 천천히 원을 그리며 공전(ORBIT_*)시켜
-  //    "나선형으로 움직인다"는 느낌을 실제 궤적으로 구현. ③ 아래 frame()에서 scrollY를 uPos.y에도
-  //    더해(SCROLL_PAN) 스크롤할수록 배경 자체가 위로 흘러가듯 보이게 함 — 이전엔 uFlow(흐름 위상)만
-  //    스크롤에 연동돼 있어 "패턴은 바뀌지만 카메라는 고정"이었던 것을, 실제 카메라 이동으로 바꿈
-  //    (1번 질문 "배경이 스크롤에 따라 움직이게 할 수 있나" 답 — 가능, uPos를 scrollY에 바인딩하면 됨).
+  //    "나선형으로 움직인다"는 느낌을 실제 궤적으로 구현. ③ 아래 frame()에서 scrollY를 uPos에도
+  //    반영해 스크롤할수록 배경 자체가 움직이게 함(1번 질문 "배경이 스크롤에 따라 움직이게 할 수
+  //    있나" 답 — 가능, uPos를 scrollY에 바인딩하면 됨).
+  // ⚠️ 24차(같은 날): ③을 처음엔 `scrollY * 고정계수`로 무한히 누적시켰는데, "MANIFESTO부터는 배경이
+  // 안 보인다"는 피드백으로 재현해보니 — 이 셰이더는 카메라(uPos)가 패턴 중심(q.y=0)에서 멀어질수록
+  // `exp2(-|q.y|*uFalloff)`로 밝기가 지수적으로 죽는 구조라, 스크롤 누적값이 계속 커지며 몇 화면만
+  // 내려가도 카메라가 그 감쇠 구간 밖으로 완전히 나가버려 이후 전 구간이 깜깜했던 것(실측: 매니페스토
+  // 진입 시점 scrollY≈1670에서 이미 uPos.y 이동량이 화면 높이의 80%를 넘어서고 있었음). **스크롤에
+  // 비례해 무한히 멀어지는 대신, `Math.sin/cos(scrollY*SCROLL_PAN_SPEED)`로 일정 반경 안을 왕복하도록
+  // 교체** — 스크롤에 계속 반응해 움직이되(요청 그대로), 아무리 많이 스크롤해도 패턴의 "밝은 구간"
+  // 밖으로 영영 벗어나지 않음.
   const POS_X = -0.34, POS_Y = -0.12;
   const ORBIT_RADIUS = 0.2, ORBIT_SPEED = 0.09;
-  const SCROLL_PAN = 0.00048;
+  const SCROLL_PAN_RADIUS = 0.22, SCROLL_PAN_SPEED = 0.0012;
   const THETA = 1.58, TWIST = 0.5, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
   const WAVE_AMOUNT = 0.197, WAVE_SCALE = 2.48;
   const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 2.9;
@@ -266,8 +273,10 @@ void main() {
 
     const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS;
     const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS;
-    const scrollPan = window.scrollY * SCROLL_PAN;
-    gl.uniform2f(u("uPos"), POS_X + orbitX, POS_Y + orbitY - scrollPan);
+    const scrollPhase = window.scrollY * SCROLL_PAN_SPEED;
+    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS;
+    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS;
+    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
