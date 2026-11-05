@@ -173,9 +173,12 @@ button, input { font: inherit; }
    완전히 제거하고 평범한 단색 배경으로. "신발 강조" 역할은 이미 있던 `.showcase__glow`(신발 중심
    라디얼 글로우) 하나로만 맡기고 그 레이어도 더 좁고 옅게 다듬음(아래 참고) — 그라데이션이 신발
    바깥(텍스트 쪽)으로 번지지 않고 신발에만 한정됨. */
-/* 2026-11-05 22차: 전용 배경(ink)을 제거 — 공통 .site-waves가 비쳐 보임(아래 텍스트는 이미 on-dark라
-   그대로 유지). */
-.showcase { }
+/* 2026-11-05 27차: "PRODUCT부터는 배경 웨이브가 따로 노는 것 같다" 피드백 — 신발이 이미 전용
+   스포트라이트(글로우)로 공들여 다듬어둔 "집중 모먼트"라 공통 .site-waves가 끼어들면 주목도를
+   다툼(그물 kineticGrid를 뺀 것과 같은 이유). .showcase에 불투명 배경을 다시 줘서 이 섹션 전체
+   (스테이지+콘텐츠+BY THE NUMBERS) 동안은 캔버스를 가림 — CTA가 이미 쓰는 것과 같은 방식(불투명
+   배경으로 캔버스를 덮음). 룩북에서 다시 보이기 시작해 흐름이 이어짐. */
+.showcase { background: var(--ink); }
 .showcase__stage-wrap { position: relative; height: 160vh; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }

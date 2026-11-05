@@ -79,9 +79,10 @@
     timer = setTimeout(step, TYPE_DELAY_MS);
   }
 
-  // threshold 0.5 — 섹션이 뷰포트에 절반쯍 들어왔을 때(화면 중간쯤 내려왔을 때)
-  // 타이핑 시작. 다 쳐지면 멈추고(반복/삭제 없음), 섹션을 벗어났다가 다시
-  // 들어오면(threshold를 다시 위로 교차) start()가 또 호출돼 처음부터 재생된다.
+  // 2026-11-05 27차: "타이핑 시작 시점이 좀 더 빨랐으면" 피드백 — threshold 0.5(섹션이 화면 중간쯤
+  // 내려와야 시작)는 체감상 너무 늦었음. 사이트 공통 등장 애니메이션([data-reveal], main.js)과 같은
+  // 기준(0.15, 조금만 들어와도 시작)으로 낮춤. 다 쳐지면 멈추고(반복/삭제 없음), 섹션을 벗어났다가
+  // 다시 들어오면(threshold를 다시 위로 교차) start()가 또 호출돼 처음부터 재생된다.
   const io = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -89,7 +90,7 @@
         else stop();
       });
     },
-    { threshold: 0.5 }
+    { threshold: 0.15 }
   );
   io.observe(wrap);
 })();
