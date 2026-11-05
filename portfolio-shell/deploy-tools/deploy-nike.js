@@ -8,10 +8,10 @@ const cfg = require("../deploy.config.js");
 const LOCAL_ROOT = path.join(__dirname, "..", "nike");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/nike";
 
-// 2026-11-05: heroWaves.js -> siteWaves.js로 교체, kineticGrid.js는 삭제(아래 FILES에서 뺌) —
-// 둘 다 라이브 서버엔 그대로 남아있지만(CLAUDE.md: 라이브 파일 임의 삭제 금지) index.html이 더 이상
-// 참조하지 않아 안전하게 방치됨.
-const FILES = ["index.html", "css/style.css", "js/main.js", "js/manifestoTypewriter.js", "js/siteWaves.js", "assets/img/nike_s.png"];
+// 2026-11-06: 40차에서 배경 웨이브를 완전히 제거하며 siteWaves.js도 삭제(아래 FILES에서 뺌) — heroWaves.js
+// (siteWaves.js 이전 이름)·kineticGrid.js와 마찬가지로 라이브 서버엔 그대로 남아있지만(CLAUDE.md: 라이브
+// 파일 임의 삭제 금지) index.html이 더 이상 참조하지 않아 안전하게 방치됨.
+const FILES = ["index.html", "css/style.css", "js/main.js", "js/manifestoTypewriter.js", "assets/img/nike_s.png"];
 
 (async () => {
   const client = new ftp.Client(20000);

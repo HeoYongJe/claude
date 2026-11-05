@@ -11,16 +11,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261105j">
+<link rel="stylesheet" href="css/style.css?v=20261106a">
 </head>
 <body>
-
-  <!-- 2026-11-05 22차: 히어로 전용이던 WebGL 웨이브(구 js/heroWaves.js)를 페이지 전체의 고정(fixed)
-       배경으로 승격(js/siteWaves.js) — "히어로 배경 인터렉션이 전체 섹션에 걸쳐 내려오고, 그걸 따라
-       아이템이 생기는 디자인"을 원한다는 요청으로, 섹션마다 완전한 블랙/화이트 대비를 쓰던 기존
-       언어 대신 이 캔버스 하나를 전 구간 배경으로 통일(아래 섹션들의 배경색이 투명해진 이유).
-       design.md Motion §5 21차 참고. -->
-  <canvas class="site-waves" data-site-waves aria-hidden="true"></canvas>
 
   <!-- 어두운 섹션 위 은은한 그레인(필름 질감) -->
   <div class="grain" aria-hidden="true"></div>
@@ -74,58 +67,46 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT (2026-11-05 39차: 스냅 패널 3개로 분리 — 신발 스테이지 / 기능 하이라이트
-       / BY THE NUMBERS, 전부 .showcase라는 하나의 어두운(--ink) 액트 안. 신발 등장은 더 이상
-       스크롤 진행률 스크럽이 아니라 패널 진입 시 1회 재생되는 CSS 애니메이션(js IntersectionObserver
-       가 .is-active 토글, css §PRODUCT 참고). ============ -->
+  <!-- ============ PRODUCT (2026-11-06 40차: 신발 스테이지/기능 하이라이트/BY THE NUMBERS를
+       패널 3개로 나눴던 39차를 되돌리고, 한 화면(.showcase, 스냅 패널 1개) 안에 전부 들어오는
+       레이아웃으로 재구성 — 신발(좌) / 타이틀+기능 리스트(우) 2단, 그 아래 BY THE NUMBERS를
+       가로 한 줄로. design.md Motion §5 40차 참고. ============ -->
   <section class="showcase" id="showcase">
-    <!-- 29차: 이 베일의 opacity는 js/siteWaves.js가 매 프레임 scrollY 기준으로 직접 계산(28차의
-         sideBias와 같은 램프) — design.md Motion §5 29차 참고. -->
-    <div class="showcase__waveveil" data-showcase-waveveil aria-hidden="true"></div>
-
-    <!-- ---- 패널 1: 신발 스테이지 ---- -->
-    <div class="showcase__stage" data-showcase-stage>
-      <!-- 32차: 신발 스테이지 구간에서는 웨이브 위치를 신발을 가로질러 대각선으로 지나가도록
-           js/siteWaves.js에서 끌어당김(stageBias) — css §PRODUCT 참고. -->
-      <div class="showcase__visual">
-        <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
-        <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
+    <div class="showcase__inner container">
+      <p class="showcase__kicker" data-reveal>PRODUCT</p>
+      <div class="showcase__main" data-showcase-stage>
+        <div class="showcase__visual">
+          <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
+          <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
+        </div>
+        <div class="showcase__info">
+          <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
+          <ul class="feature-list">
+            <li class="feature-item" data-reveal data-reveal-dir="left">
+              <span class="feature-item__num">01</span>
+              <h3>반응형 쿠셔닝</h3>
+              <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
+            </li>
+            <li class="feature-item" data-reveal data-reveal-dir="right">
+              <span class="feature-item__num">02</span>
+              <h3>초경량 니트 갑피</h3>
+              <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
+            </li>
+            <li class="feature-item" data-reveal data-reveal-dir="left">
+              <span class="feature-item__num">03</span>
+              <h3>에너지 리턴 아웃솔</h3>
+              <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
+            </li>
+            <li class="feature-item" data-reveal data-reveal-dir="right">
+              <span class="feature-item__num">04</span>
+              <h3>올데이 핏</h3>
+              <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
+            </li>
+          </ul>
+        </div>
       </div>
-    </div>
 
-    <!-- ---- 패널 2: 기능 하이라이트 ---- -->
-    <div class="showcase__features">
-      <div class="container">
-        <p class="showcase__kicker" data-reveal>PRODUCT</p>
-        <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
-        <ul class="feature-list">
-          <li class="feature-item" data-reveal data-reveal-dir="left">
-            <span class="feature-item__num">01</span>
-            <h3>반응형 쿠셔닝</h3>
-            <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
-          </li>
-          <li class="feature-item" data-reveal data-reveal-dir="right">
-            <span class="feature-item__num">02</span>
-            <h3>초경량 니트 갑피</h3>
-            <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
-          </li>
-          <li class="feature-item" data-reveal data-reveal-dir="left">
-            <span class="feature-item__num">03</span>
-            <h3>에너지 리턴 아웃솔</h3>
-            <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
-          </li>
-          <li class="feature-item" data-reveal data-reveal-dir="right">
-            <span class="feature-item__num">04</span>
-            <h3>올데이 핏</h3>
-            <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- ---- 패널 3: BY THE NUMBERS ---- -->
-    <div class="specs">
-      <div class="container">
+      <div class="specs">
         <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
         <div class="specs__grid">
           <div class="spec-card" data-reveal data-reveal-dir="left">
@@ -250,8 +231,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261105f"></script>
+  <script src="js/main.js?v=20261106a"></script>
   <script src="js/manifestoTypewriter.js?v=20261105a"></script>
-  <script src="js/siteWaves.js?v=20261105b"></script>
 </body>
 </html>
