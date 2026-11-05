@@ -91,6 +91,11 @@
       <div class="showcase__stage">
         <!-- 2026-11-05 23차: 커서 반응형 "Kinetic Grid"(그물 격자) 캔버스 제거 요청 — 공통 .site-waves가
              신발 뒤 배경까지 맡아서 더 필요 없어짐(js/kineticGrid.js도 삭제). -->
+        <!-- 2026-11-05 31차: "웨이브가 신발에 스친다" — 스크롤/시간에 따라 계속 움직이는 셰이더 위치를
+             미세조정해서 신발(불규칙한 실루엣)을 피하는 방식은 계속 어딘가에서 스치는 문제가
+             반복됐음(30차까지). 대신 신발이 있는 자리에만 정적인 비네트(radial-gradient)를 깔아
+             셰이더가 어떻게 움직이든 구조적으로 겹치지 않게 함 — css §PRODUCT 신발 비네트 참고. -->
+        <div class="showcase__shoemask" aria-hidden="true"></div>
         <div class="showcase__visual">
           <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
           <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>

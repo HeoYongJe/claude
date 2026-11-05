@@ -190,6 +190,14 @@ button, input { font: inherit; }
 /* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 화면을 꽉 채우는 느낌 */
 /* 2026-11-05 23차: 커서 반응형 "Kinetic Grid"(그물 격자) 캔버스 제거 요청 — 이제 공통 .site-waves가
    신발 뒤 배경 역할까지 맡아서 굳이 별도 격자 텍스처가 없어도 됨(js/kineticGrid.js도 삭제, html 참고). */
+/* 2026-11-05 31차: "웨이브가 신발에 스친다" — js/siteWaves.js에서 셰이더 위치를 스크롤·시간에 따라
+   미세조정해 신발을 피하려던 방식(28~30차)은 신발의 불규칙한 실루엣 때문에 계속 어딘가에서 스치는
+   문제가 반복됨. 대신 신발이 앉는 자리에 정적인 radial-gradient 비네트를 깔아, 셰이더가 어떻게
+   움직이든 그 안쪽(핵 0~55%)은 항상 완전히 가려지고 바깥(85%~)만 은은히 비치게 함 — 위치 튜닝이
+   아니라 구조적으로 겹침 자체가 불가능하게 만드는 방식. .showcase__visual(신발 박스)보다 살짝 넉넉하게
+   잡아 글로우 번짐까지 덮음. */
+.showcase__shoemask { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse 48% 48% at 50% 52%, var(--ink) 0%, var(--ink) 55%, transparent 85%); }
 .showcase__visual { position: relative; z-index: 1; width: min(1600px, 94vw); height: min(880px, 82vh); }
 /* 2026-10-29 7차: "신발이 밋밋하다, 이펙트·그라데이션·인터랙션이 화려했으면" 피드백 — 신발 뒤에
    볼트색 글로우(블러 라디얼, 숨쉬듯 펄스)와 점선 링(천천히 회전)을 추가해 정적인 사진 한 장이 아니라

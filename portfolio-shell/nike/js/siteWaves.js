@@ -273,12 +273,14 @@ void main() {
     resizeTimer = setTimeout(build, 150);
   });
 
-  // 2026-11-05 28차: "신발이 가운데 있는데 배경이 통과하면 이상해 보여서 뺐던 건데, PRODUCT로 넘어갈
-  // 땐 배경이 옆으로 비켜서 내려가게 해달라" — .showcase(PRODUCT, 신발이 화면 중앙에 오는 구간) 범위를
-  // 측정해두고, 그 범위에 가까워질수록(SIDE_BIAS_RAMP 폭으로 완만하게) 핵을 평소보다 더 멀리
-  // 가장자리로 밀어내고(SIDE_PUSH) 공전·스크롤 흔들림도 줄여서(WOBBLE_DAMP_MAX) 신발이 있는 화면
-  // 중앙을 가로지르지 않고 그 구간 내내 옆으로 비켜 있게 함. 경계에서 "뚝" 끊기지 않도록 앞뒤로
-  // 부드럽게 램프.
+  // 2026-11-05 28~30차: PRODUCT(.showcase) 구간에서 웨이브 핵을 scrollY 기준으로 옆 가장자리로 밀어내고
+  // (SIDE_PUSH) 흔들림도 줄여서(WOBBLE_DAMP) 신발과 안 겹치게 해보려 했으나, 아무리 값을 조정해도
+  // 신발의 불규칙한 실루엣 어딘가에서 계속 스쳤음(사용자가 스크린샷에 빨간 원으로 직접 표시). ⚠️ 31차:
+  // **위치 미세조정으로 "안 겹치게" 보장하는 접근 자체를 포기** — 대신 신발이 앉는 자리에 정적
+  // radial-gradient 비네트(`.showcase__shoemask`, css 참고)를 깔아 셰이더가 어디로 움직이든 그 자리는
+  // 항상 가려지도록 구조적으로 처리. 이에 따라 핵을 밀어내는 로직(SIDE_PUSH/WOBBLE_DAMP)은 더 이상
+  // 필요 없어져 제거 — PRODUCT 전체를 은은히 가리는 `.showcase__waveveil`(아래 sideBias→opacity)만
+  // 남기고, 신발 자체는 CSS 비네트가 전담.
   let showcaseBounds = null;
   function measureShowcase() {
     const el = document.querySelector(".showcase");
@@ -300,14 +302,6 @@ void main() {
     return t * t * (3 - 2 * t);
   }
   const SIDE_BIAS_RAMP = 500;
-  // 2026-11-05 30차: "PRODUCT 안쪽이 너무 안 보인다(거의 완전히 깜깜함)" — SIDE_PUSH(핵을 더 밀어냄)와
-  // VEIL_MAX_OPACITY(덮개)가 둘 다 세게 걸려 있어서 겹쳐지며 사실상 완전히 꺼져버렸던 것(핵이 이미
-  // 원래도 모서리 밖으로 나가있는데 거기에 추가로 0.3을 더 밀어내면 falloff가 거의 다 죽이는 구간까지
-  // 가버림 + 그 위에 덮개 0.8까지 더해짐 = 이중으로 꺼짐). 둘 다 완화 — SIDE_PUSH 0.3→0.12,
-  // WOBBLE_DAMP_MAX 0.8→0.5, VEIL_MAX_OPACITY 0.8→0.45(덮개가 더 투명해져 더 많이 비침). 신발과
-  // 겹치지 않을 정도로만 옆으로 비켜가되, "아주 약하게는" 계속 보이도록.
-  const SIDE_PUSH = 0.12;
-  const WOBBLE_DAMP_MAX = 0.5;
   const waveveil = document.querySelector("[data-showcase-waveveil]");
   const VEIL_MAX_OPACITY = 0.45;
 
@@ -334,13 +328,12 @@ void main() {
       sideBias = enter * (1 - exitDone);
     }
     if (waveveil) waveveil.style.opacity = (sideBias * VEIL_MAX_OPACITY).toFixed(3);
-    const wobbleScale = 1 - sideBias * WOBBLE_DAMP_MAX;
-    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
-    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
+    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS;
+    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS;
     const scrollPhase = window.scrollY * SCROLL_PAN_SPEED;
-    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS * wobbleScale;
-    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS * wobbleScale;
-    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY + sideBias * SIDE_PUSH);
+    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS;
+    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS;
+    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
