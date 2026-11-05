@@ -221,10 +221,18 @@
       idleFrames = 0;
       if (!rafQueued) { rafQueued = true; requestAnimationFrame(raf); }
     }
+    // 2026-11-05 38차: "신발 스크롤 기능이 안 된다" — PRODUCT 전환 베일(js/siteWaves.js §29차)을
+    // 넣으며 `.showcase`에 `position:relative`를 줬는데, 이게 `.showcase__stage-wrap`의
+    // `offsetTop` 기준점(offsetParent)을 body에서 `.showcase`로 바꿔버려 실제 문서상 위치보다
+    // 훨씬 작은 값을 반환하게 됐고, 그 결과 showcaseStage.start가 틀어져 신발 스크럽 진행률 계산이
+    // 통째로 깨졌음(design.md에 예전에 같은 함정을 피했던 기록이 있었는데 이번에 다시 밟음). `offsetTop`
+    // 대신 `getBoundingClientRect()+scrollY`(중간에 어떤 조상이 positioned여도 항상 문서 기준 절대
+    // 좌표를 돌려줌)로 교체 — hero도 같은 방식으로 통일해 앞으로 같은 함정을 구조적으로 피함.
+    function docTop(el) { return el.getBoundingClientRect().top + window.scrollY; }
     function measure() {
       bounds = {
-        hero: heroWrap ? { start: heroWrap.offsetTop, range: heroWrap.offsetHeight - window.innerHeight } : null,
-        showcaseStage: showcaseStageWrap ? { start: showcaseStageWrap.offsetTop, range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
+        hero: heroWrap ? { start: docTop(heroWrap), range: heroWrap.offsetHeight - window.innerHeight } : null,
+        showcaseStage: showcaseStageWrap ? { start: docTop(showcaseStageWrap), range: showcaseStageWrap.offsetHeight - window.innerHeight } : null,
       };
       // 바뀐 bounds를 화면에 바로 반영 — 아래 raf 루프가 유휴 상태로 멈춰있던 중이면(가만히 있을 때)
       // 깨워서 최소 한 프레임은 새 bounds로 다시 그리게 함.

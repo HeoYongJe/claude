@@ -758,6 +758,21 @@
   `.showcase__waveveil`의 `sideBias`는 신발과 무관한 별개 시스템이라 그대로 유지). 검증: 신발 스테이지
   진입·중앙·이탈 여러 지점에서 핵이 신발 왼쪽으로 비껴 지나가고 신발 자체는 깨끗하게 유지되는 것을
   스크린샷으로 확인. 콘솔 에러 없음.
+  ⚠️ **38차(2026-11-05, 같은 날 — 버그 수정): "만지면서 신발 스크롤 기능 충돌난 거 같아, 신발 스크롤
+  기능이 안 돼"** — 재현해보니 신발의 스크럽(스크롤에 따른 scale/rotate, `js/main.js`)이 완전히
+  멈춰 있었음. **원인은 29차에서 PRODUCT 전환 베일(`.showcase__waveveil`)을 넣으며 `.showcase`에
+  `position: relative`를 준 것** — `.showcase__stage-wrap`의 `offsetTop`은 가장 가까운 positioned
+  조상(offsetParent) 기준인데, `.showcase`가 그 조상이 되면서 기준점이 body(문서 전체)에서
+  `.showcase`(그 중 거의 맨 위)로 바뀌어버림. 그 결과 `showcaseStageWrap.offsetTop`이 실측 2684px
+  대신 0에 가까운 값을 반환했고, `js/main.js`의 `measure()`가 이 값을 `bounds.showcaseStage.start`로
+  그대로 써서 스크럽 진행률 계산 전체가 깨짐(실측: `offsetTop`=0 vs 실제 문서 좌표 2684 — 이
+  프로젝트가 과거(제품 쇼케이스 10차 이전 기록)에도 밟았던 것과 같은 함정을 29차에서 다시 만듦).
+  **`offsetTop` 대신 `getBoundingClientRect()+scrollY`로 문서 기준 절대 좌표를 직접 계산하는
+  `docTop()` 헬퍼로 교체**(히어로도 같은 방식으로 통일해 앞으로 같은 조상 positioned 변경에도
+  안전하도록 구조적으로 보강). 검증: 스테이지 진입 초반(scale≈0.8, rotate≈-6.5deg)부터 중반
+  (scale≈0.98, rotate≈-0.6deg)까지 스크롤량에 비례해 정확히 따라오는 것을 콘솔에서 `transform`
+  값을 직접 찍어 확인, 스크린샷으로도 신발이 작고 기울어진 채 등장했다가 점점 커지며 정자세로
+  정리되는 것을 재확인. 콘솔 에러 없음.
 - **스크롤 스크러빙(제품 쇼케이스)**: 1회성 reveal이 아니라, 섹션 스크롤 진행률(0~1)에 실시간으로 바인딩해서 비주얼이
   계속 회전(`rotate`)·확대(`scale`)·글로우 강도가 변함 — Apple 제품 페이지처럼 "스크롤이 곧 애니메이션 타임라인"(유지).
 - **스펙 숫자**: 뷰포트 진입 시 `scale(0.3)+blur`에서 오버슈트 있는 큰 팝업(elastic) + 0→실제값 카운트업. 작은
