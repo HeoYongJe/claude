@@ -19,11 +19,19 @@
   // 페이지 전체에 걸쳐 항상 떠 있는 배경이라 쇼케이스의 2D 격자(kineticGrid)보다 노출 시간이 훨씬
   // 길다 — DPR 캡은 기존과 동일하게 보수적으로 유지.
   const MAX_DPR = 1.5;
-  const LAYERS = 48;
+  // ⚠️ 33차(2026-11-05, 같은 날 — 스케일 전면 재조정): "왜 다시 진해졌어? 내가 말한 가로지르는 건
+  // 저런 게 아니라 빨간 줄처럼 화면 전체를 크게 쓰는 배경이잖아, container에 아이템처럼 가둬놓지 말고
+  // 배경답게 공간을 자유롭게 써라" — 지금까지의 튜닝은 전부 "여러 가닥이 촘촘히 뭉친 좁은 끈 모양"을
+  // 화면의 한 귀퉁이/한 구간 안에서 밀고 당기는 것이었지, 패턴 자체의 크기(가닥 수·퍼짐 폭·흔들림)를
+  // 키운 적이 없었음 — 그래서 어떻게 위치를 옮겨도 "작은 아이템"처럼 보였던 것. 가닥 수를 줄이고
+  // (48→22, 뭉친 로프가 아니라 성긴 굵은 선들로) 화면 전체를 가로지르도록 멀리서 보듯 축소하고(ZOOM
+  // 대폭 낮춤)·퍼짐 폭을 크게 키우고(SPREAD)·구불거림은 줄여(WAVE_AMOUNT·TWIST) 한 귀퉁이에 뭉친
+  // 모양이 아니라 화면 대각선 전체에 걸친 굵고 성긴 사선들로 재구성.
+  const LAYERS = 22;
 
-  // ---- 원본 "Striped Waves" preset 2 근사값 + 2026-11-05 22~23차 조정값 ----
+  // ---- 원본 "Striped Waves" preset 2 근사값 + 2026-11-05 22~23차 조정값, 33차에서 스케일 전면 재조정 ----
   const FLOW_SPEED = 0.909, FLOW_DIR = 1.24, PHASE = 32.41;
-  const ZOOM = 2.04, TILT = -1.69;
+  const ZOOM = 0.95, TILT = -1.69;
   // 2026-11-05 23차: "너무 가운데에서만 돈다, 나선형 느낌을 원한다" 피드백 — 세 가지로 대응.
   // ① 기준 위치(POS_X/POS_Y)를 화면 정중앙(-0.01, 0.06)에서 좌상단 쪽으로 옮겨 소용돌이 핵이 항상
   //    한가운데 고정돼 있지 않게 함. ② 그 기준점을 중심으로 천천히 원을 그리며 공전(ORBIT_*)시켜
@@ -59,12 +67,12 @@
   // 죽는 세기)가 그대로라 그 줄기들마저 너무 옅게 보였음. `FALLOFF`를 2.9→1.9로 완화해 줄기가 중심에서
   // 멀어져도 밝기가 덜 빠지도록 하고, `INTENSITY`도 0.24→0.3(25차의 0.34보다는 낮고 24차의 0.24보다는
   // 높은 절충)으로 다시 살짝 올림.
-  const POS_X = -0.1, POS_Y = 0.6;
+  const POS_X = -0.1, POS_Y = 0.25;
   const ORBIT_RADIUS = 0.07, ORBIT_SPEED = 0.09;
   const SCROLL_PAN_RADIUS = 0.12, SCROLL_PAN_SPEED = 0.0012;
-  const THETA = 1.32, TWIST = 0.5, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
-  const WAVE_AMOUNT = 0.197, WAVE_SCALE = 2.48;
-  const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 1.9;
+  const THETA = 1.32, TWIST = 0.18, SHEAR = -0.3, SPREAD = 1.9, LINE_WIDTH = 0.8;
+  const WAVE_AMOUNT = 0.07, WAVE_SCALE = 1.4;
+  const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 0.55;
   const COLOR_TRAVEL = -0.32, COLOR_CYCLE = 2.0;
   const INTENSITY = 0.3;
   // 스크롤할수록 웨이브 흐름 패턴 자체도 같이 흘러가도록(카메라 이동과는 별개로 패턴의 위상도 변화).
