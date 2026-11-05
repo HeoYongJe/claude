@@ -97,6 +97,14 @@ button, input { font: inherit; }
 /* ---- 등장 애니메이션(공통) ---- */
 [data-reveal] { opacity: 0; transform: translateY(32px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
 [data-reveal].is-revealed { opacity: 1; transform: translateY(0); }
+/* 2026-11-05 23차: "아이템이 container 안에 갇힌 느낌, 좌우 번갈아가며 여기저기서 올라왔으면" —
+   기본 아래→위 페이드업에 선택적으로 좌/우 궤적을 더함(data-reveal-dir="left"|"right"). 그리드
+   아이템의 실제 좌/우 위치와 맞춰 적용(feature-list·spec-card, html 참고) — 레이아웃을 컨테이너
+   밖으로 빼지 않고도 등장 방향만으로 "여기저기서 다른 방향으로 올라온다"는 체감을 줌. */
+[data-reveal-dir="left"] { transform: translate(-44px, 28px); }
+[data-reveal-dir="left"].is-revealed { transform: translate(0, 0); }
+[data-reveal-dir="right"] { transform: translate(44px, 28px); }
+[data-reveal-dir="right"].is-revealed { transform: translate(0, 0); }
 /* 2026-10-22: 히어로 입장 시 블러→선명 전환 추가("타이포가 흐림 상태에서 샤악하고 나타났다가") —
    기본 [data-reveal]의 페이드업에 filter를 더해 kicker·NIKE·tagline·sub 전부가 같은 리듬으로 흐려졌다
    맑아지며 등장. NIKE 글자 자체는 이미 letterIn 키프레임에서 별도로 blur(6px)→0을 쓰고 있어 이중으로
@@ -172,7 +180,8 @@ button, input { font: inherit; }
 .showcase__stage { position: sticky; top: 0; height: 100vh; height: 100svh; display: flex; flex-direction: column;
   align-items: center; justify-content: center; overflow: hidden; }
 /* 작은 카드에 가두지 않고 어두운 배경 위에 신발이 "메인 비주얼"처럼 화면을 꽉 채우는 느낌 */
-.showcase__gridfx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+/* 2026-11-05 23차: 커서 반응형 "Kinetic Grid"(그물 격자) 캔버스 제거 요청 — 이제 공통 .site-waves가
+   신발 뒤 배경 역할까지 맡아서 굳이 별도 격자 텍스처가 없어도 됨(js/kineticGrid.js도 삭제, html 참고). */
 .showcase__visual { position: relative; z-index: 1; width: min(1600px, 94vw); height: min(880px, 82vh); }
 /* 2026-10-29 7차: "신발이 밋밋하다, 이펙트·그라데이션·인터랙션이 화려했으면" 피드백 — 신발 뒤에
    볼트색 글로우(블러 라디얼, 숨쉬듯 펄스)와 점선 링(천천히 회전)을 추가해 정적인 사진 한 장이 아니라
@@ -251,7 +260,9 @@ button, input { font: inherit; }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
 .spec-card { text-align: center; padding: 40px 16px; background: var(--paper2); border-radius: 20px; transition: transform .25s; }
 .spec-card:hover { transform: translateY(-6px); }
-.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: 48px; letter-spacing: -.01em; }
+/* 2026-11-05 23차: body 기본 글자색이 다크 테마(on-dark, 밝은색)로 바뀌면서 이 카드(밝은 --paper2
+   섬)만 상속으로 흰 글자가 떠 거의 안 보이던 버그 — 이 카드 안 숫자만 명시적으로 어두운 --text. */
+.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: 48px; letter-spacing: -.01em; color: var(--text); }
 .spec-card__num span[data-count] { display: inline-block; }
 /* 숫자 팝업(카운트업 시작과 함께 JS가 is-popped를 붙임) — 작은 페이드가 아니라 크게 튀어 들어오는 느낌 */
 .spec-card__num span[data-count].is-popped { animation: numPop .7s cubic-bezier(.17,.89,.32,1.4) both; }
@@ -399,12 +410,11 @@ button, input { font: inherit; }
 .lookbook__panel:focus-visible .lookbook__panel-detail { opacity: 1; transform: translateY(0); }
 
 /* ---- CTA ---- */
-/* 2026-11-05 22차: "웨이브가 페이지 전체(CTA 포함)에서 계속 보여야 한다"는 요청으로 완전 불투명
-   볼트 블록 대신 거의 불투명한 볼트 틴트(.92)로 바꿔 .site-waves가 아주 옅게 비치게 함 — 기존에
-   여러 차례 시행착오 끝에 "CTA는 멈춰서 대비를 주는 지점"으로 정착시킨 역사(Motion §5, Components
-   "제품 쇼케이스" 참고)와 균형을 맞추려 완전 투명 대신 .92라는 절충값을 택함. 너무 튄다 싶으면
-   낮추고, 웨이브가 안 느껴진다 싶으면 더 낮춰 조정 가능. */
-.cta { background: rgba(215,255,62,.92); padding: 140px 0; text-align: center; }
+/* 2026-11-05 23차: 22차에서 "페이지 전체" 요청에 맞춰 거의 불투명한 틴트(.92)로 웨이브가 살짝 비치게
+   했었는데, 실제로 보니 "같은 컬러라 웨이브가 잘 보이지도 않고, 여긴 그 움직이는 배경이 없어도 된다"는
+   피드백 — 완전 불투명으로 되돌림(과거부터 여러 차례 다듬어온 "CTA는 멈춰서 대비를 주는 지점" 역할
+   그대로, design.md Motion §5 참고). */
+.cta { background: var(--volt); padding: 140px 0; text-align: center; }
 .cta__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--ink); opacity: .6; margin-bottom: 20px; }
 .cta__title { font-family: var(--font-display); font-weight: 700; font-size: clamp(36px, 6vw, 64px); line-height: 1.05; color: var(--ink); }
 .cta__sub { margin-top: 20px; font-size: 16px; color: var(--ink); opacity: .7; }

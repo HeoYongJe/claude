@@ -21,20 +21,28 @@
   const MAX_DPR = 1.5;
   const LAYERS = 48;
 
-  // ---- 원본 "Striped Waves" preset 2 근사값 + 2026-11-05 히어로 단계에서 맞춘 조정값 그대로 ----
-  // (이 캔버스는 전에도 .hero__bg가 뷰포트 크기를 그대로 채우는 레이어였으므로, 뷰포트 전체를 채우는
-  // 지금과 셰이더가 보는 종횡비 자체는 동일 — 재튜닝 없이 그대로 재사용, 배포 전 화면으로 재확인함.)
+  // ---- 원본 "Striped Waves" preset 2 근사값 + 2026-11-05 22~23차 조정값 ----
   const FLOW_SPEED = 0.909, FLOW_DIR = 1.24, PHASE = 32.41;
-  const ZOOM = 2.04, TILT = -1.69, POS_X = -0.01, POS_Y = 0.06;
-  const THETA = 1.58, TWIST = 0.39, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
+  const ZOOM = 2.04, TILT = -1.69;
+  // 2026-11-05 23차: "너무 가운데에서만 돈다, 나선형 느낌을 원한다" 피드백 — 세 가지로 대응.
+  // ① 기준 위치(POS_X/POS_Y)를 화면 정중앙(-0.01, 0.06)에서 좌상단 쪽으로 옮겨 소용돌이 핵이 항상
+  //    한가운데 고정돼 있지 않게 함. ② 그 기준점을 중심으로 천천히 원을 그리며 공전(ORBIT_*)시켜
+  //    "나선형으로 움직인다"는 느낌을 실제 궤적으로 구현. ③ 아래 frame()에서 scrollY를 uPos.y에도
+  //    더해(SCROLL_PAN) 스크롤할수록 배경 자체가 위로 흘러가듯 보이게 함 — 이전엔 uFlow(흐름 위상)만
+  //    스크롤에 연동돼 있어 "패턴은 바뀌지만 카메라는 고정"이었던 것을, 실제 카메라 이동으로 바꿈
+  //    (1번 질문 "배경이 스크롤에 따라 움직이게 할 수 있나" 답 — 가능, uPos를 scrollY에 바인딩하면 됨).
+  const POS_X = -0.34, POS_Y = -0.12;
+  const ORBIT_RADIUS = 0.2, ORBIT_SPEED = 0.09;
+  const SCROLL_PAN = 0.00048;
+  const THETA = 1.58, TWIST = 0.5, SHEAR = -0.55, SPREAD = 0.62, LINE_WIDTH = 0.55;
   const WAVE_AMOUNT = 0.197, WAVE_SCALE = 2.48;
   const GLOW_SIZE = 0.0029, SOFTNESS = 0.0071, FALLOFF = 2.9;
   const COLOR_TRAVEL = -0.32, COLOR_CYCLE = 2.0;
-  const INTENSITY = 0.55;
-  // 2026-11-05 22차: "그 인터렉션을 따라 내려온다"는 요청 — 시간만이 아니라 스크롤 위치도 흐름 위상에
-  // 더해서, 스크롤할수록 웨이브가 함께 흘러가는 게 체감되도록 함(순수 시간 기반이면 스크롤을 멈춰도
-  // 계속 똑같이 흐르기만 해서 "스크롤에 연동된다"는 느낌이 약함). 값이 크면 스크롤 중 웨이브가 너무
-  // 빠르게 요동쳐 어지러우므로 작은 계수로 아주 은은하게만.
+  // 2026-11-05 23차: "전체적으로 가독성이 떨어진다"는 피드백(2번과 같은 결) — 전체 밝기를 0.55→0.34로
+  // 더 낮춤. 위 ①②③로 소용돌이의 가장 밝은 핵이 텍스트 뒤에 고정돼 있지 않게 된 것과 합쳐, 어느
+  // 스크롤 위치에서도 텍스트 대비가 과하게 떨어지는 구간이 줄어들도록 함.
+  const INTENSITY = 0.34;
+  // 스크롤할수록 웨이브 흐름 패턴 자체도 같이 흘러가도록(카메라 이동과는 별개로 패턴의 위상도 변화).
   const SCROLL_TO_FLOW = 0.00055;
 
   const C1 = [0xd7 / 255, 0xff / 255, 0x3e / 255]; // volt
@@ -216,7 +224,7 @@ void main() {
   gl.uniform3f(u("uC2"), C2[0], C2[1], C2[2]);
   gl.uniform3f(u("uC3"), C3[0], C3[1], C3[2]);
   gl.uniform3f(u("uBg"), BG[0], BG[1], BG[2]);
-  gl.uniform2f(u("uPos"), POS_X, POS_Y);
+  // uPos는 더 이상 고정값이 아님(공전+스크롤 패닝) — 매 프레임 아래에서 설정.
   gl.uniform1f(u("uTilt"), TILT);
   gl.uniform1f(u("uZoom"), ZOOM);
 
@@ -255,6 +263,11 @@ void main() {
     gl.uniform2f(u("uRes"), canvas.width, canvas.height);
     gl.uniform1f(u("uDpr"), dpr);
     gl.uniform1f(u("uFlow"), clock * FLOW_SPEED * FLOW_DIR + PHASE + window.scrollY * SCROLL_TO_FLOW);
+
+    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS;
+    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS;
+    const scrollPan = window.scrollY * SCROLL_PAN;
+    gl.uniform2f(u("uPos"), POS_X + orbitX, POS_Y + orbitY - scrollPan);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
