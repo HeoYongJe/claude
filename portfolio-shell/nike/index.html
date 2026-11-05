@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261105d">
+<link rel="stylesheet" href="css/style.css?v=20261105j">
 </head>
 <body>
 
@@ -34,18 +34,16 @@
     </div>
   </nav>
 
-  <!-- ============ HERO (스크롤 줌아웃 전환 — hero-wrap이 추가 높이를 주고 hero는 sticky) ============ -->
-  <div class="hero-wrap" id="top">
-    <header class="hero">
-      <div class="hero__inner" data-hero-scrub>
-        <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
-        <h1 class="hero__word" data-reveal>NIKE</h1>
-        <p class="hero__tagline" data-reveal>움직임이 곧 증명이다.</p>
-        <p class="hero__sub" data-reveal>한계를 선이 아니라 다음 목표로 바꾸는 사람들을 위해.</p>
-      </div>
-      <div class="hero__scroll" data-hero-scroll aria-hidden="true"><span></span>SCROLL</div>
-    </header>
-  </div>
+  <!-- ============ HERO (2026-11-05 39차: 스크롤 스냅 패널 1/7 — 정확히 한 화면) ============ -->
+  <header class="hero" id="top">
+    <div class="hero__inner">
+      <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
+      <h1 class="hero__word" data-reveal>NIKE</h1>
+      <p class="hero__tagline" data-reveal>움직임이 곧 증명이다.</p>
+      <p class="hero__sub" data-reveal>한계를 선이 아니라 다음 목표로 바꾸는 사람들을 위해.</p>
+    </div>
+    <div class="hero__scroll" aria-hidden="true"><span></span>SCROLL</div>
+  </header>
 
   <!-- ============ MANIFESTO (타이핑 텍스트) ============ -->
   <!-- 2026-11-04 17차: 입자 등장(캔버스, js/manifestoVaporize.js)을 다시 사용자 제공 React
@@ -76,32 +74,27 @@
     </div>
   </div>
 
-  <!-- ============ PRODUCT SHOWCASE (상단 신발 스테이지 → 텍스트, 한 흐름) ============ -->
+  <!-- ============ PRODUCT (2026-11-05 39차: 스냅 패널 3개로 분리 — 신발 스테이지 / 기능 하이라이트
+       / BY THE NUMBERS, 전부 .showcase라는 하나의 어두운(--ink) 액트 안. 신발 등장은 더 이상
+       스크롤 진행률 스크럽이 아니라 패널 진입 시 1회 재생되는 CSS 애니메이션(js IntersectionObserver
+       가 .is-active 토글, css §PRODUCT 참고). ============ -->
   <section class="showcase" id="showcase">
-    <!-- 2026-11-05 29차: "전환이 여전히 뚝 끊긴다" — 고정 CSS 불투명도(.9)가 섹션 경계에서 즉시
-         적용돼 절벽처럼 보였던 게 원인. 고정값 대신 이 베일의 opacity를 js/siteWaves.js가 매 프레임
-         scrollY 기준으로 직접 계산해(28차의 sideBias와 같은 램프) 웨이브의 위치 이동과 정확히 같은
-         속도로 서서히 덮이고 서서히 걷히게 함 — design.md Motion §5 29차 참고. -->
+    <!-- 29차: 이 베일의 opacity는 js/siteWaves.js가 매 프레임 scrollY 기준으로 직접 계산(28차의
+         sideBias와 같은 램프) — design.md Motion §5 29차 참고. -->
     <div class="showcase__waveveil" data-showcase-waveveil aria-hidden="true"></div>
-    <!-- 2026-10-23 6차: 3D 회전을 전면 폐기("홀로그램 표현이 안 됨 + 3D/회전 빼고 시원시원한 인터랙션")
-         — 평면 사진을 아주 크게 띄우고, 스크롤에 따라 확대+살짝 기울어진 채 등장했다가 정자세로 "탁"
-         정리되는 2D 트랜스폼 인터랙션으로 교체. 스테이지 핀 구조·배경 그라데이션(.showcase 섹션 전체에
-         걸친 연속 그라데이션)은 그대로 유지(핀이 풀려야 아래 콘텐츠가 자연스럽게 등장). -->
-    <div class="showcase__stage-wrap" data-showcase-stage-wrap>
-      <div class="showcase__stage">
-        <!-- 2026-11-05 23차: 커서 반응형 "Kinetic Grid"(그물 격자) 캔버스 제거 요청 — 공통 .site-waves가
-             신발 뒤 배경까지 맡아서 더 필요 없어짐(js/kineticGrid.js도 삭제). -->
-        <!-- 2026-11-05 32차: "피하지 말고 차라리 사선으로 신발을 통과하면 더 예쁠 것 같다" — 31차의
-             회피용 비네트를 걷어내고 정반대로, 신발 스테이지 구간에서는 웨이브 위치를 신발을 가로질러
-             대각선으로 지나가도록 js/siteWaves.js에서 끌어당김(stageBias) — css §PRODUCT 참고. -->
-        <div class="showcase__visual">
-          <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
-          <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
-        </div>
+
+    <!-- ---- 패널 1: 신발 스테이지 ---- -->
+    <div class="showcase__stage" data-showcase-stage>
+      <!-- 32차: 신발 스테이지 구간에서는 웨이브 위치를 신발을 가로질러 대각선으로 지나가도록
+           js/siteWaves.js에서 끌어당김(stageBias) — css §PRODUCT 참고. -->
+      <div class="showcase__visual">
+        <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
+        <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
       </div>
     </div>
 
-    <div class="showcase__content">
+    <!-- ---- 패널 2: 기능 하이라이트 ---- -->
+    <div class="showcase__features">
       <div class="container">
         <p class="showcase__kicker" data-reveal>PRODUCT</p>
         <h2 class="showcase__title" data-reveal>디테일이 성능이 된다</h2>
@@ -128,30 +121,28 @@
           </li>
         </ul>
       </div>
+    </div>
 
-      <!-- ============ SPEC HIGHLIGHTS (2026-11-03: "신발 내용 같다"는 피드백으로 쇼케이스와
-           한 PRODUCT 섹션으로 통합 — 독립 <section>이 아니라 .showcase__content의 형제 블록.
-           design.md Components "제품 쇼케이스" 10차 참고) ============ -->
-      <div class="specs">
-        <div class="container">
-          <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
-          <div class="specs__grid">
-            <div class="spec-card" data-reveal data-reveal-dir="left">
-              <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
-              <div class="spec-card__label">초경량 무게</div>
-            </div>
-            <div class="spec-card" data-reveal data-reveal-dir="right">
-              <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
-              <div class="spec-card__label">쿠셔닝 두께</div>
-            </div>
-            <div class="spec-card" data-reveal data-reveal-dir="left">
-              <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
-              <div class="spec-card__label">통기성 설계</div>
-            </div>
-            <div class="spec-card" data-reveal data-reveal-dir="right">
-              <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
-              <div class="spec-card__label">리사이클 소재</div>
-            </div>
+    <!-- ---- 패널 3: BY THE NUMBERS ---- -->
+    <div class="specs">
+      <div class="container">
+        <p class="specs__kicker" data-reveal>BY THE NUMBERS</p>
+        <div class="specs__grid">
+          <div class="spec-card" data-reveal data-reveal-dir="left">
+            <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
+            <div class="spec-card__label">초경량 무게</div>
+          </div>
+          <div class="spec-card" data-reveal data-reveal-dir="right">
+            <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
+            <div class="spec-card__label">쿠셔닝 두께</div>
+          </div>
+          <div class="spec-card" data-reveal data-reveal-dir="left">
+            <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
+            <div class="spec-card__label">통기성 설계</div>
+          </div>
+          <div class="spec-card" data-reveal data-reveal-dir="right">
+            <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
+            <div class="spec-card__label">리사이클 소재</div>
           </div>
         </div>
       </div>
@@ -259,7 +250,7 @@
     </div>
   </footer>
 
-  <script src="js/main.js?v=20261105e"></script>
+  <script src="js/main.js?v=20261105f"></script>
   <script src="js/manifestoTypewriter.js?v=20261105a"></script>
   <script src="js/siteWaves.js?v=20261105b"></script>
 </body>
