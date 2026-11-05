@@ -288,32 +288,12 @@ void main() {
   });
 
   // 2026-11-05 28~31차: PRODUCT(.showcase) 구간에서 웨이브를 신발과 안 겹치게 만들려고 위치 밀어내기
-  // → 정적 비네트 마스크까지 시도했었음. ⚠️ 32차: "피하지 말고 차라리 사선으로 신발을 통과하면 더
-  // 예쁠 것 같다" — 정반대 요청으로 방향 전환. 비네트(`.showcase__shoemask`)는 제거(css/html 참고).
-  // 대신 **신발 스테이지(`.showcase__stage-wrap`) 구간에서만 웨이브 기준 위치를 평소의 "모서리로
-  // 치우친 구도"에서 신발과 가까운 값(`STAGE_POS_X/Y`)으로 끌어당겨(stageBias, lerp)** 대각선
-  // 밴드가 신발 실루엣을 가로지르듯 지나가게 함 — 흔들림 폭도 이 구간에서만 줄여서(STAGE_WOBBLE_SCALE)
-  // 교차가 산만하게 흔들리지 않고 안정적으로 보이게 함.
-  let stageBounds = null;
-  function measureStage() {
-    const el = document.querySelector(".showcase__stage-wrap");
-    if (!el) { stageBounds = null; return; }
-    const r = el.getBoundingClientRect();
-    const top = r.top + window.scrollY;
-    stageBounds = { top, bottom: top + el.offsetHeight };
-  }
-  measureStage();
-  document.fonts.ready.then(measureStage);
-  window.addEventListener("load", measureStage);
-  let stageResizeTimer;
-  window.addEventListener("resize", () => {
-    clearTimeout(stageResizeTimer);
-    stageResizeTimer = setTimeout(measureStage, 150);
-  });
-  const STAGE_BIAS_RAMP = 400;
-  const STAGE_POS_X = -0.08, STAGE_POS_Y = 0.18;
-  const STAGE_WOBBLE_SCALE = 0.4;
-
+  // → 정적 비네트 마스크까지 시도했었음. 32차: "피하지 말고 차라리 사선으로 신발을 통과하면 더 예쁠
+  // 것 같다"는 요청으로 반대로 신발 쪽을 끌어당기는 `STAGE_POS_X/Y`(+`stageBias`)를 추가했었음.
+  // ⚠️ 37차(36차 바로 다음 턴, "제대로 이해했다"는 확인과 함께): "PRODUCT에서는 가운데가 아닌
+  // 벗어나서 지나가는 걸로" — 다시 정반대로, 신발 쪽으로 끌어당기던 로직 자체를 제거. 36차에서
+  // 공전·스크롤 패닝 반경을 이미 크게 넓혀놔서, PRODUCT도 다른 구간과 똑같이(별도 보정 없이) 그냥
+  // 두면 자연스럽게 핵이 옆으로 비껴 지나감 — 억지로 끌어당기거나 밀어낼 필요 자체가 없어짐.
   let showcaseBounds = null;
   function measureShowcase() {
     const el = document.querySelector(".showcase");
@@ -362,21 +342,12 @@ void main() {
     }
     if (waveveil) waveveil.style.opacity = (sideBias * VEIL_MAX_OPACITY).toFixed(3);
 
-    let stageBias = 0;
-    if (stageBounds) {
-      const stageEnter = smoothstep(stageBounds.top - STAGE_BIAS_RAMP, stageBounds.top, window.scrollY);
-      const stageExitDone = smoothstep(stageBounds.bottom, stageBounds.bottom + STAGE_BIAS_RAMP, window.scrollY);
-      stageBias = stageEnter * (1 - stageExitDone);
-    }
-    const wobbleScale = 1 - stageBias * (1 - STAGE_WOBBLE_SCALE);
-    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
-    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS * wobbleScale;
+    const orbitX = Math.cos(clock * ORBIT_SPEED) * ORBIT_RADIUS;
+    const orbitY = Math.sin(clock * ORBIT_SPEED) * ORBIT_RADIUS;
     const scrollPhase = window.scrollY * SCROLL_PAN_SPEED;
-    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS * wobbleScale;
-    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS * wobbleScale;
-    const basePosX = POS_X + (STAGE_POS_X - POS_X) * stageBias;
-    const basePosY = POS_Y + (STAGE_POS_Y - POS_Y) * stageBias;
-    gl.uniform2f(u("uPos"), basePosX + orbitX + scrollPanX, basePosY + orbitY + scrollPanY);
+    const scrollPanX = Math.cos(scrollPhase) * SCROLL_PAN_RADIUS;
+    const scrollPanY = Math.sin(scrollPhase * 0.8) * SCROLL_PAN_RADIUS;
+    gl.uniform2f(u("uPos"), POS_X + orbitX + scrollPanX, POS_Y + orbitY + scrollPanY);
 
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     requestAnimationFrame(frame);
