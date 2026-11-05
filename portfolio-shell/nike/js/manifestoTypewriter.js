@@ -8,7 +8,12 @@
 
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  const TYPE_DELAY_MS = 55;
+  // 2026-11-05: "타이핑이 딱딱 끊기는 것 같다, 조금 더 빠르거나 부드럽게" 피드백 — 55ms 고정 간격에
+  // 매 글자를 "통째로 다시 그리기"만 하다 보니 글자가 간격 그대로 툭툭 나타나는 느낌이었음. 간격을
+  // 줄여 조금 더 빠르게 하고(55→32ms), 아래 render()에서 가장 최근 글자만 짧은 페이드업 애니메이션을
+  // 입혀(.manifesto__char-in, css 참고) 각 글자가 "툭" 나타나는 대신 "스윽" 떠오르듯 보이게 함 —
+  // 다음 글자가 32ms 뒤 바로 이어지므로 연속된 애니메이션들이 서로 겹쳐 흐르듯 부드럽게 체감됨.
+  const TYPE_DELAY_MS = 32;
 
   // 원본 DOM(<br>, <em>)은 최초 1회만 토큰 배열로 파싱해두고, 타이핑 중에는
   // 이 배열만 갖고 innerHTML을 매 글자 다시 그린다 — 실제 텍스트 노드는
@@ -43,7 +48,10 @@
       }
       if (t.em && !openEm) { html += "<em>"; openEm = true; }
       if (!t.em && openEm) { html += "</em>"; openEm = false; }
-      html += escape(t.ch);
+      // 가장 마지막(이번 틱에 막 나타난) 글자만 페이드업 애니메이션 span으로 감싼다 — 다음 틱엔
+      // 이 글자도 평범한 텍스트로 재렌더링되므로(아래서 통째로 다시 그림) 애니메이션이 중복 재생되지 않음.
+      const isNew = i === count - 1;
+      html += isNew ? '<span class="manifesto__char-in">' + escape(t.ch) + "</span>" : escape(t.ch);
     }
     if (openEm) html += "</em>";
     html += '<span class="manifesto__cursor" aria-hidden="true"></span>';
