@@ -242,9 +242,20 @@ button, input { font: inherit; }
   transform: translate(-50%, -50%) scale(.6) rotate(-16deg); opacity: 0;
   transition: left 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1), opacity .8s ease; }
 .showcase__sticky[data-stage] .showcase__visual { opacity: 1; transform: translate(-50%, -50%) scale(1.4) rotate(-14deg); }
-/* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 ---- */
+/* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 ----
+   ⚠️ 2026-11-06 46차 버그: "신발하고 텍스트 박스가 겹쳐져 있다"(스크린샷) — 눈으로만 보고
+   "맞다"고 잘못 답했다가, 사용자가 "이미지를 못 보면 레이아웃을 계산해봐"라고 지적해 실제로
+   기하학을 계산해 확인함. `.showcase__visual`(이 규칙)과 `.showcase__info`(아래)는 둘 다
+   `.showcase__stage`(max-width:1200px) 기준 퍼센트/vw로 떨어져 있는 별개의 absolute 엘리먼트라
+   서로 겹치지 않는다는 보장이 전혀 없었음 — 실제 계산(뷰포트 1291px 이상, 즉 거의 모든 실사용
+   데스크톱 해상도에서: 신발 center=20%×1200=240px, 렌더 반폭=620×.78/2≈241.8px → 오른쪽 끝
+   ≈481.8px / 정보 영역 left=1200-24-720=456px)으로 **-25.8px(즉 26px 겹침)**이 나옴을 확인.
+   `left:20%→17%`, `scale:.78→.72`로 신발을 더 왼쪽·살짝 작게, `.showcase__info`
+   width `720px/56vw→680px/50vw`(아래)로 살짝 좁혀 재계산하면 뷰포트 901~1920px 전 구간에서
+   **최소 68.8px(1291px 이상)~최대 164.6px(1200px)의 양의 간격**이 나옴(겹침 없음) — node로
+   수치 직접 검증 후 적용. */
 .showcase__sticky[data-stage="2"] .showcase__visual,
-.showcase__sticky[data-stage="3"] .showcase__visual { left: 20%; transform: translate(-50%, -50%) scale(.78) rotate(0deg); }
+.showcase__sticky[data-stage="3"] .showcase__visual { left: 17%; transform: translate(-50%, -50%) scale(.72) rotate(0deg); }
 
 .showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(215,255,62,.42), rgba(215,255,62,.16) 40%, transparent 65%);
@@ -282,7 +293,7 @@ button, input { font: inherit; }
       (`rgba(255,255,255,.07)`, radius 18px, 자체 padding)로 감쌈 — border-top 구분선 대신
       박스 자체가 서로를 구분해주고, 박스 하나하나가 "덩어리"로 튀어 오르는 느낌과도 더 잘
       맞음. */
-.showcase__info { position: absolute; top: 50%; right: 24px; width: min(720px, 56vw); transform: translateY(-50%); }
+.showcase__info { position: absolute; top: 50%; right: 24px; width: min(680px, 50vw); transform: translateY(-50%); }
 .showcase__title, .feature-item {
   opacity: 0; transform: translateY(28px); pointer-events: none;
   transition: opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1); }
