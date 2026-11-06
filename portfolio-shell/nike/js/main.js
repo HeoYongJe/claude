@@ -58,26 +58,30 @@
       .join("");
   }
 
-  // ---- 제품 쇼케이스: 2026-11-05 39차 — 신발 스테이지가 독립 스냅 패널(한 화면)이 되며, 스크롤
-  //      진행률 스크럽(main.js가 매 프레임 scale/rotate 계산) 대신 패널이 뷰포트에 들어올 때 1회
-  //      재생되는 CSS 애니메이션(css §PRODUCT showcaseShoeIn)으로 교체 — 여기선 .is-active만 토글. ----
-  const showcaseStage = document.querySelector("[data-showcase-stage]");
-  if (showcaseStage) {
+  // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
+  //      요청으로, 신발을 .showcase__sticky(position:sticky)로 화면에 고정해두고 그 뒤를 지나가는
+  //      투명 마커 3개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
+  //      이미 걸려 있음 — "마커 하나 = 스크롤 한 번"은 CSS만으로 보장됨) 중 지금 뷰포트에 걸린
+  //      것을 보고 .showcase__sticky의 data-stage(1~3)를 갱신. 실제 위치·투명도 변화는 전부
+  //      css의 [data-stage] attribute selector + transition이 담당 — 여기선 "지금 몇 단계인지"만
+  //      갱신. ----
+  const showcaseSticky = document.querySelector("[data-showcase-sticky]");
+  const showcaseMarkers = [...document.querySelectorAll("[data-showcase-marker]")];
+  if (showcaseSticky && showcaseMarkers.length) {
     if (reduceMotion) {
-      showcaseStage.classList.add("is-active");
+      showcaseSticky.dataset.stage = String(showcaseMarkers.length);
     } else {
       const stageIO = new IntersectionObserver(
-        (entries, obs) => {
+        (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              entry.target.classList.add("is-active");
-              obs.unobserve(entry.target);
+              showcaseSticky.dataset.stage = String(showcaseMarkers.indexOf(entry.target) + 1);
             }
           });
         },
         { threshold: 0.5 }
       );
-      stageIO.observe(showcaseStage);
+      showcaseMarkers.forEach((marker) => stageIO.observe(marker));
     }
   }
 
