@@ -244,7 +244,7 @@ button, input { font: inherit; }
 .showcase__sticky[data-stage] .showcase__visual { opacity: 1; transform: translate(-50%, -50%) scale(1.4) rotate(-14deg); }
 /* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 ---- */
 .showcase__sticky[data-stage="2"] .showcase__visual,
-.showcase__sticky[data-stage="3"] .showcase__visual { left: 24%; transform: translate(-50%, -50%) scale(.78) rotate(0deg); }
+.showcase__sticky[data-stage="3"] .showcase__visual { left: 20%; transform: translate(-50%, -50%) scale(.78) rotate(0deg); }
 
 .showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(215,255,62,.42), rgba(215,255,62,.16) 40%, transparent 65%);
@@ -264,40 +264,50 @@ button, input { font: inherit; }
 .showcase__sticky[data-stage="2"] .showcase__shoe,
 .showcase__sticky[data-stage="3"] .showcase__shoe { animation-play-state: paused; transform: rotate(0deg); }
 
-/* ---- 2단계: 타이틀+기능 리스트가 "덩어리씩" 묶여 슥 슥 슥 올라옴 ----
+/* ---- 2단계: 타이틀+기능 리스트가 "덩어리씩" 묶여 1·2·3·4 순서대로 삭삭삭삭 올라옴 ----
    컨테이너(.showcase__info) 하나를 통째로 페이드인하는 대신, 타이틀과 기능 아이템 4개가 각자
-   독립된 "덩어리"로 아래에서 위로 튀어 오르며(overshoot 이징) 짧은 간격을 두고 연달아 등장 —
-   nth-child별 transition-delay만으로 순차 등장을 구현.
-   ⚠️ 2026-11-06 44차: "컨테이너가 너무 좁아서 글씨가 자잘하다" 피드백 — width를 540px/44vw →
-   680px/54vw로 크게 늘리고, 타이틀·숫자·본문 폰트 사이즈 전부 한 단계씩 키움. "텍스트 라인
-   오류"(스크린샷에서 신발 옆에 텍스트 없이 가로줄만 떠 있던 버그)의 원인으로 의심되는
-   feature-item의 `border-top` 구분선(opacity:0 전환 도중 테두리만 유난히 먼저/길게 눈에
-   띄었던 것으로 추정)을 완전히 제거 — 구분은 그냥 넉넉한 세로 간격(gap)만으로. */
-.showcase__info { position: absolute; top: 50%; right: 24px; width: min(680px, 54vw); transform: translateY(-50%); }
+   독립된 "덩어리"로 아래에서 위로 튀어 오르며(overshoot 이징) 순서대로 또렷이 구분되게 연달아
+   등장 — nth-child별 transition-delay만으로 순차 등장을 구현.
+   ⚠️ 2026-11-06 45차: "텍스트가 신발에 딱 붙어 있다, 더 오른쪽으로, 크기도 더 키우고. 1·2·3·4
+   순서대로 삭삭삭삭 올라오게 해달라고 했잖아(44차의 .09s 간격은 거의 동시에 떠서 순서가 안
+   보였음). 타이틀 밑 텍스트들은 연한 박스로 감싸줘." — 네 가지:
+   1) **간격을 또렷하게**: delay 간격 .09s(44차, 거의 동시로 보임) → **.2s**로 벌리고 transition
+      시간도 .6s→.5s로 살짝 줄여 아이템끼리 겹치는 구간을 줄임 — 각 아이템이 "삭" 하고 거의 다
+      끝난 뒤에 다음이 "삭" 하고 시작하는, 눈에 보이는 순차 리듬을 만듦.
+   2) **신발과의 간격**: 신발의 2·3단계 `left`를 24%→**20%**로 더 왼쪽으로 밀어 여백을 벌림.
+   3) **더 크게**: 컨테이너 width `680px/54vw`→**`720px/56vw`**, 타이틀
+      `clamp(38,4vw,54)`→**`clamp(42,4.6vw,62)`**, 기능 숫자 36px→**44px**, 제목
+      19px→**22px**, 본문 14px→**16px**.
+   4) **"타이틀 밑 텍스트들은 연한 박스로"**: `feature-item` 각각을 옅은 반투명 흰 박스
+      (`rgba(255,255,255,.07)`, radius 18px, 자체 padding)로 감쌈 — border-top 구분선 대신
+      박스 자체가 서로를 구분해주고, 박스 하나하나가 "덩어리"로 튀어 오르는 느낌과도 더 잘
+      맞음. */
+.showcase__info { position: absolute; top: 50%; right: 24px; width: min(720px, 56vw); transform: translateY(-50%); }
 .showcase__title, .feature-item {
   opacity: 0; transform: translateY(28px); pointer-events: none;
-  transition: opacity .6s cubic-bezier(.34,1.56,.64,1), transform .6s cubic-bezier(.34,1.56,.64,1); }
+  transition: opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1); }
 .showcase__sticky[data-stage="2"] .showcase__title, .showcase__sticky[data-stage="3"] .showcase__title,
 .showcase__sticky[data-stage="2"] .feature-item, .showcase__sticky[data-stage="3"] .feature-item {
   opacity: 1; transform: translateY(0); pointer-events: auto; }
-.showcase__title { transition-delay: .05s; }
-.feature-item:nth-child(1) { transition-delay: .18s; }
-.feature-item:nth-child(2) { transition-delay: .27s; }
-.feature-item:nth-child(3) { transition-delay: .36s; }
-.feature-item:nth-child(4) { transition-delay: .45s; }
-.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(38px, 4vw, 54px); line-height: 1.05;
-  color: var(--text-on-dark); margin-bottom: 28px; word-break: keep-all; }
-.feature-list { list-style: none; display: flex; flex-direction: column; gap: 26px; }
-.feature-item { display: flex; align-items: flex-start; gap: 20px; }
-.feature-item__num { flex: none; font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1;
+.showcase__title { transition-delay: 0s; }
+.feature-item:nth-child(1) { transition-delay: .2s; }
+.feature-item:nth-child(2) { transition-delay: .4s; }
+.feature-item:nth-child(3) { transition-delay: .6s; }
+.feature-item:nth-child(4) { transition-delay: .8s; }
+.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(42px, 4.6vw, 62px); line-height: 1.05;
+  color: var(--text-on-dark); margin-bottom: 30px; word-break: keep-all; }
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.feature-item { display: flex; align-items: flex-start; gap: 20px;
+  background: rgba(255,255,255,.07); border-radius: 18px; padding: 20px 22px; }
+.feature-item__num { flex: none; font-family: var(--font-display); font-size: 44px; font-weight: 700; line-height: 1;
   letter-spacing: -.02em; color: transparent; -webkit-text-stroke: 1.5px rgba(215,255,62,.6); }
 /* num·h3·p가 .feature-item의 직계 flex 자식으로 나란히 놓이면 제목 칸이 좁아져 "반응형 쿠셔"+
    "닝"처럼 음절 단위로 줄바꿈됨(41차에서 겪은 버그) — h3+p를 .feature-item__text로 묶어
    [숫자 | 텍스트블록] 2칸 구성으로, min-width:0은 flex 자식의 기본 min-width:auto가 내용 폭만큼
    넘치는 걸 막기 위함, word-break:keep-all은 공백 없는 음절 블록 내부 줄바꿈 금지. */
 .feature-item__text { flex: 1 1 auto; min-width: 0; }
-.feature-item h3 { font-size: 19px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 5px; word-break: keep-all; }
-.feature-item p { font-size: 14px; color: var(--muted-on-dark); line-height: 1.5; }
+.feature-item h3 { font-size: 22px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 6px; word-break: keep-all; }
+.feature-item p { font-size: 16px; color: var(--muted-on-dark); line-height: 1.5; }
 
 /* ---- lookbook~cta 배경 장식 레이어 (2026-10-29 8차~10차, 2026-11-03 11차) ----
    두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
