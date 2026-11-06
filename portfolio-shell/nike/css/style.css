@@ -237,7 +237,9 @@ button, input { font: inherit; }
 
 /* ---- 1단계: 신발이 "예전처럼" 더 크고, 더 과감하게 기울어진 채로 가운데 팝인 + 계속 살짝
    흔들리는(회전하는 느낌) 상태로 ---- */
-.showcase__visual { position: absolute; top: 50%; left: 50%; z-index: 1;
+/* 2026-11-06 51차: `.showcase__info`에 준 padding-bottom:160px만큼 텍스트 리스트의 수직 중심이
+   80px(160/2) 위로 이동했으므로, 신발의 세로 중심(top:50%)도 그만큼 같이 올려 두 중심선을 맞춤. */
+.showcase__visual { position: absolute; top: calc(50% - 80px); left: 50%; z-index: 1;
   width: min(620px, 48vw); height: clamp(360px, 58vh, 620px);
   transform: translate(-50%, -50%) scale(.6) rotate(-16deg); opacity: 0;
   transition: left 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1), opacity .8s ease; }
@@ -341,9 +343,17 @@ button, input { font: inherit; }
    신발 자체가 `.showcase__visual`의 `left:17%` 공식상 이미 왼쪽으로 일부 벗어나는 기존
    구간(`overflow:hidden`에 가려짐, 이번 변경과 무관한 기존 동작)이라 `right`가 16px 바닥값으로
    유지됨(기존 48차와 동일하게 동작). */
+/* 2026-11-06 51차: "`.showcase__inner`와 `.specs` 사이에 숨통 틔우기(160px+), 신발 수직 중심을
+   텍스트 흐름에 맞춰 재조정" — `.showcase__info`는 `top:0;bottom:0`로 풀 높이를 그리드
+   (1fr auto 1fr)로 나눠 쓰는데, 리스트(auto 행)가 정확히 전체 높이의 중앙에 와서 `.specs`
+   (bottom:40px 고정)와 가까워질 여지가 있었음. `padding-bottom:160px`로 그리드가 쓰는 콘텐츠
+   영역 자체를 아래에서 160px 줄여 리스트 중심을 위로 밀어 올리고, 그만큼(160/2=80px) 비는 공간을
+   `.specs` 쪽 여백으로 확보. 리스트 중심이 80px 위로 이동했으므로, 신발(`.showcase__visual`)의
+   `top:50%`도 `calc(50% - 80px)`로 같이 올려 두 중심선을 맞춤(아래 .showcase__visual 참고). */
 .showcase__info { position: absolute; top: 0; bottom: 0;
   right: max(16px, calc((100vw - min(1200px, 100vw)) / 2 + min(1200px, 100vw) * 0.17 - min(620px, 48vw) * 0.43));
   width: min(620px, 40vw);
+  padding-bottom: 160px;
   display: grid; grid-template-rows: 1fr auto 1fr; align-items: end; }
 .showcase__title { grid-row: 1; }
 .feature-list { grid-row: 2; }
@@ -375,7 +385,7 @@ button, input { font: inherit; }
    넘치는 걸 막기 위함, word-break:keep-all은 공백 없는 음절 블록 내부 줄바꿈 금지. */
 .feature-item__text { flex: 1 1 auto; min-width: 0; }
 .feature-item h3 { font-size: 22px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 6px; word-break: keep-all; }
-.feature-item p { font-size: 16px; color: var(--muted-on-dark); line-height: 1.5; }
+.feature-item p { font-size: 16px; color: rgba(255,255,255,.8); line-height: 1.6; }
 
 /* ---- lookbook~cta 배경 장식 레이어 (2026-10-29 8차~10차, 2026-11-03 11차) ----
    두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
@@ -426,14 +436,22 @@ button, input { font: inherit; }
 .showcase__sticky[data-stage="3"] .specs { opacity: 1; transform: translateY(0); pointer-events: auto; }
 .specs__kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 14px; }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.spec-card { text-align: center; padding: 22px 14px; background: var(--paper2); border-radius: 16px; }
-.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -.01em; color: var(--text); }
+/* 2026-11-06 51차: "BY THE NUMBERS가 흰 박스라 위쪽 기능 카드(다크)랑 톤이 끊긴다" — stark white
+   (--paper2) 배경을 버리고 기능 카드와 같은 반투명 다크 유리 질감(블러+옅은 보더)으로 통일, 호버 시
+   보더·숫자가 volt로 은은하게 빛나며 떠오르는 인터랙션 추가. */
+.spec-card { text-align: center; padding: 22px 14px; background: rgba(255,255,255,.03); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.08); border-radius: 16px;
+  transition: transform .3s ease, border-color .3s ease, box-shadow .3s ease; }
+.spec-card:hover { transform: translateY(-6px); border-color: rgba(215,255,62,.5); box-shadow: 0 8px 28px rgba(215,255,62,.18); }
+.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -.01em; color: #FFFFFF;
+  transition: color .3s ease, text-shadow .3s ease; }
+.spec-card:hover .spec-card__num { color: var(--volt); text-shadow: 0 0 18px rgba(215,255,62,.55); }
 .spec-card__num span[data-count] { display: inline-block; }
 /* 숫자 팝업(카운트업 시작과 함께 JS가 is-popped를 붙임) — 작은 페이드가 아니라 크게 튀어 들어오는 느낌 */
 .spec-card__num span[data-count].is-popped { animation: numPop .7s cubic-bezier(.17,.89,.32,1.4) both; }
 @keyframes numPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.spec-card__num span:not([data-count]) { font-size: 15px; margin-left: 2px; color: var(--muted); }
-.spec-card__label { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.spec-card__num span:not([data-count]) { font-size: 15px; margin-left: 2px; color: rgba(255,255,255,.5); }
+.spec-card__label { margin-top: 8px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5); }
 
 /* ---- 룩북 ---- */
 /* 2026-11-03: "룩북하고 알림신청 사이 간격 없애고, 하나로 묶으라니까" — 아코디언 패널이 끝난 뒤
