@@ -293,7 +293,28 @@ button, input { font: inherit; }
       (`rgba(255,255,255,.07)`, radius 18px, 자체 padding)로 감쌈 — border-top 구분선 대신
       박스 자체가 서로를 구분해주고, 박스 하나하나가 "덩어리"로 튀어 오르는 느낌과도 더 잘
       맞음. */
-.showcase__info { position: absolute; top: 50%; right: 24px; width: min(680px, 50vw); transform: translateY(-50%); }
+/* 2026-11-06 47차: "텍스트 여백이 너무 많다"(우측에 빈 공간) + "타이틀 밑으로 신발과 텍스트의
+   가운데 라인이 맞았으면 좋겠다" — 두 가지 모두 계산/측정으로 확인 후 수정.
+   1) 여백: `.showcase__info`가 `.showcase__stage`(max-width:1200px, 사이트 공통 컨테이너 폭) 안에
+      갇혀 있어서, 뷰포트가 1200+48px보다 넓어지면 스테이지 자체가 중앙 정렬되며 양옆으로 빈
+      여백이 생기고 텍스트도 그 안에 묶여 똑같이 안쪽에 머물렀음(1920px 뷰포트에서 실측: 스테이지
+      우측 바깥 여백만 ≈368px). html에서 `.showcase__info`를 스테이지 밖, `.showcase__sticky`
+      (뷰포트 전체 폭)의 형제로 옮기고 `right`를 vw 기반(`clamp(24px, 4vw, 120px)`)으로 바꿔 넓은
+      화면에서 뷰포트 가장자리 쪽으로 더 끌어다 씀. 신발(.showcase__visual)은 스테이지 안에 그대로
+      둬 46차 겹침 계산엔 영향 없음 — node로 재검증(901~2560px 뷰포트 전 구간, 간격 최소
+      125.8px~최대 630.4px, 기존보다 오히려 더 안전해짐).
+   2) 가운데 라인: 기존엔 타이틀+리스트 "덩어리 전체"를 top:50%+translateY(-50%)로 통째로
+      중앙 정렬해서, 타이틀 높이만큼 리스트의 실제 중심이 신발 중심보다 아래로 쳐졌음(1920px
+      실측: 리스트 center=620.1 vs 신발 center=540, 80px 차이). `display:grid;
+      grid-template-rows:1fr auto 1fr`로 바꿔 **리스트(2번째 행, auto)만 컨테이너 세로 중앙에
+      오도록** 하고(앞뒤 1fr 빈 행이 항상 같은 크기라 리스트 중심 = 컨테이너 중심이 자동 보장됨 —
+      내용 높이가 달라져도 매직 넘버 없이 항상 성립), 타이틀은 1번째 행 맨 아래(align-items:end)에
+      붙여 margin-bottom만큼 간격을 두고 리스트 바로 위에 옴. */
+.showcase__info { position: absolute; top: 0; bottom: 0;
+  right: clamp(24px, 4vw, 120px); width: min(720px, 46vw);
+  display: grid; grid-template-rows: 1fr auto 1fr; align-items: end; }
+.showcase__title { grid-row: 1; }
+.feature-list { grid-row: 2; }
 .showcase__title, .feature-item {
   opacity: 0; transform: translateY(28px); pointer-events: none;
   transition: opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1); }
@@ -569,7 +590,10 @@ button, input { font: inherit; }
   .showcase__sticky[data-stage="3"] .showcase__visual { left: 50%; top: 15%; transform: translate(-50%, -50%) scale(.7) rotate(0deg); }
   /* 컨테이너 자체는 더 이상 애니메이션하지 않음(title·feature-item이 각자 등장) — 위치·스크롤
      가능 영역만 담당. BY THE NUMBERS(.specs)가 맨 아래로 빠지며 생긴 자리에 맞춰 중간대로 이동. */
-  .showcase__info { left: 50%; right: auto; top: 34%; bottom: auto; width: 90vw;
+  /* 47차의 데스크톱 전용 grid(1fr auto 1fr) 세로 중앙 정렬은 모바일엔 불필요(신발·텍스트가
+     세로로 분리 배치돼 "가운데 라인 맞추기" 자체가 적용 안 됨) — display:block으로 되돌려 타이틀
+     →리스트가 원래대로 위→아래 순서로 쌓이게 함. */
+  .showcase__info { display: block; left: 50%; right: auto; top: 34%; bottom: auto; width: 90vw;
     max-height: 36vh; overflow-y: auto; transform: translateX(-50%); }
   .specs { left: 16px; right: 16px; bottom: 16px; }
   .specs__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -607,17 +631,23 @@ button, input { font: inherit; }
      가장 거슬릴 수 있는 종류의 모션이라 통째로 꺼야 함 — 마커(스크롤 길이 담당)를 없애고
      sticky도 풀어서 보통의 정적 세로 흐름(키커→신발→정보블록)으로 되돌림. */
   .showcase__marker { display: none; }
-  .showcase__sticky { position: relative; height: auto; margin-bottom: 0; overflow: visible; padding: 90px 0 60px; }
-  .showcase__stage { position: relative; height: auto; display: flex; flex-direction: column; gap: 32px; }
+  /* 2026-11-06 47차: `.showcase__info`가 html에서 `.showcase__stage` 밖(`.showcase__sticky`의
+     형제)으로 옮겨가며, "키커→신발→정보→스펙" 순서를 되살리려면 모두 한 flex 컨텍스트에 있어야
+     함 — `.showcase__stage`를 `display:contents`로 박스 자체를 지워 그 자식(키커·신발·스펙)을
+     `.showcase__sticky`의 flex 자식으로 승격시키고, `order`로 키커(0 기본)→신발(0 기본)→
+     정보(2)→스펙(3) 순서를 명시. */
+  .showcase__sticky { position: relative; height: auto; margin-bottom: 0; overflow: visible; padding: 90px 0 60px;
+    display: flex; flex-direction: column; gap: 32px; }
+  .showcase__stage { display: contents; }
   .showcase__kicker { position: relative; top: auto; left: auto; margin-bottom: 0; }
   .showcase__visual { position: relative; top: auto; left: auto; width: min(480px, 80vw); height: 46vh; margin: 0 auto;
     transform: none !important; opacity: 1 !important; }
   .showcase__info { position: relative; top: auto; right: auto; width: 100%; max-width: 640px; margin: 0 auto;
-    transform: none !important; opacity: 1 !important; pointer-events: auto; }
+    display: block; order: 2; transform: none !important; opacity: 1 !important; pointer-events: auto; }
   /* 2026-11-06 44차: BY THE NUMBERS(.specs)가 .showcase__stage의 독립 형제(전체 폭 하단 바)로
      빠지며, 같은 이유로 정적 흐름으로 되돌릴 대상에 추가 — .showcase__info와 동일 처리. */
   .specs { position: relative; left: auto; right: auto; bottom: auto; width: 100%; max-width: 640px; margin: 24px auto 0;
-    transform: none !important; opacity: 1 !important; pointer-events: auto; }
+    order: 3; transform: none !important; opacity: 1 !important; pointer-events: auto; }
   /* 타이틀·기능 아이템·스펙 카드가 각자 등장 애니메이션을 갖게 되며(위 참고) 같은 이유로 즉시
      최종 상태로 고정 — data-stage="3"이 이미 opacity:1을 주지만 혹시 모를 전환 잔상까지 확실히
      차단. */

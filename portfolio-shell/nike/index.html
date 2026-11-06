@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261106h">
+<link rel="stylesheet" href="css/style.css?v=20261106i">
 </head>
 <body>
 
@@ -87,40 +87,6 @@
             <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
           </div>
 
-          <div class="showcase__info" data-showcase-info>
-            <h2 class="showcase__title">디테일이<br>성능이 된다</h2>
-            <ul class="feature-list">
-              <li class="feature-item">
-                <span class="feature-item__num">01</span>
-                <div class="feature-item__text">
-                  <h3>반응형 쿠셔닝</h3>
-                  <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
-                </div>
-              </li>
-              <li class="feature-item">
-                <span class="feature-item__num">02</span>
-                <div class="feature-item__text">
-                  <h3>초경량 니트 갑피</h3>
-                  <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
-                </div>
-              </li>
-              <li class="feature-item">
-                <span class="feature-item__num">03</span>
-                <div class="feature-item__text">
-                  <h3>에너지 리턴 아웃솔</h3>
-                  <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
-                </div>
-              </li>
-              <li class="feature-item">
-                <span class="feature-item__num">04</span>
-                <div class="feature-item__text">
-                  <h3>올데이 핏</h3>
-                  <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-
           <!-- BY THE NUMBERS: 신발·텍스트 둘 다에 걸친 전체 폭 한 줄 — .showcase__info(우측 칼럼)
                안이 아니라 .showcase__stage 바로 아래 형제로 둬서 좌우 전체를 다 씀. 3단계에서
                화면 하단 바깥에서 한 줄로 밀고 올라옴. -->
@@ -145,6 +111,47 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- 2026-11-06 47차: .showcase__info를 .showcase__stage(max-width:1200px로 사이트 공통
+             컨테이너 폭에 묶여 있음) 밖으로 꺼내 .showcase__sticky(뷰포트 전체 폭)의 형제로 이동 —
+             "텍스트 우측에 여백이 너무 많다" 피드백의 원인이 넓은 화면에서 1200px로 중앙 정렬된
+             스테이지 바깥쪽(뷰포트 가장자리까지)의 빈 공간이었음(계산: 1920px 뷰포트에서 스테이지
+             우측 바깥 여백만 ≈368px). 신발(.showcase__visual)은 그대로 스테이지 안에 둬 겹침 계산
+             결과(46차)에 영향 없음 — 텍스트만 뷰포트 기준으로 더 오른쪽까지 끌어다 써서 여백을
+             줄임(css 참고, right 값을 뷰포트 vw 기반으로). -->
+        <div class="showcase__info" data-showcase-info>
+          <h2 class="showcase__title">디테일이<br>성능이 된다</h2>
+          <ul class="feature-list">
+            <li class="feature-item">
+              <span class="feature-item__num">01</span>
+              <div class="feature-item__text">
+                <h3>반응형 쿠셔닝</h3>
+                <p>착지 순간의 충격을 흡수하고, 다음 스텝으로 에너지를 되돌려줍니다.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-item__num">02</span>
+              <div class="feature-item__text">
+                <h3>초경량 니트 갑피</h3>
+                <p>발의 움직임에 맞춰 늘어나는 일체형 니트 구조로 군더더기를 뺐습니다.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-item__num">03</span>
+              <div class="feature-item__text">
+                <h3>에너지 리턴 아웃솔</h3>
+                <p>지면을 박차는 힘을 그대로 다음 걸음의 추진력으로 전환합니다.</p>
+              </div>
+            </li>
+            <li class="feature-item">
+              <span class="feature-item__num">04</span>
+              <div class="feature-item__text">
+                <h3>올데이 핏</h3>
+                <p>러닝부터 일상까지, 하루 종일 신어도 편한 밸런스를 맞췄습니다.</p>
+              </div>
+            </li>
+          </ul>
         </div>
       </div>
 
