@@ -235,17 +235,16 @@ button, input { font: inherit; }
 .showcase__stage { position: relative; height: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .showcase__kicker { position: absolute; top: 90px; left: 24px; font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); }
 
-/* ---- 1단계: 신발이 "예전처럼" 크고 기울어진 채로 가운데 팝인 ---- */
+/* ---- 1단계: 신발이 "예전처럼" 더 크고, 더 과감하게 기울어진 채로 가운데 팝인 + 계속 살짝
+   흔들리는(회전하는 느낌) 상태로 ---- */
 .showcase__visual { position: absolute; top: 50%; left: 50%; z-index: 1;
-  width: min(480px, 42vw); height: clamp(280px, 46vh, 480px);
-  transform: translate(-50%, -50%) scale(.68) rotate(-8deg); opacity: 0;
+  width: min(620px, 48vw); height: clamp(360px, 58vh, 620px);
+  transform: translate(-50%, -50%) scale(.6) rotate(-16deg); opacity: 0;
   transition: left 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1), opacity .8s ease; }
-.showcase__sticky[data-stage] .showcase__visual { opacity: 1; transform: translate(-50%, -50%) scale(1.18) rotate(-8deg); }
-/* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 — "작아지면서 원래
-   각도로 돌아오면서 왼쪽으로 스윽" 요청 그대로, 기울기·크기·위치 세 값이 같은 transition으로
-   한 번에 보간되어 "스윽" 미끄러지는 느낌을 냄. ---- */
+.showcase__sticky[data-stage] .showcase__visual { opacity: 1; transform: translate(-50%, -50%) scale(1.4) rotate(-14deg); }
+/* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 ---- */
 .showcase__sticky[data-stage="2"] .showcase__visual,
-.showcase__sticky[data-stage="3"] .showcase__visual { left: 27%; transform: translate(-50%, -50%) scale(.82) rotate(0deg); }
+.showcase__sticky[data-stage="3"] .showcase__visual { left: 24%; transform: translate(-50%, -50%) scale(.78) rotate(0deg); }
 
 .showcase__glow { position: absolute; left: 50%; top: 50%; width: 85%; height: 85%; transform: translate(-50%, -50%);
   background: radial-gradient(circle, rgba(215,255,62,.42), rgba(215,255,62,.16) 40%, transparent 65%);
@@ -254,15 +253,27 @@ button, input { font: inherit; }
   animation: showcaseGlowPulse 4s ease-in-out infinite; }
 .showcase__sticky[data-stage] .showcase__glow { opacity: .85; }
 @keyframes showcaseGlowPulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.14); } }
+/* "회전하는 느낌" — 신발 자체(내부 img)에 아주 은은한 좌우 흔들림을 무한 반복(바깥 .showcase__visual
+   의 위치·크기·각도 transition과는 다른 엘리먼트/다른 속성 타이밍이라 서로 안 겹침). 1단계(가만히
+   서서 보여주는 메인 비주얼 구간)에서만 돌고, 2·3단계(작아져서 옆으로 빠진 뒤)엔 멈춤 — 이 프로젝트가
+   과거 명시적으로 걷어낸 "진짜 3D 회전"과는 다른, 가벼운 CSS 흔들림. */
 .showcase__shoe { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; display: block;
-  filter: drop-shadow(0 32px 40px rgba(0,0,0,.55)); }
+  filter: drop-shadow(0 32px 40px rgba(0,0,0,.55));
+  animation: showcaseShoeIdleSpin 5s ease-in-out infinite; }
+@keyframes showcaseShoeIdleSpin { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(4deg); } }
+.showcase__sticky[data-stage="2"] .showcase__shoe,
+.showcase__sticky[data-stage="3"] .showcase__shoe { animation-play-state: paused; transform: rotate(0deg); }
 
 /* ---- 2단계: 타이틀+기능 리스트가 "덩어리씩" 묶여 슥 슥 슥 올라옴 ----
-   2026-11-06 43차: 컨테이너(.showcase__info) 하나를 통째로 페이드인하는 대신, 타이틀과 기능
-   아이템 4개가 각자 독립된 "덩어리"로 아래에서 위로 튀어 오르며(overshoot 이징) 짧은 간격을 두고
-   연달아 등장 — nth-child별 transition-delay만으로 순차 등장을 구현(추가 JS 불필요, 스테이지
-   전환은 이미 data-stage 하나로 트리거됨). 컨테이너 자체는 위치만 잡고 더 이상 애니메이션하지 않음. */
-.showcase__info { position: absolute; top: 50%; right: 24px; width: min(540px, 44vw); transform: translateY(-50%); }
+   컨테이너(.showcase__info) 하나를 통째로 페이드인하는 대신, 타이틀과 기능 아이템 4개가 각자
+   독립된 "덩어리"로 아래에서 위로 튀어 오르며(overshoot 이징) 짧은 간격을 두고 연달아 등장 —
+   nth-child별 transition-delay만으로 순차 등장을 구현.
+   ⚠️ 2026-11-06 44차: "컨테이너가 너무 좁아서 글씨가 자잘하다" 피드백 — width를 540px/44vw →
+   680px/54vw로 크게 늘리고, 타이틀·숫자·본문 폰트 사이즈 전부 한 단계씩 키움. "텍스트 라인
+   오류"(스크린샷에서 신발 옆에 텍스트 없이 가로줄만 떠 있던 버그)의 원인으로 의심되는
+   feature-item의 `border-top` 구분선(opacity:0 전환 도중 테두리만 유난히 먼저/길게 눈에
+   띄었던 것으로 추정)을 완전히 제거 — 구분은 그냥 넉넉한 세로 간격(gap)만으로. */
+.showcase__info { position: absolute; top: 50%; right: 24px; width: min(680px, 54vw); transform: translateY(-50%); }
 .showcase__title, .feature-item {
   opacity: 0; transform: translateY(28px); pointer-events: none;
   transition: opacity .6s cubic-bezier(.34,1.56,.64,1), transform .6s cubic-bezier(.34,1.56,.64,1); }
@@ -274,19 +285,19 @@ button, input { font: inherit; }
 .feature-item:nth-child(2) { transition-delay: .27s; }
 .feature-item:nth-child(3) { transition-delay: .36s; }
 .feature-item:nth-child(4) { transition-delay: .45s; }
-.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 3.4vw, 46px); line-height: 1.05;
-  color: var(--text-on-dark); margin-bottom: 24px; word-break: keep-all; }
-.feature-list { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-.feature-item { display: flex; align-items: flex-start; gap: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.14); }
-.feature-item__num { flex: none; font-family: var(--font-display); font-size: 26px; font-weight: 700; line-height: 1;
+.showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(38px, 4vw, 54px); line-height: 1.05;
+  color: var(--text-on-dark); margin-bottom: 28px; word-break: keep-all; }
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 26px; }
+.feature-item { display: flex; align-items: flex-start; gap: 20px; }
+.feature-item__num { flex: none; font-family: var(--font-display); font-size: 36px; font-weight: 700; line-height: 1;
   letter-spacing: -.02em; color: transparent; -webkit-text-stroke: 1.5px rgba(215,255,62,.6); }
 /* num·h3·p가 .feature-item의 직계 flex 자식으로 나란히 놓이면 제목 칸이 좁아져 "반응형 쿠셔"+
    "닝"처럼 음절 단위로 줄바꿈됨(41차에서 겪은 버그) — h3+p를 .feature-item__text로 묶어
    [숫자 | 텍스트블록] 2칸 구성으로, min-width:0은 flex 자식의 기본 min-width:auto가 내용 폭만큼
    넘치는 걸 막기 위함, word-break:keep-all은 공백 없는 음절 블록 내부 줄바꿈 금지. */
 .feature-item__text { flex: 1 1 auto; min-width: 0; }
-.feature-item h3 { font-size: 15px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 3px; word-break: keep-all; }
-.feature-item p { font-size: 12px; color: var(--muted-on-dark); line-height: 1.45; }
+.feature-item h3 { font-size: 19px; font-weight: 700; color: var(--text-on-dark); margin-bottom: 5px; word-break: keep-all; }
+.feature-item p { font-size: 14px; color: var(--muted-on-dark); line-height: 1.5; }
 
 /* ---- lookbook~cta 배경 장식 레이어 (2026-10-29 8차~10차, 2026-11-03 11차) ----
    두 섹션이 똑같은 --paper 배경으로 바로 붙어있어 길게 밋밋한 흰 면이 됐다는 피드백 —
@@ -324,32 +335,27 @@ button, input { font: inherit; }
 /* ---- 스펙 하이라이트(BY THE NUMBERS) ---- */
 /* 2026-11-06 41차: 흰 박스 카드 4개 가로 일렬(사무용 대시보드처럼 보였던 원인)을 버리고, 신발 뒤
    어두운 배경 위에 직접 얹는 큰 아웃라인 숫자로. 42차: 전용 그리드 칸이 아니라 기능 리스트 바로
-   아래 오는 보통 블록, 타이틀·기능 리스트와 한 번에(3단계) 등장.
-   ⚠️ 2026-11-06 43차: "BY THE NUMBERS는 예전처럼 박스 처리돼서 하단에서 올라와" — 아웃라인
-   숫자를 버리고 다시 흰(`--paper2`) 박스 카드(40차 스타일)로, **등장 시점도 타이틀/기능
-   리스트(2단계)와 분리해 3단계 전용**으로 — 스크롤 한 번 더 해야 비로소 하단에서 올라오도록
-   (`.showcase__sticky[data-stage="3"]`에서만 트리거). 카드 4장도 title/feature-item과 같은
-   nth-child 스태거로 짧은 간격을 두고 연달아 튀어 오름. */
-.specs { margin-top: 28px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.14); }
-.specs__kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 16px;
-  opacity: 0; transform: translateY(20px); transition: opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1); }
-.showcase__sticky[data-stage="3"] .specs__kicker { opacity: 1; transform: translateY(0); }
-.specs__grid { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 14px; row-gap: 14px; }
-.spec-card { text-align: center; padding: 18px 10px; background: var(--paper2); border-radius: 14px;
-  opacity: 0; transform: translateY(32px); transition: opacity .6s cubic-bezier(.34,1.56,.64,1), transform .6s cubic-bezier(.34,1.56,.64,1); }
-.showcase__sticky[data-stage="3"] .spec-card { opacity: 1; transform: translateY(0); }
-.spec-card:nth-child(1) { transition-delay: .05s; }
-.spec-card:nth-child(2) { transition-delay: .14s; }
-.spec-card:nth-child(3) { transition-delay: .23s; }
-.spec-card:nth-child(4) { transition-delay: .32s; }
-.spec-card:nth-child(even) { margin-top: 16px; }
-.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(24px, 2.6vw, 34px); letter-spacing: -.01em; color: var(--text); }
+   아래 오는 보통 블록, 타이틀·기능 리스트와 한 번에(3단계) 등장. 43차: 흰(`--paper2`) 박스
+   카드(40차 스타일)로 복귀 + 등장 시점을 3단계 전용으로 분리.
+   ⚠️ 2026-11-06 44차: "BY THE NUMBERS는 텍스트 밑에 두라는 게 아니라 신발과 텍스트 아래에서
+   올라오라는 거였어 — 예전처럼 일자로"(`.showcase__info` 우측 칼럼 안에 갇혀 있던 걸 지적) —
+   `.showcase__info`가 아니라 `.showcase__stage`의 형제로 이동(html 참고)해 **신발·텍스트
+   양쪽에 걸친 전체 폭**을 쓰게 하고, 화면 하단 바깥에서 한 줄(`grid-template-columns:
+   repeat(4,1fr)`, 40차처럼 지그재그 스태거 없이 "일자로")로 밀고 올라오도록 재구성. */
+.specs { position: absolute; left: 24px; right: 24px; bottom: 40px;
+  opacity: 0; transform: translateY(70px); pointer-events: none;
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1); }
+.showcase__sticky[data-stage="3"] .specs { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.specs__kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); margin-bottom: 14px; }
+.specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.spec-card { text-align: center; padding: 22px 14px; background: var(--paper2); border-radius: 16px; }
+.spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -.01em; color: var(--text); }
 .spec-card__num span[data-count] { display: inline-block; }
 /* 숫자 팝업(카운트업 시작과 함께 JS가 is-popped를 붙임) — 작은 페이드가 아니라 크게 튀어 들어오는 느낌 */
 .spec-card__num span[data-count].is-popped { animation: numPop .7s cubic-bezier(.17,.89,.32,1.4) both; }
 @keyframes numPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.spec-card__num span:not([data-count]) { font-size: 14px; margin-left: 1px; color: var(--muted); }
-.spec-card__label { margin-top: 6px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.spec-card__num span:not([data-count]) { font-size: 15px; margin-left: 2px; color: var(--muted); }
+.spec-card__label { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--muted); }
 
 /* ---- 룩북 ---- */
 /* 2026-11-03: "룩북하고 알림신청 사이 간격 없애고, 하나로 묶으라니까" — 아코디언 패널이 끝난 뒤
@@ -530,20 +536,24 @@ button, input { font: inherit; }
      내용이 뷰포트보다 길 수 있어 자체 스크롤(overflow-y:auto)을 둠 — 스냅/핀 자체는 그대로
      유지하면서 내용만 핀 구간 안에서 훑어볼 수 있게(하이브리드, §39차부터 유지해온 타협과 같은
      원칙). */
-  /* 2026-11-06 43차: 1단계(크고 기울어짐)→2단계(작아지며 0deg로, 자리 비켜줌) 전환은 모바일도
-     동일하게 적용 — 축만 세로(top)로. */
+  /* 2026-11-06 43/44차: 1단계(크고 기울어짐)→2단계(작아지며 0deg로, 위로 비켜줌) 전환은 모바일도
+     동일하게 적용 — 축만 세로(top)로. BY THE NUMBERS가 .showcase__info 밖으로 나와 전체 폭
+     하단 바가 되며(html 참고), 모바일에서도 같은 원칙으로 셋을 세로 영역별로 나눠 배치:
+     신발(위)·타이틀+기능 리스트(중간, 넘치면 자체 스크롤)·BY THE NUMBERS(맨 아래 고정). */
   .showcase__kicker { top: 76px; }
-  .showcase__visual { left: 50%; top: 34%; width: 74vw; height: 32vh;
-    transform: translate(-50%, -50%) scale(.66) rotate(-8deg); }
-  .showcase__sticky[data-stage] .showcase__visual { transform: translate(-50%, -50%) scale(1.12) rotate(-8deg); }
+  .showcase__visual { left: 50%; top: 32%; width: 78vw; height: 30vh;
+    transform: translate(-50%, -50%) scale(.56) rotate(-16deg); }
+  .showcase__sticky[data-stage] .showcase__visual { transform: translate(-50%, -50%) scale(1.2) rotate(-14deg); }
   .showcase__sticky[data-stage="2"] .showcase__visual,
-  .showcase__sticky[data-stage="3"] .showcase__visual { left: 50%; top: 18%; transform: translate(-50%, -50%) scale(.76) rotate(0deg); }
-  /* 컨테이너 자체는 더 이상 애니메이션하지 않음(title·feature-item·spec-card가 각자 등장) —
-     위치·스크롤 가능 영역만 담당. */
-  .showcase__info { left: 50%; right: auto; top: auto; bottom: 20px; width: 90vw;
-    max-height: 56vh; overflow-y: auto; transform: translateX(-50%); }
-  .specs__grid { grid-template-columns: repeat(2, 1fr); }
-  .spec-card:nth-child(even) { margin-top: 0; }
+  .showcase__sticky[data-stage="3"] .showcase__visual { left: 50%; top: 15%; transform: translate(-50%, -50%) scale(.7) rotate(0deg); }
+  /* 컨테이너 자체는 더 이상 애니메이션하지 않음(title·feature-item이 각자 등장) — 위치·스크롤
+     가능 영역만 담당. BY THE NUMBERS(.specs)가 맨 아래로 빠지며 생긴 자리에 맞춰 중간대로 이동. */
+  .showcase__info { left: 50%; right: auto; top: 34%; bottom: auto; width: 90vw;
+    max-height: 36vh; overflow-y: auto; transform: translateX(-50%); }
+  .specs { left: 16px; right: 16px; bottom: 16px; }
+  .specs__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .spec-card { padding: 14px 8px; }
+  .spec-card__num { font-size: clamp(20px, 5.2vw, 28px); }
   /* 모바일은 호버가 없으므로 가로 아코디언을 세로로 눕힘 — 패널이 화면 폭 꽉 찬 가로 띠(접힌 높이
      84px)로 쌓이고, 탭하면 js가 붙인 .is-active가 height를 키움(위 hover 전용 규칙은 pointer:fine에
      갇혀 있어 터치에선 애초에 안 걸림 — :focus-visible만 공통으로 계속 작동). */
@@ -583,10 +593,15 @@ button, input { font: inherit; }
     transform: none !important; opacity: 1 !important; }
   .showcase__info { position: relative; top: auto; right: auto; width: 100%; max-width: 640px; margin: 0 auto;
     transform: none !important; opacity: 1 !important; pointer-events: auto; }
-  /* 2026-11-06 43차: 타이틀·기능 아이템·스펙 카드가 각자 등장 애니메이션을 갖게 되며(위 참고)
-     같은 이유로 즉시 최종 상태로 고정 — data-stage="3"이 이미 opacity:1을 주지만 혹시 모를
-     전환 잔상까지 확실히 차단. */
+  /* 2026-11-06 44차: BY THE NUMBERS(.specs)가 .showcase__stage의 독립 형제(전체 폭 하단 바)로
+     빠지며, 같은 이유로 정적 흐름으로 되돌릴 대상에 추가 — .showcase__info와 동일 처리. */
+  .specs { position: relative; left: auto; right: auto; bottom: auto; width: 100%; max-width: 640px; margin: 24px auto 0;
+    transform: none !important; opacity: 1 !important; pointer-events: auto; }
+  /* 타이틀·기능 아이템·스펙 카드가 각자 등장 애니메이션을 갖게 되며(위 참고) 같은 이유로 즉시
+     최종 상태로 고정 — data-stage="3"이 이미 opacity:1을 주지만 혹시 모를 전환 잔상까지 확실히
+     차단. */
   .showcase__title, .feature-item, .spec-card { transition: none !important; opacity: 1 !important; transform: none !important; }
+  .showcase__shoe { animation: none !important; transform: rotate(0deg) !important; }
   .showcase__glow { animation: none !important; opacity: .3; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }

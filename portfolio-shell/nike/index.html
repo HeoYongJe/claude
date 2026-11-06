@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261106e">
+<link rel="stylesheet" href="css/style.css?v=20261106f">
 </head>
 <body>
 
@@ -119,25 +119,29 @@
                 </div>
               </li>
             </ul>
-            <div class="specs">
-              <p class="specs__kicker">BY THE NUMBERS</p>
-              <div class="specs__grid">
-                <div class="spec-card">
-                  <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
-                  <div class="spec-card__label">초경량 무게</div>
-                </div>
-                <div class="spec-card">
-                  <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
-                  <div class="spec-card__label">쿠셔닝 두께</div>
-                </div>
-                <div class="spec-card">
-                  <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
-                  <div class="spec-card__label">통기성 설계</div>
-                </div>
-                <div class="spec-card">
-                  <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
-                  <div class="spec-card__label">리사이클 소재</div>
-                </div>
+          </div>
+
+          <!-- BY THE NUMBERS: 신발·텍스트 둘 다에 걸친 전체 폭 한 줄 — .showcase__info(우측 칼럼)
+               안이 아니라 .showcase__stage 바로 아래 형제로 둬서 좌우 전체를 다 씀. 3단계에서
+               화면 하단 바깥에서 한 줄로 밀고 올라옴. -->
+          <div class="specs" data-showcase-specs>
+            <p class="specs__kicker">BY THE NUMBERS</p>
+            <div class="specs__grid">
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
+                <div class="spec-card__label">초경량 무게</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
+                <div class="spec-card__label">쿠셔닝 두께</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
+                <div class="spec-card__label">통기성 설계</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
+                <div class="spec-card__label">리사이클 소재</div>
               </div>
             </div>
           </div>
