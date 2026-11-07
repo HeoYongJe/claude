@@ -4,6 +4,9 @@
   // ---- 상단 진행 바 ----
   const progressBar = document.querySelector(".progress__bar");
   const nav = document.querySelector(".nav");
+  // 2026-11-07 58차: "스크롤을 시작하면 SCROLL 표시가 자연스럽게 사라지도록" — 80px은 휠 한 틱
+  // 정도의 관성 스크롤로도 쉽게 넘는 작은 값이라 "스크롤을 시작했다"는 의도를 바로 반영.
+  const heroScroll = document.querySelector(".hero__scroll");
   function onScroll() {
     const h = document.documentElement;
     const scrolled = h.scrollTop;
@@ -11,6 +14,7 @@
     const pct = max > 0 ? (scrolled / max) * 100 : 0;
     if (progressBar) progressBar.style.width = pct + "%";
     if (nav) nav.classList.toggle("is-scrolled", scrolled > 30);
+    if (heroScroll) heroScroll.classList.toggle("is-hidden", scrolled > 80);
   }
   document.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
