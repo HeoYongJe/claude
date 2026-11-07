@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261107b">
+<link rel="stylesheet" href="css/style.css?v=20261107c">
 </head>
 <body>
 
@@ -84,6 +84,32 @@
             <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
             <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
           </div>
+
+          <!-- 2026-11-07 54차: 53차에서 "BY THE NUMBERS 애매하다"는 피드백을 통째로 제거로 잘못 받아
+               숫자 4개까지 전부 지웠었음 — 사용자 교정: 빼달라던 건 "BY THE NUMBERS"라는 타이틀
+               문구뿐, 숫자 자체(.specs__grid)는 복구. 아래 .specs__kicker(타이틀 줄)만 없음, 나머지는
+               52차 구조 그대로(신발·텍스트 둘 다에 걸친 전체 폭 한 줄, 3단계에서 화면 하단 바깥에서
+               한 줄로 밀고 올라옴). -->
+          <div class="specs" data-showcase-specs>
+            <div class="specs__grid">
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
+                <div class="spec-card__label">초경량 무게</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
+                <div class="spec-card__label">쿠셔닝 두께</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
+                <div class="spec-card__label">통기성 설계</div>
+              </div>
+              <div class="spec-card">
+                <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
+                <div class="spec-card__label">리사이클 소재</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 2026-11-06 47차: .showcase__info를 .showcase__stage(max-width:1200px로 사이트 공통
@@ -133,9 +159,10 @@
         </div>
       </div>
 
-      <!-- 2026-11-07 53차: BY THE NUMBERS 제거 요청으로 3단계(스펙 등장) 전용이던 마커를 없애고
-           2단계(신발 팝인 → 신발 이동+텍스트 등장)로 축소 — 마커 2개: 시각적 콘텐츠 없음, 스크롤
-           스냅 포인트 + 현재 단계 감지용(js 참고). -->
+      <!-- 마커 3개: 시각적 콘텐츠 없음, 스크롤 스냅 포인트 + 현재 단계 감지용(js 참고). 2026-11-07
+           54차: 53차에서 BY THE NUMBERS 전체를 지우며 2개로 줄였던 걸 숫자 복구와 함께 3개로 되돌림
+           (스펙이 다시 3단계 전용 등장을 가짐). -->
+      <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
     </div>

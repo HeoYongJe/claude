@@ -60,12 +60,11 @@
 
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
   //      요청으로, 신발을 .showcase__sticky(position:sticky)로 화면에 고정해두고 그 뒤를 지나가는
-  //      투명 마커(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
+  //      투명 마커 3개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
   //      이미 걸려 있음 — "마커 하나 = 스크롤 한 번"은 CSS만으로 보장됨) 중 지금 뷰포트에 걸린
-  //      것을 보고 .showcase__sticky의 data-stage를 갱신. 실제 위치·투명도 변화는 전부
+  //      것을 보고 .showcase__sticky의 data-stage(1~3)를 갱신. 실제 위치·투명도 변화는 전부
   //      css의 [data-stage] attribute selector + transition이 담당 — 여기선 "지금 몇 단계인지"만
-  //      갱신. 마커 개수(=최대 단계 수)는 html을 그대로 따름(2026-11-07 53차: BY THE NUMBERS
-  //      제거로 마커 3개→2개, 이 코드는 수정 없이 자동으로 맞춰짐). ----
+  //      갱신. ----
   const showcaseSticky = document.querySelector("[data-showcase-sticky]");
   const showcaseMarkers = [...document.querySelectorAll("[data-showcase-marker]")];
   if (showcaseSticky && showcaseMarkers.length) {
@@ -102,6 +101,36 @@
         if (!wasActive) panel.classList.add("is-active");
       });
     });
+  }
+
+  // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
+  const countEls = document.querySelectorAll("[data-count]");
+  if (reduceMotion) {
+    countEls.forEach((el) => { el.textContent = el.dataset.count; });
+  } else {
+    const countIO = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          obs.unobserve(el);
+          el.classList.add("is-popped");
+          const target = Number(el.dataset.count) || 0;
+          const dur = 900;
+          const start = performance.now();
+          function tick(now) {
+            const t = Math.min(1, (now - start) / dur);
+            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+            el.textContent = Math.round(target * eased);
+            if (t < 1) requestAnimationFrame(tick);
+            else el.textContent = target;
+          }
+          requestAnimationFrame(tick);
+        });
+      },
+      { threshold: 0.4 }
+    );
+    countEls.forEach((el) => countIO.observe(el));
   }
 
   // ---- [data-speed] 배경 블롭 패럴럭스(룩북~CTA 장식) ----
