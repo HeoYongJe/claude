@@ -129,9 +129,13 @@ button, input { font: inherit; }
 /* 63차: 태그라인이 paper 쪽에 걸치므로 포인트컬러로 — volt는 흰 배경에서 명도 대비가 거의 없어서
    (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
-   비율을 60→50/70으로 바꿔 태그라인이 어느 쪽 배경에 걸리든 별도 분기 없이 항상 또렷하게 읽힘. */
+   비율을 60→50/70으로 바꿔 태그라인이 어느 쪽 배경에 걸리든 별도 분기 없이 항상 또렷하게 읽힘.
+   2026-11-08 64차: 읽기엔 문제없었지만 "분할선에 걸쳐 있는" 모습 자체가 어정쩡해 보인다는 피드백 —
+   margin-top을 24→72px로 늘려 paper 영역 안쪽으로 분명하게 들어가게(실측: --hero-split 60% 기준
+   분할선 540px, 기존 태그라인 top 527px로 걸쳐 있었음 → 이번 조정으로 약 580px대로 이동, 분할선
+   아래로 확실히 분리). --hero-split 비율을 바꾸면 이 여유도 같이 틀어질 수 있어 재확인 필요. */
 .hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px);
-  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 24px; }
+  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 72px; }
 /* 63차 추가 수정: 모바일처럼 sub가 2줄로 줄바꿈되는 폭에서는 분할선이 sub 중간을 가로지를 수 있음
    (실측: 375px에서 재현) — muted-on-dark(어두운 배경 기준 색)를 기본으로 유지하면서 얇은 ink
    스트로크를 더해, ink 배경에서는 스트로크가 배경과 거의 같은 색이라 기존 그대로 보이고 paper
@@ -199,7 +203,10 @@ button, input { font: inherit; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; position: relative; }
 .manifesto__textwrap { position: relative; }
 .manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; color: var(--text); }
-.manifesto__line2 { color: var(--text-on-dark); }
+/* 2026-11-08 64차: "줄1이 분할선에 딱 붙어 끝나고, 줄2도 딱 붙어 시작한다, 위아래로 좀 더 띄워달라"
+   피드백 — inline-block으로 바꿔 margin-top이 실제로 적용되게 하고 간격을 벌림. 분할선 자체는
+   main.js가 이 간격의 정중앙으로 재계산(아래 참고) — margin 값을 바꾸면 JS가 알아서 다시 따라옴. */
+.manifesto__line2 { display: inline-block; color: var(--text-on-dark); margin-top: 28px; }
 /* 2026-11-07 55차: 52~54차 세 번의 시행착오(① volt 꽉채움 — 눈부심 ② 색 비우고 volt 스트로크만
    — 흰 배경에서 명도 대비 자체가 없어 안 보임 ③ ink 채움+volt 림 — 대비는 되지만 한글 복합
    글리프에 stroke를 쓰니 지저분해 보임) 끝에, 사용자가 "초창기 스크롤(핀드줌 스크럽) 연출 때

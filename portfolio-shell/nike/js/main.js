@@ -69,16 +69,21 @@
   // 대신 실제 "매일, 한 걸음씩" span의 렌더 위치를 직접 측정해 %로 환산 — 항상 정확히 줄 경계에
   // 맞음. 타이핑 애니메이션 중엔 이 span이 아직 DOM에 없을 수 있어(글자 단위로 렌더) MutationObserver로
   // 첫 등장 시점부터 추적.
+  // 2026-11-08 64차: "줄1·줄2가 분할선에 딱 붙어 보인다" — 분할선을 줄2 상단이 아니라 줄1 하단과
+  // 줄2 상단(css의 margin-top:28px로 벌어진 간격) 정중앙으로 옮김. 둘 다 span으로 측정 가능해짐.
   const manifestoEl = document.querySelector(".manifesto");
   const manifestoTextEl = document.querySelector(".manifesto__text");
   if (manifestoEl && manifestoTextEl) {
     function syncManifestoSplit() {
+      const line1 = manifestoEl.querySelector(".manifesto__line1");
       const line2 = manifestoEl.querySelector(".manifesto__line2");
-      if (!line2) return;
+      if (!line1 || !line2) return;
       const sectionRect = manifestoEl.getBoundingClientRect();
-      const lineRect = line2.getBoundingClientRect();
+      const line1Rect = line1.getBoundingClientRect();
+      const line2Rect = line2.getBoundingClientRect();
       if (!sectionRect.height) return;
-      const pct = ((lineRect.top - sectionRect.top) / sectionRect.height) * 100;
+      const midY = (line1Rect.bottom + line2Rect.top) / 2;
+      const pct = ((midY - sectionRect.top) / sectionRect.height) * 100;
       manifestoEl.style.setProperty("--manifesto-split", pct.toFixed(2) + "%");
     }
     syncManifestoSplit();
