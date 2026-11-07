@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261106m">
+<link rel="stylesheet" href="css/style.css?v=20261107a">
 </head>
 <body>
 
@@ -80,8 +80,6 @@
     <div class="showcase__pinwrap" data-showcase-pinwrap>
       <div class="showcase__sticky" data-showcase-sticky data-stage="1">
         <div class="showcase__stage">
-          <p class="showcase__kicker" data-reveal>PRODUCT</p>
-
           <div class="showcase__visual" data-showcase-visual>
             <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
             <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
@@ -121,7 +119,15 @@
              결과(46차)에 영향 없음 — 텍스트만 뷰포트 기준으로 더 오른쪽까지 끌어다 써서 여백을
              줄임(css 참고, right 값을 뷰포트 vw 기반으로). -->
         <div class="showcase__info" data-showcase-info>
-          <h2 class="showcase__title">디테일이<br>성능이 된다</h2>
+          <!-- 2026-11-07 52차: "PRODUCT가 다른 섹션과 동일하게 타이틀 위에 왔으면" — 기존엔
+               .showcase__kicker가 .showcase__stage 안에서 top:90px;left:24px로 신발 위에 따로
+               떠 있어 타이틀(.showcase__info, 우측 칼럼)과 시각적으로 묶이지 않았음. 타이틀 바로
+               위로 옮기고 .showcase__head로 묶어 grid-row:1 한 칸에서 같이 흐르게 함(아래 css 참고,
+               .hero·.manifesto·.lookbook·.cta와 동일하게 "킥커→타이틀" 순서). -->
+          <div class="showcase__head">
+            <p class="showcase__kicker">PRODUCT</p>
+            <h2 class="showcase__title">디테일이<br>성능이 된다</h2>
+          </div>
           <!-- 2026-11-06 48차: 4개→3개로 줄이고(리듬감 있는 지그재그 배치 요청) "초경량 니트 갑피"
                (소재) 제거 — 착지(쿠셔닝)→추진(아웃솔)→착용감(핏)으로 이어지는 흐름이 더 또렷해서
                나머지 셋을 남김. 홀/짝 번갈아 좌/우로 붙는 지그재그는 css(.feature-item nth-child)
