@@ -190,4 +190,94 @@
       if (ctaDone) ctaDone.hidden = false;
     });
   }
+
+  // ---- 헤더 "드롭 알림 받기" 모달 — 2026-11-07 59차 ----
+  // 기존엔 #cta로 스크롤만 하는 장식용 버튼이었음(브리프 지적) — 실제 신청 UI(검증·상태·접근성
+  // 포커스 관리)를 갖춘 모달로 교체. 이메일 전송 서버가 없으므로 성공 메시지에 프로토타입임을
+  // 명시(위 .cta__done과 동일 원칙).
+  const ctaModal = document.querySelector("[data-cta-modal]");
+  const ctaOpenBtn = document.querySelector("[data-cta-open]");
+  if (ctaModal && ctaOpenBtn) {
+    const overlay = ctaModal.querySelector("[data-cta-modal-overlay]");
+    const closeBtn = ctaModal.querySelector("[data-cta-modal-close]");
+    const modalForm = ctaModal.querySelector("[data-cta-modal-form]");
+    const modalInput = ctaModal.querySelector("#modalEmail");
+    const errorEl = ctaModal.querySelector("[data-cta-modal-error]");
+    const submitBtn = ctaModal.querySelector("[data-cta-modal-submit]");
+    const doneEl = ctaModal.querySelector("[data-cta-modal-done]");
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    let lastFocused = null;
+    let closeTimer = null;
+
+    function focusable() {
+      return [...ctaModal.querySelectorAll('button, input, [href], [tabindex]:not([tabindex="-1"])')]
+        .filter((el) => !el.hidden && el.offsetParent !== null);
+    }
+    function showError(msg) {
+      if (msg) {
+        errorEl.textContent = msg;
+        errorEl.hidden = false;
+        modalInput.classList.add("is-error");
+        modalInput.setAttribute("aria-invalid", "true");
+      } else {
+        errorEl.hidden = true;
+        modalInput.classList.remove("is-error");
+        modalInput.removeAttribute("aria-invalid");
+      }
+    }
+    function resetModal() {
+      modalForm.hidden = false;
+      doneEl.hidden = true;
+      modalForm.reset();
+      showError("");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "알림 신청";
+    }
+    function onKeydown(e) {
+      if (e.key === "Escape") { closeModal(); return; }
+      if (e.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    function openModal() {
+      clearTimeout(closeTimer);
+      lastFocused = document.activeElement;
+      ctaModal.hidden = false;
+      document.documentElement.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        ctaModal.classList.add("is-open");
+        modalInput.focus();
+      });
+      document.addEventListener("keydown", onKeydown);
+    }
+    function closeModal() {
+      ctaModal.classList.remove("is-open");
+      document.documentElement.style.overflow = "";
+      document.removeEventListener("keydown", onKeydown);
+      closeTimer = setTimeout(() => { ctaModal.hidden = true; resetModal(); }, reduceMotion ? 0 : 300);
+      if (lastFocused) lastFocused.focus();
+    }
+
+    ctaOpenBtn.addEventListener("click", openModal);
+    closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", closeModal);
+    modalForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const value = modalInput.value.trim();
+      if (!value) { showError("이메일 주소를 입력해주세요."); modalInput.focus(); return; }
+      if (!EMAIL_RE.test(value)) { showError("올바른 이메일 형식이 아니에요."); modalInput.focus(); return; }
+      showError("");
+      submitBtn.disabled = true;
+      submitBtn.textContent = "신청 중…";
+      setTimeout(() => {
+        modalForm.hidden = true;
+        doneEl.hidden = false;
+        doneEl.focus();
+      }, reduceMotion ? 0 : 500);
+    });
+  }
 })();
