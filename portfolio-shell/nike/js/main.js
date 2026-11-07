@@ -62,6 +62,30 @@
       .join("");
   }
 
+  // ---- 매니페스토 배경 분할선을 실제 줄바꿈 위치에 맞춤 (2026-11-08 63차) ----
+  // css의 --manifesto-split(51%, vh 기준 고정값)만으로는 뷰포트 "높이"가 바뀌면 어긋남 —
+  // 폰트가 vw 기반 clamp라 줄 높이가 뷰포트 "너비"에 따라서도 변하기 때문에, 높이 하나만으로
+  // 안전한 매직넘버를 찾을 수 없음(1366×768에서 1줄째 마침표 밑단이 살짝 잘리는 것으로 확인).
+  // 대신 실제 "매일, 한 걸음씩" span의 렌더 위치를 직접 측정해 %로 환산 — 항상 정확히 줄 경계에
+  // 맞음. 타이핑 애니메이션 중엔 이 span이 아직 DOM에 없을 수 있어(글자 단위로 렌더) MutationObserver로
+  // 첫 등장 시점부터 추적.
+  const manifestoEl = document.querySelector(".manifesto");
+  const manifestoTextEl = document.querySelector(".manifesto__text");
+  if (manifestoEl && manifestoTextEl) {
+    function syncManifestoSplit() {
+      const line2 = manifestoEl.querySelector(".manifesto__line2");
+      if (!line2) return;
+      const sectionRect = manifestoEl.getBoundingClientRect();
+      const lineRect = line2.getBoundingClientRect();
+      if (!sectionRect.height) return;
+      const pct = ((lineRect.top - sectionRect.top) / sectionRect.height) * 100;
+      manifestoEl.style.setProperty("--manifesto-split", pct.toFixed(2) + "%");
+    }
+    syncManifestoSplit();
+    window.addEventListener("resize", syncManifestoSplit);
+    new MutationObserver(syncManifestoSplit).observe(manifestoTextEl, { childList: true, subtree: true });
+  }
+
   // ---- 히어로 글로우: 커서를 따라가는 volt 라이트 (2026-11-08 62차, 옵션2 — 1번 스크롤
   //      패럴럭스의 보조) — .showcase__glow와 같은 단색 블러 기법을 재사용해 "오브젝트가 빛에
   //      반응한다"는 체감만 가져오고, 과거에 걷어낸 "커서 정밀도 의존 3D 틸트"(design.md §5 1차)는

@@ -103,8 +103,15 @@ button, input { font: inherit; }
 /* 2026-11-05 39차: hero-wrap(180vh 스크럽 여유 공간)+sticky 핀 제거 — .hero 자체가 스냅 패널
    하나(정확히 한 화면)가 됨. 전용 배경(ink·라디얼 그라데이션·웨이브 캔버스)은 22차에서 이미
    제거되어 공통 .site-waves가 비쳐 보임. */
+/* 2026-11-08 63차: "섹션 배경을 반으로 나눠 다음 섹션 색을 미리 보여주자" — 기존 잉크→페이퍼→잉크
+   반복(히어로→매니페스토→PRODUCT)을 섹션 경계에서 뚝 끊지 않고 섹션 내부에서 미리 암시. 사용자가
+   비율(50:50/60:40/70:30)을 직접 보고 고르겠다고 해서 `--hero-split`(아래쪽 paper 시작 지점) 하나로
+   조절 가능하게. `.showcase`가 이미 쓰던 "단일 linear-gradient로 배경 그리기" 기법 그대로 재사용—
+   그라데이션처럼 보이지만 하드 스톱(동일 좌표에 두 색)이라 실제로는 섞이지 않는 두 단색. */
 .hero { position: relative; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
-  scroll-snap-align: start; }
+  scroll-snap-align: start;
+  --hero-split: 60%;
+  background: linear-gradient(to bottom, var(--ink) var(--hero-split), var(--paper) var(--hero-split)); }
 /* 2026-11-08 62차: 배경 전용 패럴럭스 레이어 — [data-speed]가 기존 롤북~CTA 블롭과 같은 공식으로
    스크롤 중 콘텐츠(.hero__inner)와 다른 속도로 움직여 깊이감을 줌(콘텐츠 자체는 건드리지 않음). */
 .hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
@@ -119,14 +126,26 @@ button, input { font: inherit; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
 @keyframes letterIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); } }
-.hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px); color: var(--text-on-dark); margin-top: 24px; }
-.hero__sub { font-size: 16px; color: var(--muted-on-dark); margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto; }
+/* 63차: 태그라인이 paper 쪽에 걸치므로 포인트컬러로 — volt는 흰 배경에서 명도 대비가 거의 없어서
+   (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
+   재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
+   비율을 60→50/70으로 바꿔 태그라인이 어느 쪽 배경에 걸리든 별도 분기 없이 항상 또렷하게 읽힘. */
+.hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px);
+  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 24px; }
+/* 63차 추가 수정: 모바일처럼 sub가 2줄로 줄바꿈되는 폭에서는 분할선이 sub 중간을 가로지를 수 있음
+   (실측: 375px에서 재현) — muted-on-dark(어두운 배경 기준 색)를 기본으로 유지하면서 얇은 ink
+   스트로크를 더해, ink 배경에서는 스트로크가 배경과 거의 같은 색이라 기존 그대로 보이고 paper
+   배경에서는 스트로크가 가장자리를 잡아줘 최소한의 가독성을 확보(태그라인과 동일 원리, 톤은 volt로
+   바꾸지 않고 원래의 "보조 텍스트" 톤 유지 — volt를 여기까지 쓰면 포인트컬러 과다 사용이 됨). */
+.hero__sub { font-size: 16px; color: var(--muted-on-dark); -webkit-text-stroke: .35px var(--ink); margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto; }
 /* 2026-11-07 58차: "스크롤을 시작하면 자연스럽게 사라지도록" — js(main.js onScroll)가 80px
    넘어가면 .is-hidden을 토글, 여기서는 opacity 전환만 담당(위치는 그대로 둬 다시 위로 올라오면
    바로 보이게). */
-.hero__scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--muted-on-dark); transition: opacity .4s ease; }
+/* 63차: bottom:36px로 항상 화면 맨 아래에 고정 — 세 비율(50/60/70%) 모두에서 paper 영역에 걸리므로
+   흰 배경 기준 색(muted/ink)으로 고정(기존 muted-on-dark·volt 라인은 흰 배경에서 거의 안 보였음). */
+.hero__scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--muted); transition: opacity .4s ease; }
 .hero__scroll.is-hidden { opacity: 0; pointer-events: none; }
-.hero__scroll span { width: 1px; height: 36px; background: linear-gradient(var(--volt), transparent); animation: scrollLine 1.8s ease-in-out infinite; }
+.hero__scroll span { width: 1px; height: 36px; background: linear-gradient(var(--ink), transparent); animation: scrollLine 1.8s ease-in-out infinite; }
 @keyframes scrollLine { 0% { opacity: 0; transform: scaleY(0); transform-origin: top; } 40% { opacity: 1; transform: scaleY(1); transform-origin: top; } 60% { transform-origin: bottom; } 100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; } }
 
 /* ---- 등장 애니메이션(공통) ---- */
@@ -169,11 +188,18 @@ button, input { font: inherit; }
    "화면 하나만큼 여유 있는" 느낌을 내도록 min-height:100vh + 세로 중앙 정렬로 교체. */
 /* 2026-11-06 40차: 공통 웨이브 배경을 걷어내며(위 §1 참고) 다시 흰(--paper) 배경 + 어두운 텍스트로
    되돌림(22차 이전 원래 톤, §2 Colors "흑백 대비가 기본 언어" 규칙 그대로). */
+/* 2026-11-08 63차: 히어로와 대칭으로 매니페스토도 위(paper)/아래(ink, PRODUCT와 동일 톤) 분할 —
+   "위대함은 타고나지 않는다"(줄1)는 흰 배경 위 그대로, "매일, 한 걸음씩"(줄2 앞부분, 아래 .manifesto__line2)
+   은 어두운 배경에 맞춰 흰 글자로, "만들어진다"(em)는 기존 volt+ink스트로크가 ink 배경에서는 스트로크가
+   배경과 거의 같은 색이라 사실상 안 보여(=순수 volt로 보임) 손댈 필요 없이 그대로 재사용. */
 .manifesto { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; position: relative; overflow: hidden;
-  background: var(--paper); scroll-snap-align: start; }
+  scroll-snap-align: start;
+  --manifesto-split: 51%;
+  background: linear-gradient(to bottom, var(--paper) var(--manifesto-split), var(--ink) var(--manifesto-split)); }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; position: relative; }
 .manifesto__textwrap { position: relative; }
 .manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; color: var(--text); }
+.manifesto__line2 { color: var(--text-on-dark); }
 /* 2026-11-07 55차: 52~54차 세 번의 시행착오(① volt 꽉채움 — 눈부심 ② 색 비우고 volt 스트로크만
    — 흰 배경에서 명도 대비 자체가 없어 안 보임 ③ ink 채움+volt 림 — 대비는 되지만 한글 복합
    글리프에 stroke를 쓰니 지저분해 보임) 끝에, 사용자가 "초창기 스크롤(핀드줌 스크럽) 연출 때

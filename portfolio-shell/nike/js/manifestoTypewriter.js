@@ -15,18 +15,26 @@
   // 다음 글자가 32ms 뒤 바로 이어지므로 연속된 애니메이션들이 서로 겹쳐 흐르듯 부드럽게 체감됨.
   const TYPE_DELAY_MS = 32;
 
-  // 원본 DOM(<br>, <em>)은 최초 1회만 토큰 배열로 파싱해두고, 타이핑 중에는
+  // 원본 DOM(<br>, <em>, <span class="...">)은 최초 1회만 토큰 배열로 파싱해두고, 타이핑 중에는
   // 이 배열만 갖고 innerHTML을 매 글자 다시 그린다 — 실제 텍스트 노드는
   // 건드리지 않으므로 JS가 실패해도 정적 텍스트는 그대로 남는다(폴백).
+  // 2026-11-08 63차: "매일, 한 걸음씩"을 배경 분할(아래 css 참고)에 맞춰 흰→volt가 아닌 별도 색으로
+  // 칠하기 위해 <span class="manifesto__line2">를 추가 — 기존엔 <em> 하나만 인식하는 boolean(em)
+  // 구조였던 걸, 임의의 태그(em·클래스가 있는 span)를 한 번에 하나만 열려있는 태그로 추적하는
+  // 일반화된 구조로 교체(동시에 여러 태그가 겹치는 경우는 이 텍스트에 없어서 지원 안 해도 충분).
   const tokens = [];
   textEl.childNodes.forEach((node) => {
     if (node.nodeType === 1 && node.tagName === "BR") {
       tokens.push({ br: true });
       return;
     }
-    const em = node.nodeType === 1 && node.tagName === "EM";
+    let tag = null;
+    if (node.nodeType === 1) {
+      if (node.tagName === "EM") tag = "em";
+      else if (node.tagName === "SPAN" && node.className) tag = "span:" + node.className;
+    }
     const text = node.textContent || "";
-    for (const ch of text) tokens.push({ ch, em });
+    for (const ch of text) tokens.push({ ch, tag });
   });
   if (!tokens.length) return;
 
@@ -35,25 +43,34 @@
     if (ch === "<") return "&lt;";
     return ch;
   }
+  function openTagHtml(tag) {
+    return tag.startsWith("span:") ? '<span class="' + tag.slice(5) + '">' : "<em>";
+  }
+  function closeTagHtml(tag) {
+    return tag.startsWith("span:") ? "</span>" : "</em>";
+  }
 
   function render(count, done) {
     let html = "";
-    let openEm = false;
+    let open = null;
     for (let i = 0; i < count; i++) {
       const t = tokens[i];
       if (t.br) {
-        if (openEm) { html += "</em>"; openEm = false; }
+        if (open) { html += closeTagHtml(open); open = null; }
         html += "<br>";
         continue;
       }
-      if (t.em && !openEm) { html += "<em>"; openEm = true; }
-      if (!t.em && openEm) { html += "</em>"; openEm = false; }
+      if (t.tag !== open) {
+        if (open) html += closeTagHtml(open);
+        if (t.tag) html += openTagHtml(t.tag);
+        open = t.tag;
+      }
       // 가장 마지막(이번 틱에 막 나타난) 글자만 페이드업 애니메이션 span으로 감싼다 — 다음 틱엔
       // 이 글자도 평범한 텍스트로 재렌더링되므로(아래서 통째로 다시 그림) 애니메이션이 중복 재생되지 않음.
       const isNew = i === count - 1;
       html += isNew ? '<span class="manifesto__char-in">' + escape(t.ch) + "</span>" : escape(t.ch);
     }
-    if (openEm) html += "</em>";
+    if (open) html += closeTagHtml(open);
     html += '<span class="manifesto__cursor" aria-hidden="true"></span>';
     textEl.innerHTML = html;
     textEl.classList.toggle("is-typed-done", done);
