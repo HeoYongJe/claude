@@ -205,12 +205,17 @@
     });
   }
 
-  // ---- [data-speed] 배경 블롭 패럴럭스(룩북~CTA 장식) ----
+  // ---- [data-speed] 배경 블롭 패럴럭스(룩북~CTA 장식 + 65차부터 히어로·매니페스토 분할 배경) ----
   // 2026-11-05 39차: 히어로 줌아웃·매니페스토 핀드줌·쇼케이스 스크럽을 전부 걷어내며(위 참고),
   // 휠 이벤트를 가로채던 "커스텀 휠 스무스 스크롤"도 함께 제거 — preventDefault+scrollTo로 직접
   // 스크롤 위치를 쓰던 그 코드가 네이티브 scroll-snap(css 참고)의 스냅 판정과 정면 충돌하기
   // 때문(브라우저가 스냅을 계산할 "진짜" 스크롤 제스처 자체를 가로채버림). 장식용 블롭 패럴럭스만
   // 가벼운 루프로 남김 — 패널이 불연속으로(스냅) 움직여도 자연스럽게 같이 따라옴.
+  // 2026-11-08 65차: "배경도 좀 더 인터랙티브하게" — 기존엔 `el.style.transform`을 매 프레임 통째로
+  // 덮어썼는데, 히어로·매니페스토의 분할 배경 레이어(`.hero__depth`/`.manifesto__depth`)는 패럴럭스로
+  // 밀릴 때 가장자리가 비는 걸 막으려고 CSS에서 `scale()`도 같이 줘야 해서 — 통째로 덮어쓰는 대신
+  // `--parallax-y` CSS 변수만 갱신하고 실제 `transform`은 각 요소 CSS가 조합(블롭은 translateY만,
+  // 분할 배경은 scale+translateY)하도록 변경. 블롭 쪽은 동작 동일(해당 CSS가 translateY만 사용).
   const parallaxEls = [...document.querySelectorAll("[data-speed]")];
   if (parallaxEls.length && !reduceMotion) {
     let ticking = false;
@@ -221,7 +226,7 @@
         const speed = parseFloat(el.dataset.speed) || 0;
         const rect = el.getBoundingClientRect();
         const elCenter = rect.top + rect.height / 2;
-        el.style.transform = `translateY(${(-(elCenter - viewportCenter) * speed).toFixed(1)}px)`;
+        el.style.setProperty("--parallax-y", (-(elCenter - viewportCenter) * speed).toFixed(1) + "px");
       });
     }
     applyParallax();

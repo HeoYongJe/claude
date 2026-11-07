@@ -111,10 +111,23 @@ button, input { font: inherit; }
 .hero { position: relative; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
   scroll-snap-align: start;
   --hero-split: 60%;
-  background: linear-gradient(to bottom, var(--ink) var(--hero-split), var(--paper) var(--hero-split)); }
+  background: var(--ink); }
+/* 2026-11-08 65차: [data-speed] 공용 규칙 — js(main.js applyParallax)가 매 프레임 `--parallax-y`
+   CSS 변수만 갱신하고, 실제 transform은 요소별 CSS가 조합(룩북~CTA 블롭은 이 기본값 그대로 translateY
+   만, 분할 배경 레이어처럼 scale도 필요하면 더 구체적인 선택자로 아래처럼 override). 전엔 js가
+   transform을 통째로 덮어써서 요소별로 다른 transform을 더할 수 없었음. */
+[data-speed] { transform: translateY(var(--parallax-y, 0px)); }
 /* 2026-11-08 62차: 배경 전용 패럴럭스 레이어 — [data-speed]가 기존 롤북~CTA 블롭과 같은 공식으로
-   스크롤 중 콘텐츠(.hero__inner)와 다른 속도로 움직여 깊이감을 줌(콘텐츠 자체는 건드리지 않음). */
-.hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+   스크롤 중 콘텐츠(.hero__inner)와 다른 속도로 움직여 깊이감을 줌(콘텐츠 자체는 건드리지 않음).
+   2026-11-08 65차: 분할 배경 자체를 이 레이어로 옮김(원래 `.hero`에 직접 있었음) — `.hero`는
+   혹시 모를 로딩 전/JS 실패 대비용 ink 단색 배경만 남김. 패럴럭스로 밀릴 때 가장자리가 비는 걸
+   막기 위해 `scale(1.12)`를 같이 줘서 항상 `.hero` 박스보다 살짝 크게 렌더 — `linear-gradient`의
+   퍼센트 스톱(`--hero-split`)은 이 요소 **자신의** 렌더 크기 기준이라, scale로 전체가 커져도
+   분할 비율 자체(예: 60%)는 그대로 유지됨(요소 크기에 비례해서 같이 커질 뿐 — 그래서 className
+   밖으로 빼서 scale하지 않고 반드시 배경을 가진 바로 이 요소에 scale을 줌). */
+.hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(to bottom, var(--ink) var(--hero-split), var(--paper) var(--hero-split));
+  transform: scale(1.12) translateY(var(--parallax-y, 0px)); }
 .hero__glow { position: absolute; left: 50%; top: 50%; width: min(640px, 70vw); aspect-ratio: 1;
   background: radial-gradient(circle, rgba(215,255,62,.38), rgba(215,255,62,.14) 42%, transparent 68%);
   filter: blur(70px); opacity: .7;
@@ -131,11 +144,16 @@ button, input { font: inherit; }
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
    비율을 60→50/70으로 바꿔 태그라인이 어느 쪽 배경에 걸리든 별도 분기 없이 항상 또렷하게 읽힘.
    2026-11-08 64차: 읽기엔 문제없었지만 "분할선에 걸쳐 있는" 모습 자체가 어정쩡해 보인다는 피드백 —
-   margin-top을 24→72px로 늘려 paper 영역 안쪽으로 분명하게 들어가게(실측: --hero-split 60% 기준
-   분할선 540px, 기존 태그라인 top 527px로 걸쳐 있었음 → 이번 조정으로 약 580px대로 이동, 분할선
-   아래로 확실히 분리). --hero-split 비율을 바꾸면 이 여유도 같이 틀어질 수 있어 재확인 필요. */
+   margin-top을 24→72px로 늘려봤는데, 실측해보니 겨우 11px 여유(사용자가 "여전히 걸쳐 보인다"고
+   재지적, 스샷 없이도 재현됨). **원인**: `.hero`가 `justify-content:center`라 `.hero__inner`
+   전체가 수직 중앙정렬되는데, 그 안의 한 자식(태그라인) margin-top을 늘리면 블록 전체 높이가 늘고
+   그 늘어난 높이의 "절반"만큼만 블록이 위로 밀려 올라가며 상쇄됨(나머지 절반만 실제로 아래쪽
+   여유로 반영) — margin을 48px 늘려도 체감 여유는 24px밖에 안 늘어나는 구조였음. 65차: 이 배율(약
+   0.5)을 실측으로 확인하고 110px로 재조정(실측: 여유 30px, NIKE 쪽도 분할선 위 80px 여유로 안전).
+   --hero-split 비율을 바꾸면 이 여유도 같이 틀어지므로 재확인 필요(같은 계산 — margin 변화량의
+   절반만 여유로 반영됨을 감안해서 조정할 것). */
 .hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px);
-  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 72px; }
+  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 110px; }
 /* 63차 추가 수정: 모바일처럼 sub가 2줄로 줄바꿈되는 폭에서는 분할선이 sub 중간을 가로지를 수 있음
    (실측: 375px에서 재현) — muted-on-dark(어두운 배경 기준 색)를 기본으로 유지하면서 얇은 ink
    스트로크를 더해, ink 배경에서는 스트로크가 배경과 거의 같은 색이라 기존 그대로 보이고 paper
@@ -199,7 +217,23 @@ button, input { font: inherit; }
 .manifesto { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; position: relative; overflow: hidden;
   scroll-snap-align: start;
   --manifesto-split: 51%;
-  background: linear-gradient(to bottom, var(--paper) var(--manifesto-split), var(--ink) var(--manifesto-split)); }
+  background: var(--paper); }
+/* 2026-11-08 65차: 히어로(.hero__depth)와 동일 패턴 — 분할 배경을 전용 패럴럭스 레이어로 옮김.
+   음수 z-index는 `.manifesto`가 별도 스태킹 컨텍스트를 안 만들면(position:relative만 있고 z-index
+   없음) 엉뚱하게 다른 형제 섹션 뒤로 샐 수 있어(잘 알려진 CSS 함정) 피함 — 히어로와 똑같이 z-index:0
+   + 콘텐츠 쪽 z-index:1(아래 .manifesto .container)로 명시적 2단 구성. */
+.manifesto__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: linear-gradient(to bottom, var(--paper) var(--manifesto-split), var(--ink) var(--manifesto-split));
+  transform: scale(1.12) translateY(var(--parallax-y, 0px)); }
+/* 2026-11-08 65차: "텍스트가 왜 화면 가운데쯤에서 시작하냐" — `.manifesto`가 `display:flex`인데
+   `.container`는 공용 규칙(`margin:0 auto`)이라, 콘텐츠(900px 텍스트)만큼만 줄어든 채 그 작은
+   박스가 화면 중앙으로 쏠려 있었음 — 룩북 56차에서 이미 겪고 고친 것과 똑같은 버그(그쪽은
+   flex-direction:column이라 세로축에서, 여긴 기본 row라 가로축(메인축)의 auto-margin이 남는
+   공간을 양쪽으로 흡수하며 생김). 같은 해법 재사용 — margin 없애고 폭을 100%로 고정해 auto-margin
+   자체를 무력화, `.container`의 24px 패딩이 화면 실제 왼쪽 가장자리에 그대로 닿게. 이제 hero·
+   manifesto·PRODUCT·lookbook 전부 같은 좌측 정렬 톤(실측: 1920×1080에서 킥커 시작 x좌표가 nav의
+   NIKE 로고와 거의 일치, 화면 30% 지점에서 시작하던 것과 비교해 확연히 개선). */
+.manifesto .container { margin: 0; width: 100%; position: relative; z-index: 1; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; position: relative; }
 .manifesto__textwrap { position: relative; }
 .manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; color: var(--text); }
