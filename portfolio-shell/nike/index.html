@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261107a">
+<link rel="stylesheet" href="css/style.css?v=20261107b">
 </head>
 <body>
 
@@ -84,31 +84,6 @@
             <div class="showcase__glow" data-showcase-glow aria-hidden="true"></div>
             <img src="assets/img/nike_s.png" alt="신발 제품 이미지" class="showcase__shoe" data-showcase-shoe>
           </div>
-
-          <!-- BY THE NUMBERS: 신발·텍스트 둘 다에 걸친 전체 폭 한 줄 — .showcase__info(우측 칼럼)
-               안이 아니라 .showcase__stage 바로 아래 형제로 둬서 좌우 전체를 다 씀. 3단계에서
-               화면 하단 바깥에서 한 줄로 밀고 올라옴. -->
-          <div class="specs" data-showcase-specs>
-            <p class="specs__kicker">BY THE NUMBERS</p>
-            <div class="specs__grid">
-              <div class="spec-card">
-                <div class="spec-card__num"><span data-count="243">0</span><span>g</span></div>
-                <div class="spec-card__label">초경량 무게</div>
-              </div>
-              <div class="spec-card">
-                <div class="spec-card__num"><span data-count="12">0</span><span>mm</span></div>
-                <div class="spec-card__label">쿠셔닝 두께</div>
-              </div>
-              <div class="spec-card">
-                <div class="spec-card__num"><span data-count="360">0</span><span>°</span></div>
-                <div class="spec-card__label">통기성 설계</div>
-              </div>
-              <div class="spec-card">
-                <div class="spec-card__num"><span data-count="100">0</span><span>%</span></div>
-                <div class="spec-card__label">리사이클 소재</div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- 2026-11-06 47차: .showcase__info를 .showcase__stage(max-width:1200px로 사이트 공통
@@ -158,8 +133,9 @@
         </div>
       </div>
 
-      <!-- 마커 3개: 시각적 콘텐츠 없음, 스크롤 스냅 포인트 + 현재 단계 감지용(js 참고) -->
-      <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
+      <!-- 2026-11-07 53차: BY THE NUMBERS 제거 요청으로 3단계(스펙 등장) 전용이던 마커를 없애고
+           2단계(신발 팝인 → 신발 이동+텍스트 등장)로 축소 — 마커 2개: 시각적 콘텐츠 없음, 스크롤
+           스냅 포인트 + 현재 단계 감지용(js 참고). -->
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
     </div>
@@ -183,14 +159,23 @@
        "Fluid Hover Accordion"으로 교체 — 세로로 등분된 패널을 좁게 깔아두다가 데스크톱은 마우스 호버
        (+키보드 포커스), 모바일은 탭(js가 .is-active 토글)으로 해당 패널이 유동적으로 커지며 감춰진
        디테일 텍스트가 드러남. 폐기 배경·설계 근거는 design.md Lookbook 항목 참고.
-       PLACEHOLDER: 각 패널의 실사 이미지는 .ph-visual 배경(그라데이션)을 지우고 <img>로 교체 예정. -->
+       2026-11-07 53차: 플레이스홀더(.ph-visual 그라데이션)를 실사 <img> 5장으로 교체. 사용자가 보내준
+       6세트(컬러+흑백 쌍) 중 가장 어울리는 5세트를 선정 — 흑백 파일은 쓰지 않고 컬러 원본 한 장만
+       사용해 CSS filter:grayscale로 흑백↔컬러를 만듦(이미지 2장을 겹쳐 크로스페이드하는 것보다
+       가볍고, 기존 호버/탭/포커스 트리거(.is-active 등)를 그대로 재사용 가능). 기본 상태는 흑백,
+       호버(데스크톱)·탭(모바일, js가 토글하는 .is-active)·키보드 포커스 시 컬러로 서서히 전환되며
+       패널이 커지는 기존 연출과 함께 재생(css 참고). 받은 6세트 중 "플랫레이(카메라·칼·식물)" 세트는
+       신발·브랜드 포인트가 약해 하나 제외했고, 남은 5세트의 실제 분위기에 02·04 패널의 이름/설명을
+       새로 맞춤(TRACK→TRAINING, NIGHT RUN→COLLECTION — 밤 러닝 사진은 받지 못해 있는 사진과
+       억지로 끼워맞추지 않고 사진에 맞는 테마로 교체). -->
   <section class="lookbook">
     <div class="container">
       <p class="lookbook__kicker" data-reveal>LOOKBOOK</p>
       <h2 class="lookbook__title" data-reveal>어디서든,<br>당신의 속도로</h2>
     </div>
     <div class="lookbook__accordion" data-lookbook-accordion data-reveal>
-      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-1">
+      <button type="button" class="lookbook__panel" data-panel>
+        <img class="lookbook__panel-img" src="assets/img/lookbook/01-street.webp" alt="스케이트파크에서 트릭을 시도하는 모습" loading="lazy">
         <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
           <span class="lookbook__panel-num">01</span><span class="lookbook__panel-name">STREET</span>
         </span></span>
@@ -200,17 +185,19 @@
           <p class="lookbook__panel-detail-desc">도심 아스팔트 위, 가장 자연스러운 하루의 속도.</p>
         </div>
       </button>
-      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-2">
+      <button type="button" class="lookbook__panel" data-panel>
+        <img class="lookbook__panel-img" src="assets/img/lookbook/02-training.webp" alt="나무 데크 위에서 스트레칭하는 모습" loading="lazy">
         <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
-          <span class="lookbook__panel-num">02</span><span class="lookbook__panel-name">TRACK</span>
+          <span class="lookbook__panel-num">02</span><span class="lookbook__panel-name">TRAINING</span>
         </span></span>
         <div class="lookbook__panel-detail">
           <span class="lookbook__panel-detail-num">02</span>
-          <h3 class="lookbook__panel-detail-title">TRACK</h3>
-          <p class="lookbook__panel-detail-desc">한계를 재는 트랙 위, 숫자로 증명되는 순간.</p>
+          <h3 class="lookbook__panel-detail-title">TRAINING</h3>
+          <p class="lookbook__panel-detail-desc">매트 위에서 시작되는 하루, 천천히 몸을 깨우는 시간.</p>
         </div>
       </button>
-      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-3">
+      <button type="button" class="lookbook__panel" data-panel>
+        <img class="lookbook__panel-img" src="assets/img/lookbook/03-studio.webp" alt="스마트폰으로 촬영한 나이키 스우시 자수 디테일" loading="lazy">
         <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
           <span class="lookbook__panel-num">03</span><span class="lookbook__panel-name">STUDIO</span>
         </span></span>
@@ -220,24 +207,26 @@
           <p class="lookbook__panel-detail-desc">정제된 조명 아래, 디테일이 말하는 완성도.</p>
         </div>
       </button>
-      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-4">
+      <button type="button" class="lookbook__panel" data-panel>
+        <img class="lookbook__panel-img" src="assets/img/lookbook/04-collection.webp" alt="나란히 놓인 스니커즈 컬렉션" loading="lazy">
         <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
-          <span class="lookbook__panel-num">04</span><span class="lookbook__panel-name">NIGHT RUN</span>
+          <span class="lookbook__panel-num">04</span><span class="lookbook__panel-name">COLLECTION</span>
         </span></span>
         <div class="lookbook__panel-detail">
           <span class="lookbook__panel-detail-num">04</span>
-          <h3 class="lookbook__panel-detail-title">NIGHT RUN</h3>
-          <p class="lookbook__panel-detail-desc">가로등 불빛 사이, 가장 사적인 속도로 달리는 시간.</p>
+          <h3 class="lookbook__panel-detail-title">COLLECTION</h3>
+          <p class="lookbook__panel-detail-desc">나란히 선 실루엣들, 저마다 다른 디테일로 완성되는 이야기.</p>
         </div>
       </button>
-      <button type="button" class="lookbook__panel ph-visual" data-panel data-placeholder="lookbook-5">
+      <button type="button" class="lookbook__panel" data-panel>
+        <img class="lookbook__panel-img" src="assets/img/lookbook/05-court.webp" alt="테니스 코트 위에 놓인 신발과 라켓" loading="lazy">
         <span class="lookbook__panel-label"><span class="lookbook__panel-label-inner">
           <span class="lookbook__panel-num">05</span><span class="lookbook__panel-name">COURT</span>
         </span></span>
         <div class="lookbook__panel-detail">
           <span class="lookbook__panel-detail-num">05</span>
           <h3 class="lookbook__panel-detail-title">COURT</h3>
-          <p class="lookbook__panel-detail-desc">코트 위 짧은 순간, 방향을 바꾸는 폭발적인 힘.</p>
+          <p class="lookbook__panel-detail-desc">코트 위, 다음 랠리를 기다리는 짧은 정적.</p>
         </div>
       </button>
     </div>
