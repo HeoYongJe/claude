@@ -91,6 +91,47 @@
     new MutationObserver(syncManifestoSplit).observe(manifestoTextEl, { childList: true, subtree: true });
   }
 
+  // ---- 히어로 태그라인 위치를 분할선 기준으로 동적 계산 (2026-11-08 67차) ----
+  // 72px·110px 등 고정 px를 몇 번 조정했지만 전부 특정 뷰포트에서만 맞았음(design.md 65~67차 참고,
+  // --hero-split은 뷰포트 "높이"에 비례해 움직이는데 태그라인 위치는 폰트 clamp가 가로폭 기준이라
+  // 높이와 거의 무관 — 세로로 긴 화면에서 분할선이 훨씬 아래로 내려가며 역전). margin-top을 늘리면
+  // `.hero`가 justify-content:center라 늘어난 높이의 절반만 실제 여유로 반영되는 걸 분석적으로
+  // 유도(실측 72→110px 구간에서 정확히 0.5 확인) — 그 공식을 그대로 코드화해 몇 해상도에서 눈대중
+  // 하지 않고 항상 정확히 계산.
+  const heroSplitEl = document.querySelector(".hero");
+  const heroTagline = document.querySelector(".hero__tagline");
+  if (heroSplitEl && heroTagline) {
+    const TAGLINE_TARGET_CLEARANCE_PX = 32;
+    const BASE_MARGIN_TOP_PX = 24;
+    // 공식(여유 = margin변화량/2)은 분석적으로 정확하지만, 실측 중 리사이즈/폰트로드 타이밍이
+    // 겹치면 측정 시점의 레이아웃이 과도기 상태라 한 번의 계산이 어긋나는 경우가 있었음(테스트로
+    // 재현) — 그래서 "계산 → 적용 → 재측정해서 여전히 어긋나면 그 결과로 한 번 더 계산"을 최대
+    // 3회 반복해 항상 수렴하도록(이미 정확하면 1회 만에 끝남, 추가 리플로우 비용도 미미).
+    function syncHeroTagline() {
+      let margin = BASE_MARGIN_TOP_PX;
+      for (let i = 0; i < 3; i++) {
+        heroTagline.style.marginTop = margin + "px";
+        const heroRect = heroSplitEl.getBoundingClientRect();
+        const splitPct = parseFloat(getComputedStyle(heroSplitEl).getPropertyValue("--hero-split")) || 60;
+        const splitY = heroRect.top + heroRect.height * (splitPct / 100);
+        const rect = heroTagline.getBoundingClientRect();
+        const clearance = rect.top - splitY;
+        const diff = TAGLINE_TARGET_CLEARANCE_PX - clearance;
+        if (Math.abs(diff) < 1) break;
+        margin = Math.max(BASE_MARGIN_TOP_PX, margin + 2 * diff);
+      }
+    }
+    syncHeroTagline();
+    // 리사이즈 중간값(브라우저가 최종 크기에 도달하기 전 연속 발생하는 resize 이벤트)에서 계산하면
+    // 그 중간 크기 기준으로 margin이 고정돼버려 최종 크기와 어긋날 수 있어 디바운스.
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(syncHeroTagline, 150);
+    });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeroTagline);
+  }
+
   // ---- 히어로 글로우: 커서를 따라가는 volt 라이트 (2026-11-08 62차, 옵션2 — 1번 스크롤
   //      패럴럭스의 보조) — .showcase__glow와 같은 단색 블러 기법을 재사용해 "오브젝트가 빛에
   //      반응한다"는 체감만 가져오고, 과거에 걷어낸 "커서 정밀도 의존 3D 틸트"(design.md §5 1차)는

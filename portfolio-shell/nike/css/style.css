@@ -143,17 +143,15 @@ button, input { font: inherit; }
    (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
    비율을 60→50/70으로 바꿔 태그라인이 어느 쪽 배경에 걸리든 별도 분기 없이 항상 또렷하게 읽힘.
-   2026-11-08 64차: 읽기엔 문제없었지만 "분할선에 걸쳐 있는" 모습 자체가 어정쩡해 보인다는 피드백 —
-   margin-top을 24→72px로 늘려봤는데, 실측해보니 겨우 11px 여유(사용자가 "여전히 걸쳐 보인다"고
-   재지적, 스샷 없이도 재현됨). **원인**: `.hero`가 `justify-content:center`라 `.hero__inner`
-   전체가 수직 중앙정렬되는데, 그 안의 한 자식(태그라인) margin-top을 늘리면 블록 전체 높이가 늘고
-   그 늘어난 높이의 "절반"만큼만 블록이 위로 밀려 올라가며 상쇄됨(나머지 절반만 실제로 아래쪽
-   여유로 반영) — margin을 48px 늘려도 체감 여유는 24px밖에 안 늘어나는 구조였음. 65차: 이 배율(약
-   0.5)을 실측으로 확인하고 110px로 재조정(실측: 여유 30px, NIKE 쪽도 분할선 위 80px 여유로 안전).
-   --hero-split 비율을 바꾸면 이 여유도 같이 틀어지므로 재확인 필요(같은 계산 — margin 변화량의
-   절반만 여유로 반영됨을 감안해서 조정할 것). */
+   2026-11-08 67차: 72px·110px 등 고정 px로 몇 번 조정했지만 전부 "그 때 테스트한 뷰포트"에서만
+   맞았음 — split 위치(`--hero-split`)는 뷰포트 **높이**에 비례, 태그라인 위치는 폰트 clamp가
+   가로폭 기준이라 높이와 무관하게 거의 고정이라, 세로로 긴 화면(예: 2560×1440)에서는 분할선이
+   태그라인보다 훨씬 아래로 내려가며 다시 걸침(실측: -23.75px, 완전히 역전). 더 이상 px를 손으로
+   맞추지 않고 `main.js`(아래 syncHeroTagline)가 실제 분할선 위치를 매 로드·리사이즈마다 측정해
+   margin-top을 동적으로 계산하도록 변경 — 어떤 해상도에서도 항상 정확. 여기 margin-top은 JS가
+   덮어쓰기 전 기본값(= 원래 디자인값)일 뿐. */
 .hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px);
-  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 110px; }
+  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 24px; }
 /* 63차 추가 수정: 모바일처럼 sub가 2줄로 줄바꿈되는 폭에서는 분할선이 sub 중간을 가로지를 수 있음
    (실측: 375px에서 재현) — muted-on-dark(어두운 배경 기준 색)를 기본으로 유지하면서 얇은 ink
    스트로크를 더해, ink 배경에서는 스트로크가 배경과 거의 같은 색이라 기존 그대로 보이고 paper
@@ -225,15 +223,12 @@ button, input { font: inherit; }
 .manifesto__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(to bottom, var(--paper) var(--manifesto-split), var(--ink) var(--manifesto-split));
   transform: scale(1.12) translateY(var(--parallax-y, 0px)); }
-/* 2026-11-08 65차: "텍스트가 왜 화면 가운데쯤에서 시작하냐" — `.manifesto`가 `display:flex`인데
-   `.container`는 공용 규칙(`margin:0 auto`)이라, 콘텐츠(900px 텍스트)만큼만 줄어든 채 그 작은
-   박스가 화면 중앙으로 쏠려 있었음 — 룩북 56차에서 이미 겪고 고친 것과 똑같은 버그(그쪽은
-   flex-direction:column이라 세로축에서, 여긴 기본 row라 가로축(메인축)의 auto-margin이 남는
-   공간을 양쪽으로 흡수하며 생김). 같은 해법 재사용 — margin 없애고 폭을 100%로 고정해 auto-margin
-   자체를 무력화, `.container`의 24px 패딩이 화면 실제 왼쪽 가장자리에 그대로 닿게. 이제 hero·
-   manifesto·PRODUCT·lookbook 전부 같은 좌측 정렬 톤(실측: 1920×1080에서 킥커 시작 x좌표가 nav의
-   NIKE 로고와 거의 일치, 화면 30% 지점에서 시작하던 것과 비교해 확연히 개선). */
-.manifesto .container { margin: 0; width: 100%; position: relative; z-index: 1; }
+/* 2026-11-08 65차: `.manifesto`가 `display:flex`인데 `.container`가 공용 규칙(`margin:0 auto`)이라
+   콘텐츠 너비만큼만 줄어든 채 화면 중앙으로 쏠리는 현상을 발견해 좌측 정렬로 "고쳤었음"(룩북 56차와
+   같은 버그 클래스) — 2026-11-08 67차: 사용자가 "그건 버그가 아니라 원하는 모습이었다, 다시 가운데로
+   돌려달라"고 명시적으로 요청해 좌측 정렬 변경분(margin:0; width:100%)만 되돌림 — `.manifesto__depth`
+   배경 레이어와의 z-index 쌓임 순서를 위해 추가했던 position:relative; z-index:1은 정렬과 무관해 유지. */
+.manifesto .container { position: relative; z-index: 1; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; position: relative; }
 .manifesto__textwrap { position: relative; }
 /* 2026-11-08 66차: "텍스트가 시작 위치에서 자리잡으며 위아래로 움직인다" — 타이핑 애니메이션 중
