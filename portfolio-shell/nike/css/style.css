@@ -242,8 +242,16 @@ button, input { font: inherit; }
      `transition`으로 부드럽게 보간(키프레임 아님 — 속성값이 바뀌면 전환이 알아서 재생됨). */
 .showcase { background: var(--ink); }
 .showcase__pinwrap { position: relative; }
+/* 2026-11-07 61차: "타이틀/이미지+텍스트/info 네 덩어리가 안 구분된다" — 타이틀-리스트 간격을
+   하나의 변수(--title-gap)로 두고 신발 오프셋·specs 오프셋 공식에서 전부 같이 참조하게 해서,
+   간격을 하나 조정하면 세 요소가 항상 같이 맞아떨어지게(수동으로 세 곳을 따로 맞추다 어긋나는
+   사고 방지). 100vh 안에 타이틀+리스트+specs가 전부 들어가야 해서(PRODUCT 섹션 자체가 핀 고정
+   1화면) 높이가 낮은 노트북(1366×768, 이 프로젝트가 과거부터 "가장 낮은 흔한 해상도"로 다뤄온
+   기준)에서도 안 넘치도록 vh 기반 clamp로 — 짧은 화면에선 간격이 작게, 넉넉한 화면(900px+)에선
+   뚜렷하게 커짐. 아래 .showcase__visual·.specs의 top 공식과 실측 기반 상수(94px/199px)는 함께
+   바뀌므로 세 규칙을 한 세트로 취급할 것. */
 .showcase__sticky { position: sticky; top: 0; height: 100vh; height: 100svh; margin-bottom: -100vh; margin-bottom: -100svh;
-  overflow: hidden; }
+  overflow: hidden; --title-gap: clamp(52px, 9vh, 96px); }
 .showcase__marker { height: 100vh; height: 100svh; scroll-snap-align: start; }
 .showcase__stage { position: relative; height: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 /* 2026-11-07 52차: 신발 위에 따로 떠 있던 절대좌표 배치를 버리고(아래 .showcase__head 참고) 다른
@@ -259,8 +267,14 @@ button, input { font: inherit; }
    `.feature-list` 중심선을 둘 다 실측(캔버스 알파 채널로 신발의 실제 세로 범위 측정 후 화면
    좌표로 환산)해 차이를 구함 — 1440×900에서 11.4px, 1920×1080에서 13.6px, 두 경우 다 "신발 시각적
    중심이 텍스트 중심보다 더 위"로 일관되게 나와 `top`에 +12px 고정값을 더해 보정(뷰포트별로 1~2px
-   편차가 있지만 "아주 살짝"이라는 체감 수준에서는 무시 가능). */
-.showcase__visual { position: absolute; top: calc(50% + 12px); left: 50%; z-index: 1;
+   편차가 있지만 "아주 살짝"이라는 체감 수준에서는 무시 가능).
+   ⚠️ 2026-11-07 61차: 리스트가 더 이상 뷰포트 정중앙이 아니라(위 --title-gap만큼 타이틀 쪽으로
+   밀려 아래로 치우침, .showcase__info 참고) "+12px"만으로는 신발이 리스트와 안 맞음 — 리스트
+   중심이 뷰포트 중앙에서 얼마나 아래로 치우쳤는지(실측: 타이틀 높이 164px 기준 82px + 타이틀
+   간격의 절반)를 더해줘야 함. "94px" = 82px(치우침) + 12px(위 PNG 보정). --title-gap이 짧은
+   화면에서 작아지면 이 보정값도 비례해서 줄어들어 계속 리스트와 짝이 맞음(실측 후 확정,
+   design.md Components "제품 쇼케이스" 참고). */
+.showcase__visual { position: absolute; top: calc(50% + 94px + (var(--title-gap) / 2)); left: 50%; z-index: 1;
   width: min(620px, 48vw); height: clamp(360px, 58vh, 620px);
   transform: translate(-50%, -50%) scale(.6) rotate(-16deg); opacity: 0;
   transition: left 1s cubic-bezier(.22,1,.36,1), transform 1s cubic-bezier(.22,1,.36,1), opacity .8s ease; }
@@ -383,12 +397,19 @@ button, input { font: inherit; }
    48차 때의 163px보다는 좁아졌지만(폭을 넓힌 만큼 당연한 트레이드오프) "타이트하지 않게" 선은
    지킴. 1366px 미만(901~1280)은 신발 자체가 이미 왼쪽으로 일부 벗어나는 기존 구간(49차 이전부터
    있던 동작, 이번 변경과 무관)이라 1줄 보장 밖이지만 겹침도 없음. */
-.showcase__info { position: absolute; top: 0; bottom: 0;
+/* 2026-11-07 61차: "타이틀/이미지+텍스트/info 네 덩어리가 안 구분된다" 피드백으로 측정해보니,
+   기존 `1fr auto 1fr + align-items:end`(51~52차) 트릭이 이미 깨져 있었음 — row1(타이틀)이 "공정한
+   몫"보다 더 많은 공간을 요구하면 grid가 그만큼 더 내주면서(1fr의 암묵적 min-height:auto 때문에
+   콘텐츠보다 못 줄어듦) row3와의 대칭이 틀어지고, 리스트가 뷰포트 50%보다 훨씬 아래로 밀려나
+   specs와의 실측 간격이 56px 설계값이 아니라 19px까지 줄어들어 있었음(실측: 1212px 뷰포트에서
+   리스트 중심 703px vs 기대값 606px). 콘텐츠 높이가 바뀔 때마다 또 깨질 구조라, `top:50% +
+   transform:translateY(-50%)`(실제 렌더 높이 기준으로 항상 정확히 중앙 정렬, 오버플로우 불가능)로
+   교체 — 타이틀+리스트 "묶음 전체"가 항상 정확히 센터에 옴. 이제 타이틀 margin-bottom을 키우면
+   묶음 내에서 타이틀은 위로, 리스트는 아래로 자연히 벌어짐(묶음 자체 중심은 그대로) — 아래 신발
+   오프셋(.showcase__visual)도 이 쉬프트만큼 같이 내려 리스트와 신발이 계속 짝지어 보이게 함. */
+.showcase__info { position: absolute; top: 50%; transform: translateY(-50%);
   right: max(16px, calc((100vw - min(1200px, 100vw)) / 2 + min(1200px, 100vw) * 0.17 - min(620px, 48vw) * 0.43));
-  width: min(700px, 47vw);
-  display: grid; grid-template-rows: 1fr auto 1fr; align-items: end; }
-.showcase__head { grid-row: 1; }
-.feature-list { grid-row: 2; }
+  width: min(700px, 47vw); }
 .showcase__head, .feature-item {
   opacity: 0; transform: translateY(28px); pointer-events: none;
   transition: opacity .5s cubic-bezier(.34,1.56,.64,1), transform .5s cubic-bezier(.34,1.56,.64,1); }
@@ -399,11 +420,15 @@ button, input { font: inherit; }
 .feature-item:nth-child(1) { transition-delay: .2s; }
 .feature-item:nth-child(2) { transition-delay: .4s; }
 .feature-item:nth-child(3) { transition-delay: .6s; }
-/* 2026-11-07 56차: "타이틀 밑에 간격 좀 더" — 30px→52px. 리스트(feature-list)는 여전히 그리드
-   (1fr auto 1fr)로 컨테이너 세로 중앙에 고정되므로, 이 margin은 타이틀-리스트 사이 간격만 늘릴 뿐
-   리스트 중심선(=신발과 맞춘 기준선)엔 영향 없음 — 안전하게 독립적으로 조정 가능. */
+/* 2026-11-07 56차: "타이틀 밑에 간격 좀 더" — 30px→52px.
+   ⚠️ 61차: 위 .showcase__info가 그리드 트릭에서 translateY(-50%) 묶음 중앙정렬로 바뀌면서 이 설명은
+   더 이상 정확하지 않음 — 지금은 이 margin을 늘리면 "타이틀+리스트 묶음"의 중앙은 그대로인 채
+   타이틀은 위로, 리스트는 아래로 같이 벌어짐(의도된 동작, 아래 .showcase__visual의 신발 오프셋도
+   같이 조정해 리스트와 짝을 맞춤). 52px→120px로 확대 — "타이틀/이미지+텍스트/info 네 덩어리가
+   안 구분된다" 피드백에 따라 타이틀을 분명히 분리 — 고정 px 대신 위 .showcase__sticky의
+  `--title-gap`(vh 기반 clamp)을 써서 짧은 뷰포트에서 아래 specs가 넘치지 않게. */
 .showcase__title { font-family: var(--font-display); font-weight: 600; font-size: clamp(42px, 4.6vw, 62px); line-height: 1.05;
-  color: var(--text-on-dark); margin-bottom: 52px; word-break: keep-all; }
+  color: var(--text-on-dark); margin-bottom: var(--title-gap); word-break: keep-all; }
 .feature-list { list-style: none; display: flex; flex-direction: column; gap: 20px; }
 /* 2026-11-06 48차: "박스 3개로 줄이고 리듬감 있게 지그재그 배치" — 각 박스를 컨테이너 폭의
    84%로 좁혀 홀/짝마다 좌/우 끝에 번갈아 붙임(margin-right:auto ↔ margin-left:auto). 4개→3개로
@@ -501,7 +526,15 @@ button, input { font: inherit; }
    방식(sticky라 애초에 늘 뷰포트 안이라 opacity:0일 때 이미 끝나버려 실제로는 안 보였던 숨은 버그)
    대신 이 2단계 진입 시점에 맞춰 js가 직접 트리거 — 카드가 튀어 오르는 것과 숫자가 올라가는 게
    같은 타이밍에 눈에 보이게 겹침(js main.js 참고). */
-.specs { position: absolute; left: 24px; right: 24px; top: calc(50% + 233px); }
+/* 2026-11-07 61차: "리스트와 specs 사이가 너무 좁다"(실측: 1212px 뷰포트에서 19px, 일부 뷰포트는
+   겹침) — 고정 233px 상수는 51~52차 당시의 더 작은 타이틀 간격(52px) 기준으로 측정된 값이라 이후
+   타이틀 쪽 변경들로 틀어져 있었음. 리스트 하단 위치를 공식으로 직접 유도(199px=타이틀·리스트
+   자체 높이 기준 절반, 위 .showcase__visual 94px 주석의 "82px"와 같은 유도) + --title-gap의 절반
+   + 짧은 화면에서 줄어드는 별도의 specs 전용 간격(`clamp(10px, calc(7vh - 41px), 90px)`, 1366×768
+   에서도 넘치지 않게 역산한 계수)을 더함. 1366×768·1440×900·1920×1080 세 군데서 겹침 없음을
+   프리뷰로 실측 확인(design.md 참고). */
+.specs { position: absolute; left: 24px; right: 24px;
+  top: calc(50% + 199px + (var(--title-gap) / 2) + clamp(10px, calc(7vh - 41px), 90px)); }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); }
 .spec-card { text-align: center; padding: 0 20px; border-left: 1px solid rgba(255,255,255,.14);
   opacity: 0; transform: translateY(28px); pointer-events: none;
