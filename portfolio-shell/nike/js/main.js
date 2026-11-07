@@ -60,22 +60,57 @@
 
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
   //      요청으로, 신발을 .showcase__sticky(position:sticky)로 화면에 고정해두고 그 뒤를 지나가는
-  //      투명 마커 3개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
+  //      투명 마커 2개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
   //      이미 걸려 있음 — "마커 하나 = 스크롤 한 번"은 CSS만으로 보장됨) 중 지금 뷰포트에 걸린
-  //      것을 보고 .showcase__sticky의 data-stage(1~3)를 갱신. 실제 위치·투명도 변화는 전부
+  //      것을 보고 .showcase__sticky의 data-stage(1~2)를 갱신. 실제 위치·투명도 변화는 전부
   //      css의 [data-stage] attribute selector + transition이 담당 — 여기선 "지금 몇 단계인지"만
-  //      갱신. ----
+  //      갱신. 2026-11-07 56차: 원래 3단계(신발→텍스트→숫자)였던 걸 2단계(신발→텍스트+숫자)로
+  //      축소하며, 숫자 카운트업도 기존의 독립 IntersectionObserver(섹션이 sticky라 뷰포트 진입과
+  //      동시에 — opacity:0인 채로 — 이미 끝나버려 실제로는 안 보이던 숨은 버그가 있었음) 대신
+  //      여기서 마지막 단계(=showcaseMarkers.length) 진입을 감지할 때 직접 트리거하도록 통합 —
+  //      카드가 CSS로 튀어 오르는 시점(.spec-card의 nth-child transition-delay, css 참고)에 맞춰
+  //      숫자도 그때 올라가기 시작해야 "촤르륵" 효과가 실제로 보임. ----
   const showcaseSticky = document.querySelector("[data-showcase-sticky]");
   const showcaseMarkers = [...document.querySelectorAll("[data-showcase-marker]")];
+  // css .spec-card:nth-child(n) 의 transition-delay와 맞춘 값 — 카드가 튀어 오르는 순간과 숫자가
+  // 올라가기 시작하는 순간을 맞추기 위해 그대로 미러링(css 쪽 값을 바꾸면 여기도 같이 바꿀 것).
+  const SPEC_COUNT_DELAYS_MS = [750, 830, 910, 990];
+  let specsCounted = false;
+  function runSpecsCountUp() {
+    if (specsCounted) return;
+    specsCounted = true;
+    const countEls = [...document.querySelectorAll("[data-count]")];
+    countEls.forEach((el, i) => {
+      const delay = reduceMotion ? 0 : SPEC_COUNT_DELAYS_MS[i] || 0;
+      setTimeout(() => {
+        el.classList.add("is-popped");
+        const target = Number(el.dataset.count) || 0;
+        if (reduceMotion) { el.textContent = target; return; }
+        const dur = 900;
+        const start = performance.now();
+        function tick(now) {
+          const t = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+          el.textContent = Math.round(target * eased);
+          if (t < 1) requestAnimationFrame(tick);
+          else el.textContent = target;
+        }
+        requestAnimationFrame(tick);
+      }, delay);
+    });
+  }
   if (showcaseSticky && showcaseMarkers.length) {
     if (reduceMotion) {
       showcaseSticky.dataset.stage = String(showcaseMarkers.length);
+      runSpecsCountUp();
     } else {
       const stageIO = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              showcaseSticky.dataset.stage = String(showcaseMarkers.indexOf(entry.target) + 1);
+              const stage = showcaseMarkers.indexOf(entry.target) + 1;
+              showcaseSticky.dataset.stage = String(stage);
+              if (stage === showcaseMarkers.length) runSpecsCountUp();
             }
           });
         },
@@ -101,36 +136,6 @@
         if (!wasActive) panel.classList.add("is-active");
       });
     });
-  }
-
-  // ---- 스펙 숫자 카운트업(뷰포트 진입 시 0→실제값, 동시에 큰 팝업 애니메이션) ----
-  const countEls = document.querySelectorAll("[data-count]");
-  if (reduceMotion) {
-    countEls.forEach((el) => { el.textContent = el.dataset.count; });
-  } else {
-    const countIO = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target;
-          obs.unobserve(el);
-          el.classList.add("is-popped");
-          const target = Number(el.dataset.count) || 0;
-          const dur = 900;
-          const start = performance.now();
-          function tick(now) {
-            const t = Math.min(1, (now - start) / dur);
-            const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
-            el.textContent = Math.round(target * eased);
-            if (t < 1) requestAnimationFrame(tick);
-            else el.textContent = target;
-          }
-          requestAnimationFrame(tick);
-        });
-      },
-      { threshold: 0.4 }
-    );
-    countEls.forEach((el) => countIO.observe(el));
   }
 
   // ---- [data-speed] 배경 블롭 패럴럭스(룩북~CTA 장식) ----

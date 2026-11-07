@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261107c">
+<link rel="stylesheet" href="css/style.css?v=20261107e">
 </head>
 <body>
 
@@ -69,13 +69,15 @@
 
   <!-- ============ PRODUCT (2026-11-06 42차: "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다 —
        신발이 가운데 나왔다가, 스크롤하면 좌측으로, 한 번 더 스크롤하면 우측에 텍스트" 요청으로
-       재구성. 3D 없이 position:sticky로 신발을 화면에 고정해두고, 그 아래 투명한 마커 3개
+       재구성. 3D 없이 position:sticky로 신발을 화면에 고정해두고, 그 아래 투명한 마커 2개
        (각 100vh)를 스크롤해 지나가며 IntersectionObserver가 현재 마커를 감지해
-       `.showcase__sticky`의 data-stage(1→2→3)를 갱신 — 각 단계의 CSS(위치·투명도)는 attribute
+       `.showcase__sticky`의 data-stage(1→2)를 갱신 — 각 단계의 CSS(위치·투명도)는 attribute
        selector로 분기. 네이티브 scroll-snap이 마커 하나하나에 걸려 있어 "스크롤 한 번 = 한 단계"
-       가 보장됨(39차와 같은 메커니즘, 단 패널 1개가 아니라 섹션 안쪽에 마커 3개). 스펙 숫자
-       카운트업은 BY THE NUMBERS가 보이는 3단계에만 트리거되도록 marker3 자체에도 bind.
-       design.md Motion §5 42차 참고. ============ -->
+       가 보장됨(39차와 같은 메커니즘, 단 패널 1개가 아니라 섹션 안쪽에 마커). 2026-11-07 56차:
+       원래 3단계(신발→텍스트→숫자)였던 걸 "스크롤 두 번으로 끝내라"는 요청으로 2단계로 축소 —
+       텍스트(.showcase__info)와 숫자(.specs)가 이제 2단계에 함께 등장하되, 숫자는 js가 그
+       시점에 카운트업을 트리거해 텍스트보다 살짝 늦게 촤르륵 뒤따라옴(css transition-delay +
+       js 참고). design.md Motion §5 42차·56차 참고. ============ -->
   <section class="showcase" id="showcase">
     <div class="showcase__pinwrap" data-showcase-pinwrap>
       <div class="showcase__sticky" data-showcase-sticky data-stage="1">
@@ -159,10 +161,10 @@
         </div>
       </div>
 
-      <!-- 마커 3개: 시각적 콘텐츠 없음, 스크롤 스냅 포인트 + 현재 단계 감지용(js 참고). 2026-11-07
-           54차: 53차에서 BY THE NUMBERS 전체를 지우며 2개로 줄였던 걸 숫자 복구와 함께 3개로 되돌림
-           (스펙이 다시 3단계 전용 등장을 가짐). -->
-      <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
+      <!-- 마커 2개: 시각적 콘텐츠 없음, 스크롤 스냅 포인트 + 현재 단계 감지용(js 참고). 2026-11-07
+           56차: "스크롤 세 번은 너무 많다, 신발 한 번·텍스트+숫자 한 번으로 스크롤 두 번에 끝내라"
+           요청으로 3개(55차까지)→2개로 축소 — 텍스트(.showcase__info)와 숫자(.specs)가 이제 같은
+           2단계에서 함께 등장(css의 [data-stage="2"] 분기 참고). -->
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
       <div class="showcase__marker" data-showcase-marker aria-hidden="true"></div>
     </div>
