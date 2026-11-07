@@ -236,7 +236,16 @@ button, input { font: inherit; }
 .manifesto .container { margin: 0; width: 100%; position: relative; z-index: 1; }
 .manifesto__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--muted); margin-bottom: 24px; position: relative; }
 .manifesto__textwrap { position: relative; }
-.manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; color: var(--text); }
+/* 2026-11-08 66차: "텍스트가 시작 위치에서 자리잡으며 위아래로 움직인다" — 타이핑 애니메이션 중
+   실측(100ms 간격 샘플링)으로 확인한 진짜 원인: 타이핑이 아직 줄1만 치고 있을 땐 `<br>`도 줄2도
+   DOM에 없어 박스가 1줄 높이뿐이었다가, ①`<br>`이 추가되는 순간(2줄로 늘어나며 약 -32px),
+   ②줄2 span이 나타나 margin-top:28px가 걸리는 순간(약 -14px) 두 번에 걸쳐 박스 높이가 급격히
+   커짐 — `.manifesto`가 `align-items:center`라 커지는 높이의 절반만큼 매번 전체 블록(킥커 포함)이
+   위로 튀어 올라 보였음(합산 약 -46px, 체감상 "자리잡으며 움직인다"의 정체). 처음부터 최종 높이
+   (2줄 + 28px 간격)를 `min-height`로 미리 예약해 타이핑 진행과 무관하게 박스 크기가 처음부터
+   고정되도록 수정 — 이제 글자만 그 안에서 채워질 뿐 박스도 킥커도 움직이지 않음. */
+.manifesto__text { font-family: var(--font-display); font-weight: 600; font-size: clamp(32px, 5.2vw, 56px); line-height: 1.15; letter-spacing: -.01em; max-width: 900px; color: var(--text);
+  min-height: calc(2 * 1.15em + 28px); }
 /* 2026-11-08 64차: "줄1이 분할선에 딱 붙어 끝나고, 줄2도 딱 붙어 시작한다, 위아래로 좀 더 띄워달라"
    피드백 — inline-block으로 바꿔 margin-top이 실제로 적용되게 하고 간격을 벌림. 분할선 자체는
    main.js가 이 간격의 정중앙으로 재계산(아래 참고) — margin 값을 바꾸면 JS가 알아서 다시 따라옴. */
