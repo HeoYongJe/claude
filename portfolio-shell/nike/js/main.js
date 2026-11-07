@@ -62,6 +62,40 @@
       .join("");
   }
 
+  // ---- 히어로 글로우: 커서를 따라가는 volt 라이트 (2026-11-08 62차, 옵션2 — 1번 스크롤
+  //      패럴럭스의 보조) — .showcase__glow와 같은 단색 블러 기법을 재사용해 "오브젝트가 빛에
+  //      반응한다"는 체감만 가져오고, 과거에 걷어낸 "커서 정밀도 의존 3D 틸트"(design.md §5 1차)는
+  //      재도입하지 않음: 신발/워드마크 자체는 전혀 움직이지 않고, 배경 글로우 하나만 아주 느리게
+  //      커서를 쫓아감. 데스크톱(hover+fine pointer)에서만 동작, lerp(0.08)로 부드럽게 따라가되
+  //      15차 raf 버그 교훈대로 목표에 수렴하면 루프를 멈춤(idle 시 CPU 소모 없음).
+  const heroGlow = document.querySelector("[data-hero-glow]");
+  const heroEl = document.querySelector(".hero");
+  if (heroGlow && heroEl && !reduceMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    let gx = 0, gy = 0, tx = 0, ty = 0, glowRunning = false;
+    const GLOW_MAX = 90; // 중앙에서 최대 이동 거리(px) — 가장자리로 snap되지 않게 clamp
+    function glowTick() {
+      gx += (tx - gx) * 0.08;
+      gy += (ty - gy) * 0.08;
+      heroGlow.style.setProperty("--gx", gx.toFixed(1) + "px");
+      heroGlow.style.setProperty("--gy", gy.toFixed(1) + "px");
+      if (Math.abs(tx - gx) > 0.3 || Math.abs(ty - gy) > 0.3) {
+        requestAnimationFrame(glowTick);
+      } else {
+        glowRunning = false;
+      }
+    }
+    function kickGlow() {
+      if (!glowRunning) { glowRunning = true; requestAnimationFrame(glowTick); }
+    }
+    heroEl.addEventListener("mousemove", (e) => {
+      const rect = heroEl.getBoundingClientRect();
+      tx = Math.max(-GLOW_MAX, Math.min(GLOW_MAX, (e.clientX - (rect.left + rect.width / 2)) * 0.18));
+      ty = Math.max(-GLOW_MAX, Math.min(GLOW_MAX, (e.clientY - (rect.top + rect.height / 2)) * 0.18));
+      kickGlow();
+    });
+    heroEl.addEventListener("mouseleave", () => { tx = 0; ty = 0; kickGlow(); });
+  }
+
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
   //      요청으로, 신발을 .showcase__sticky(position:sticky)로 화면에 고정해두고 그 뒤를 지나가는
   //      투명 마커 2개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에

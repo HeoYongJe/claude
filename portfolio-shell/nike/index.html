@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261107i">
+<link rel="stylesheet" href="css/style.css?v=20261108a">
 </head>
 <body>
 
@@ -32,6 +32,14 @@
 
   <!-- ============ HERO (2026-11-05 39차: 스크롤 스냅 패널 1/7 — 정확히 한 화면) ============ -->
   <header class="hero" id="top">
+    <!-- 2026-11-08 62차: 히어로 인터랙티브 리뉴얼(옵션1 메인+옵션2 보조) — 배경 전용 레이어
+         하나만 둬서 "콘텐츠는 그대로, 배경만 다른 속도로 움직인다"는 기존 패럴럭스 원칙(§5 Motion,
+         배경 패럴럭스 항목) 그대로 재사용. 커서 추적 글로우도 .showcase__glow와 동일한 단색(volt)
+         radial-gradient+blur 기법 재사용(그라데이션 자체가 아니라 "여러 색 리본형 그라데이션"이
+         금지 대상이었음 — 단색 블러 덩어리는 이미 쇼케이스에서 쓰고 있는 승인된 패턴). js/main.js 참고. -->
+    <div class="hero__depth" data-speed="0.16" aria-hidden="true">
+      <div class="hero__glow" data-hero-glow></div>
+    </div>
     <div class="hero__inner">
       <p class="hero__kicker" data-reveal>CONCEPT CAMPAIGN · 2026</p>
       <h1 class="hero__word" data-reveal>NIKE</h1>
@@ -114,7 +122,6 @@
                 <div class="spec-card__label">리사이클 소재</div>
               </div>
             </div>
-            <p class="specs__note">*콘셉트 수치 — 실제 제품 사양이 아닌 포트폴리오용 가상 스펙입니다.</p>
           </div>
         </div>
 
@@ -314,7 +321,7 @@
     </div>
   </div>
 
-  <script src="js/main.js?v=20261107b"></script>
+  <script src="js/main.js?v=20261108a"></script>
   <script src="js/manifestoTypewriter.js?v=20261105a"></script>
 </body>
 </html>

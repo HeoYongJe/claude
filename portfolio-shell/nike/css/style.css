@@ -105,6 +105,15 @@ button, input { font: inherit; }
    제거되어 공통 .site-waves가 비쳐 보임. */
 .hero { position: relative; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
   scroll-snap-align: start; }
+/* 2026-11-08 62차: 배경 전용 패럴럭스 레이어 — [data-speed]가 기존 롤북~CTA 블롭과 같은 공식으로
+   스크롤 중 콘텐츠(.hero__inner)와 다른 속도로 움직여 깊이감을 줌(콘텐츠 자체는 건드리지 않음). */
+.hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero__glow { position: absolute; left: 50%; top: 50%; width: min(640px, 70vw); aspect-ratio: 1;
+  background: radial-gradient(circle, rgba(215,255,62,.38), rgba(215,255,62,.14) 42%, transparent 68%);
+  filter: blur(70px); opacity: .7;
+  transform: translate(-50%, -50%) translate3d(var(--gx, 0px), var(--gy, 0px), 0);
+  animation: heroGlowPulse 6s ease-in-out infinite; }
+@keyframes heroGlowPulse { 0%, 100% { opacity: .55; } 50% { opacity: .8; } }
 .hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
@@ -532,9 +541,13 @@ button, input { font: inherit; }
    자체 높이 기준 절반, 위 .showcase__visual 94px 주석의 "82px"와 같은 유도) + --title-gap의 절반
    + 짧은 화면에서 줄어드는 별도의 specs 전용 간격(`clamp(10px, calc(7vh - 41px), 90px)`, 1366×768
    에서도 넘치지 않게 역산한 계수)을 더함. 1366×768·1440×900·1920×1080 세 군데서 겹침 없음을
-   프리뷰로 실측 확인(design.md 참고). */
+   프리뷰로 실측 확인(design.md 참고).
+   2026-11-08 62차: "specs가 뭉쳐 보인다, 더 아래로" — specs__note(각주) 제거로 생긴 하단 여유를
+   리스트→specs 간격 쪽으로 옮김. 실측(1366×768, 현재 레이아웃): specs 제거 전 리스트-specs
+   간격 13px·하단 여백 58px → 전 구간 +40px 적용 시 간격 53px·여백 18px(여전히 양수, 겹침 없음)
+   로 역산해 clamp 상수를 전부 +40 이동. */
 .specs { position: absolute; left: 24px; right: 24px;
-  top: calc(50% + 199px + (var(--title-gap) / 2) + clamp(10px, calc(7vh - 41px), 90px)); }
+  top: calc(50% + 199px + (var(--title-gap) / 2) + clamp(50px, calc(7vh - 1px), 130px)); }
 .specs__grid { display: grid; grid-template-columns: repeat(4, 1fr); }
 .spec-card { text-align: center; padding: 0 20px; border-left: 1px solid rgba(255,255,255,.14);
   opacity: 0; transform: translateY(28px); pointer-events: none;
@@ -546,12 +559,6 @@ button, input { font: inherit; }
 .spec-card:nth-child(4) { transition-delay: .99s; }
 .spec-card:first-child { border-left: none; padding-left: 0; }
 .spec-card:last-child { padding-right: 0; }
-/* 2026-11-07 58차: "실제 제품 공식 스펙인지 먼저 확인, 가상 수치라면 콘셉트임을 명확히 표시" —
-   4개 숫자(초경량 무게·쿠셔닝 두께·통기성 설계·리사이클 소재)는 모두 이 프로젝트를 위해 만든
-   가상 수치(실제 Nike 제품 사양 아님, index.html 참고)라 사실처럼 보이지 않도록 작은 각주를 추가.
-   본문보다 한참 작고 톤을 낮춰(11px, muted) 숫자 자체의 시각적 임팩트는 그대로 유지. */
-.specs__note { margin-top: 24px; text-align: center; font-size: 11px;
-  letter-spacing: .02em; color: var(--muted-on-dark); }
 .spec-card__num { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 2.6vw, 38px); letter-spacing: -.01em; color: #FFFFFF;
   transition: color .3s ease, text-shadow .3s ease; }
 .spec-card:hover .spec-card__num { color: var(--volt); text-shadow: 0 0 18px rgba(215,255,62,.55); }
@@ -894,6 +901,7 @@ button, input { font: inherit; }
   .showcase__head, .feature-item, .spec-card { transition: none !important; opacity: 1 !important; transform: none !important; }
   .showcase__shoe { animation: none !important; transform: rotate(0deg) !important; }
   .showcase__glow { animation: none !important; opacity: .3; }
+  .hero__glow { animation: none !important; opacity: .3; transform: translate(-50%, -50%) !important; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }
   .manifesto__char-in { animation: none !important; opacity: 1; transform: none; }
