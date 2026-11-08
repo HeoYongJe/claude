@@ -41,7 +41,16 @@
    제거하고, §2 Colors의 원래 규칙("흑백 대비가 기본 언어")대로 섹션별 완전한 블랙/화이트로 되돌림
    (매니페스토·룩북+CTA는 다시 흰 배경+어두운 텍스트, 히어로·PRODUCT·푸터는 어두운 배경 유지).
    design.md Motion §5 40차 참고. */
-html { scroll-snap-type: y mandatory; }
+/* 2026-11-08: "섹션이 휙휙 넘어간다, 배경 전환 효과만큼 스크롤도 천천히/부드럽게" 피드백 — 네이티브
+   scroll-snap(39차)이 패널을 끌어당기는 "정착" 움직임 자체가 scroll-behavior:auto(기본값)에서는
+   거의 즉시 끝나버려 끊기듯 보였음. scroll-behavior:smooth를 주면 이 정착 애니메이션에 브라우저가
+   더 느린 easing을 적용해 완만하게 전환됨 — 11차에서 전역 smooth를 걷어낸 것과는 다른 경로로
+   재도입하는 것: 그때는 "휠 입력 자체"를 JS로 가로채 매번 smooth-scrollTo를 걸어 모든 작은 델타까지
+   애니메이션시키느라 입력이 먹히지 않는 것처럼 느려졌던 것(design.md Motion §5 11차 참고)이고,
+   지금은 JS 개입이 전혀 없이 브라우저 네이티브 스냅의 "정착" 단계에만 CSS로 easing을 입히는 것이라
+   같은 문제가 재발하지 않음. 앵커 클릭(nav #top·#cta)은 js/main.js에서 scrollIntoView를 여전히
+   behavior:"auto"로 명시 호출하므로 이 smooth 영향을 받지 않고 즉시 이동 그대로 유지됨. */
+html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
 /* 2026-11-05 39차 버그: overflow-x만 주고 overflow-y를 안 주면 "한 축만 non-visible이면 나머지
    축도 자동으로 auto가 된다"는 CSS 스펙 규칙 때문에 overflow-y가 암묵적으로 auto가 되어 body가
    html과 별개의 스크롤 컨테이너가 되어버림 — html의 scroll-snap-type과 충돌해 특정 패널(스펙)
@@ -128,12 +137,6 @@ button, input { font: inherit; }
 .hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(to bottom, var(--ink) var(--hero-split), var(--paper) var(--hero-split));
   transform: scale(1.12) translateY(var(--parallax-y, 0px)); }
-.hero__glow { position: absolute; left: 50%; top: 50%; width: min(640px, 70vw); aspect-ratio: 1;
-  background: radial-gradient(circle, rgba(215,255,62,.38), rgba(215,255,62,.14) 42%, transparent 68%);
-  filter: blur(70px); opacity: .7;
-  transform: translate(-50%, -50%) translate3d(var(--gx, 0px), var(--gy, 0px), 0);
-  animation: heroGlowPulse 6s ease-in-out infinite; }
-@keyframes heroGlowPulse { 0%, 100% { opacity: .55; } 50% { opacity: .8; } }
 .hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
@@ -972,7 +975,6 @@ button, input { font: inherit; }
   .showcase__head, .feature-item, .spec-card { transition: none !important; opacity: 1 !important; transform: none !important; }
   .showcase__shoe { animation: none !important; transform: rotate(0deg) !important; }
   .showcase__glow { animation: none !important; opacity: .3; }
-  .hero__glow { animation: none !important; opacity: .3; transform: translate(-50%, -50%) !important; }
   .spec-card__num span[data-count] { animation: none !important; }
   [data-speed] { transform: none !important; }
   .manifesto__char-in { animation: none !important; opacity: 1; transform: none; }

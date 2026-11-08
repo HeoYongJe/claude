@@ -22,14 +22,19 @@
   // ---- 인앱 앵커 링크(nav의 #top·#cta) 스크롤 ----
   // 2026-11-05 39차: 네이티브 scroll-snap(css 참고)이 각 패널에 scroll-snap-stop:always를 걸어두면,
   // smooth scrollIntoView로 먼 패널까지 한 번에 건너뛰려 해도 중간 패널마다 강제로 멈췄다 다시
-  // 출발하길 반복해 뚝뚝 끊겨 보임 — 앵커 점프는 behavior:"auto"(즉시 이동)로 처리하고, 네이티브
-  // 스냅이 도착 지점을 알아서 해당 패널 상단에 맞춰줌.
+  // 출발하길 반복해 뚝뚝 끊겨 보임 — 앵커 점프는 즉시 이동으로 처리하고, 네이티브 스냅이 도착
+  // 지점을 알아서 해당 패널 상단에 맞춰줌.
+  // 2026-11-08: html에 scroll-behavior:smooth를 추가(아래 css 참고, 섹션 간 휠 스크롤을 부드럽게)
+  // 하면서 behavior:"auto"의 의미가 바뀜 — CSSOM 스펙상 "auto"는 "CSS의 scroll-behavior 값을
+  // 따른다"는 뜻이라, 이제 CSS가 smooth이면 이 앵커 점프도 덩달아 smooth-scroll되어 위에서 고친
+  // "중간 패널마다 멈추는" 문제가 재발할 수 있음. CSS 값과 무관하게 항상 즉시 이동하도록
+  // behavior:"instant"로 명시(CSS scroll-behavior를 우회하는 값).
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener("click", (e) => {
       const target = document.querySelector(link.getAttribute("href"));
       if (!target) return;
       e.preventDefault();
-      target.scrollIntoView({ behavior: "auto", block: "start" });
+      target.scrollIntoView({ behavior: "instant", block: "start" });
     });
   });
 
@@ -156,40 +161,6 @@
     // 있어(IntersectionObserver 콜백이 생각보다 빨리 옴) 실측상 신뢰할 수 없었음 — 대신 전환이
     // 확실히 끝나는 넉넉한 시간(1.6s, 최대 소요 ~1.4s보다 여유 있게) 뒤에 한 번 더 재계산해 확정.
     setTimeout(syncHeroLayout, 1600);
-  }
-
-  // ---- 히어로 글로우: 커서를 따라가는 volt 라이트 (2026-11-08 62차, 옵션2 — 1번 스크롤
-  //      패럴럭스의 보조) — .showcase__glow와 같은 단색 블러 기법을 재사용해 "오브젝트가 빛에
-  //      반응한다"는 체감만 가져오고, 과거에 걷어낸 "커서 정밀도 의존 3D 틸트"(design.md §5 1차)는
-  //      재도입하지 않음: 신발/워드마크 자체는 전혀 움직이지 않고, 배경 글로우 하나만 아주 느리게
-  //      커서를 쫓아감. 데스크톱(hover+fine pointer)에서만 동작, lerp(0.08)로 부드럽게 따라가되
-  //      15차 raf 버그 교훈대로 목표에 수렴하면 루프를 멈춤(idle 시 CPU 소모 없음).
-  const heroGlow = document.querySelector("[data-hero-glow]");
-  const heroEl = document.querySelector(".hero");
-  if (heroGlow && heroEl && !reduceMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-    let gx = 0, gy = 0, tx = 0, ty = 0, glowRunning = false;
-    const GLOW_MAX = 90; // 중앙에서 최대 이동 거리(px) — 가장자리로 snap되지 않게 clamp
-    function glowTick() {
-      gx += (tx - gx) * 0.08;
-      gy += (ty - gy) * 0.08;
-      heroGlow.style.setProperty("--gx", gx.toFixed(1) + "px");
-      heroGlow.style.setProperty("--gy", gy.toFixed(1) + "px");
-      if (Math.abs(tx - gx) > 0.3 || Math.abs(ty - gy) > 0.3) {
-        requestAnimationFrame(glowTick);
-      } else {
-        glowRunning = false;
-      }
-    }
-    function kickGlow() {
-      if (!glowRunning) { glowRunning = true; requestAnimationFrame(glowTick); }
-    }
-    heroEl.addEventListener("mousemove", (e) => {
-      const rect = heroEl.getBoundingClientRect();
-      tx = Math.max(-GLOW_MAX, Math.min(GLOW_MAX, (e.clientX - (rect.left + rect.width / 2)) * 0.18));
-      ty = Math.max(-GLOW_MAX, Math.min(GLOW_MAX, (e.clientY - (rect.top + rect.height / 2)) * 0.18));
-      kickGlow();
-    });
-    heroEl.addEventListener("mouseleave", () => { tx = 0; ty = 0; kickGlow(); });
   }
 
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
