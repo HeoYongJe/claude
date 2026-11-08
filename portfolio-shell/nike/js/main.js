@@ -106,10 +106,10 @@
     // 끄면 네이티브 mandatory 스냅이 "가장 가까운 등록된 스냅 지점(cta)"으로 즉시 되돌려버려(실측으로
     // 확인한 버그) 푸터에 도착한 순간 다시 cta로 튕겨나감 — 실제 패널로 돌아갈 때(goTo가 항상 진짜
     // 패널로 이동하며 keepSnapOff 없이 호출)만 다시 켜짐.
-    function animateScrollTo(targetY, keepSnapOff) {
+    function animateScrollTo(targetY, keepSnapOff, onArrive) {
       const startY = document.documentElement.scrollTop;
       const delta = targetY - startY;
-      if (Math.abs(delta) < 1) return;
+      if (Math.abs(delta) < 1) { if (onArrive) onArrive(); return; }
       document.documentElement.classList.add("is-wheel-animating");
       isAnimating = true;
       const start = performance.now();
@@ -121,6 +121,9 @@
         } else {
           isAnimating = false;
           if (!keepSnapOff) document.documentElement.classList.remove("is-wheel-animating");
+          // 76-3차: 도착(스크롤 완료) 후에 재생해야 사용자가 멈춰 선 채로 애니메이션 전체를
+          // 보게 됨 — 아래 goTo()의 onArrive 참고.
+          if (onArrive) onArrive();
           if (queuedDir !== 0) {
             const dir = queuedDir;
             queuedDir = 0;
@@ -144,31 +147,38 @@
       const idx = currentPanelIndex();
       const nextIdx = idx + dir;
       if (nextIdx < 0) return; // 맨 위(히어로)에서 더 위로: 아무 것도 안 함, 상태도 그대로 둠
-      // 75차: 목적지가 히어로(0)가 아니면 등장 상태를 꺼서 스크롤과 같은 시간 동안 같이 사라지고,
-      // 히어로로 돌아오면 다시 켜서 처음과 같은 스태거로 나타남(76차, 위 setHeroRevealed 참고) —
-      // 스크롤 애니메이션이 이미 느려서(위 설명) 별도의 "먼저 사라지고 나서 이동" 단계 없이
-      // 자연스럽게 겹쳐짐.
-      setHeroRevealed(nextIdx === 0);
-      // 76차: PRODUCT 신발 낙하가 "섹션에 이미 다 와서야 시작"되던 문제 — .showcase__sticky는
-      // position:sticky라 핀(고정)되기 전까진 보통 흐름으로 페이지와 같이 스크롤되어 올라오고,
-      // 마커 50% 교차(아래 stageIO)는 바로 그 핀되는 순간 근처(= 이 스크롤 애니메이션이 거의 다
-      // 끝났을 때)에야 넘어감 — data-stage가 그때서야 켜지면 신발의 1.1s 낙하 트랜지션이 "스크롤이
-      // 거의 멈춘 뒤"에야 재생을 시작해 체감상 "이미 도착하고 나서 떨어지는" 것처럼 보임. 첫 번째
-      // 마커로 들어가는 이 스크롤이 "시작"하는 지금 미리 켜서(히어로 페이드와 같은 원리, 75차)
-      // 1.1s 스크롤과 1.1s 낙하가 같은 시간 동안 겹쳐 재생되게 함. stageIO는 그대로 두 번째
-      // 마커(2단계) 전환은 계속 전담 — 여기선 "아직 한 번도 안 켜졌을 때"만, 최초 1회만 켠다.
+      const curPanel = scrollPanels[idx];
       const nextPanel = nextIdx <= scrollPanels.length - 1 ? scrollPanels[nextIdx] : null;
-      if (nextPanel && nextPanel.hasAttribute("data-showcase-marker")) {
-        const sticky = document.querySelector("[data-showcase-sticky]");
-        if (sticky && !sticky.dataset.stage) sticky.dataset.stage = "1";
-      }
+      const curIsMarker = !!(curPanel && curPanel.hasAttribute("data-showcase-marker"));
+      const nextIsMarker = !!(nextPanel && nextPanel.hasAttribute("data-showcase-marker"));
+      const enteringHero = nextIdx === 0;
+      // 76-3차: 실사용 재확인 결과 — "스크롤이 시작하는 순간 미리 켠다"(75·76차)는 방향이 틀렸음.
+      // 히어로는 스크롤 중 화면 밖에서 안으로 들어오는 동안 트랜지션이 다 끝나버리고, 쇼케이스는
+      // 핀(고정)이 스크롤이 거의 끝나야 걸려서, 둘 다 "도착해서 보면 이미 그 상태"로만 보였음
+      // (애니메이션이 화면에 안 보이거나 핀 전에 다 재생되고 끝남). 떠날 때 끄는 건 즉시 그대로
+      // 두고(멀어지는 쪽이라 안 보여도 무방), 다시 켜는 건 스크롤이 "끝난 뒤"(animateScrollTo의
+      // onArrive)로 미뤄 사용자가 멈춰 선 채로 애니메이션 전체를 보게 함.
+      if (!enteringHero) setHeroRevealed(false);
+      // 쇼케이스 영역을 완전히 벗어나면(마커 → 마커가 아닌 패널) data-stage를 지워 다음에 다시
+      // 들어올 때 낙하부터 처음처럼 재생되게 함 — 기존엔 "최초 1회만" 켜는 가드 때문에, 한 번
+      // 떠난 뒤 다시 들어가도 이미 마지막 단계 모습 그대로 고정돼 있었음(실사용 피드백 "여전히
+      // 있다"의 진짜 원인).
+      if (curIsMarker && !nextIsMarker && showcaseSticky) showcaseSticky.removeAttribute("data-stage");
+      // 매니페스토 → 첫 번째 마커로 "새로" 들어갈 때만 1단계(낙하)를 직접 켠다 — 마커끼리의
+      // 전환(1↔2단계)은 핀된 채 계속 화면에 보이는 상태로 스크롤되므로 원래부터 stageIO(아래)가
+      // 문제없이 담당함.
+      const enteringShowcaseFresh = !curIsMarker && showcaseMarkers.length > 0 && nextPanel === showcaseMarkers[0];
+      const onArrive = () => {
+        if (enteringHero) setHeroRevealed(true);
+        if (enteringShowcaseFresh && showcaseSticky) showcaseSticky.dataset.stage = "1";
+      };
       if (nextIdx > scrollPanels.length - 1) {
         // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
         const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        animateScrollTo(Math.max(maxY, docTop(scrollPanels[scrollPanels.length - 1])), true);
+        animateScrollTo(Math.max(maxY, docTop(scrollPanels[scrollPanels.length - 1])), true, onArrive);
         return;
       }
-      animateScrollTo(docTop(scrollPanels[nextIdx]));
+      animateScrollTo(docTop(scrollPanels[nextIdx]), false, onArrive);
     }
     window.addEventListener(
       "wheel",
