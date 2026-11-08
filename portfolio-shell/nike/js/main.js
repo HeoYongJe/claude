@@ -7,6 +7,31 @@
   // 2026-11-07 58차: "스크롤을 시작하면 SCROLL 표시가 자연스럽게 사라지도록" — 80px은 휠 한 틱
   // 정도의 관성 스크롤로도 쉽게 넘는 작은 값이라 "스크롤을 시작했다"는 의도를 바로 반영.
   const heroScroll = document.querySelector(".hero__scroll");
+
+  // ---- hero 재진입 시 "처음과 똑같이" 텍스트 등장 (2026-11-09 76차) ----
+  // 75차는 .hero__inner 전체를 한 덩어리로 opacity/blur 페이드했지만(css 75차 주석 참고), "다시 올
+  // 때도 처음 로드됐을 때처럼" 나오길 원해서 — 떠날 때 떼고 돌아올 때 다시 붙이는 방식으로, 최초
+  // 로드 때와 똑같은 [data-reveal] 스태거(개별 blur·지연, css 참고)를 그대로 재사용.
+  const heroPanelEl = document.querySelector(".hero");
+  const heroRevealEls = heroPanelEl ? [...heroPanelEl.querySelectorAll("[data-reveal]")] : [];
+  function setHeroRevealed(show) {
+    if (!heroRevealEls.length) return;
+    if (!show) {
+      heroRevealEls.forEach((el) => el.classList.remove("is-revealed"));
+      return;
+    }
+    // NIKE 글자별 keyframe(letterIn, css 참고)은 "최초 1회만" 재생되는 forwards 애니메이션이라,
+    // 돌아올 때마다 처음처럼 다시 보이려면 강제로 리스타트해야 함(animation:none → 리플로우 →
+    // 원복, 표준 트릭). .letter는 페이지 로드 시 JS로 나중에 생성되므로(아래 "히어로 키네틱 타이포"
+    // 참고) 캐싱하지 않고 호출 시점에 매번 새로 찾음.
+    const letters = heroPanelEl.querySelectorAll(".letter");
+    letters.forEach((letter) => { letter.style.animation = "none"; });
+    void heroPanelEl.offsetWidth;
+    letters.forEach((letter) => { letter.style.animation = ""; });
+    // 같은 프레임에서 지웠다 바로 켜면 브라우저가 "변화 없음"으로 합쳐버려 transition이 전혀
+    // 재생되지 않음 — 다음 프레임에 켜야 "0부터 다시 출발"하는 트랜지션이 보장됨.
+    requestAnimationFrame(() => heroRevealEls.forEach((el) => el.classList.add("is-revealed")));
+  }
   function onScroll() {
     const h = document.documentElement;
     const scrolled = h.scrollTop;
@@ -35,13 +60,10 @@
       if (!target) return;
       e.preventDefault();
       target.scrollIntoView({ behavior: "instant", block: "start" });
-      // 75차: #top 클릭은 휠 애니메이션(goTo)을 거치지 않는 즉시 점프라 .is-leaving이 갱신될
-      // 기회가 없음 — 히어로로 가는 클릭이면 바로 떼서 즉시 보이게(다른 곳으로 가는 클릭은 건드릴
-      // 필요 없음, 이미 히어로가 아니었다면 .is-leaving 상태는 무관).
-      if (link.getAttribute("href") === "#top") {
-        const heroEl = document.querySelector(".hero");
-        if (heroEl) heroEl.classList.remove("is-leaving");
-      }
+      // 75차: #top 클릭은 휠 애니메이션(goTo)을 거치지 않는 즉시 점프라 히어로 등장 상태가
+      // 갱신될 기회가 없음 — 히어로로 가는 클릭이면 바로 다시 보이게(다른 곳으로 가는 클릭은
+      // 건드릴 필요 없음, 이미 히어로가 아니었다면 무관).
+      if (link.getAttribute("href") === "#top") setHeroRevealed(true);
     });
   });
 
@@ -68,7 +90,6 @@
   // (design.md 11차와 동일 원칙, 터치 스크롤은 기존 네이티브 스냅 그대로), reduceMotion이면 아예
   // 끔(네이티브 스냅도 reduced-motion에서 css로 이미 꺼져 있어 평범한 자유 스크롤이 됨).
   const scrollPanels = [...document.querySelectorAll(".hero, .manifesto, [data-showcase-marker], .lookbook, .cta")];
-  const heroPanelEl = document.querySelector(".hero");
   if (scrollPanels.length && !reduceMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const DURATION_MS = 1100;
     function easeInOutCubic(t) {
@@ -122,10 +143,11 @@
       const idx = currentPanelIndex();
       const nextIdx = idx + dir;
       if (nextIdx < 0) return; // 맨 위(히어로)에서 더 위로: 아무 것도 안 함, 상태도 그대로 둠
-      // 75차: 목적지가 히어로(0)가 아니면 .is-leaving을 달아 .hero__inner가 스크롤과 같은 1.1s
-      // 동안 같이 사라지고, 히어로로 돌아오면 떼서 같이 나타남(css 참고) — 스크롤 애니메이션이
-      // 이미 느려서(위 설명) 별도의 "먼저 사라지고 나서 이동" 단계 없이 자연스럽게 겹쳐짐.
-      if (heroPanelEl) heroPanelEl.classList.toggle("is-leaving", nextIdx !== 0);
+      // 75차: 목적지가 히어로(0)가 아니면 등장 상태를 꺼서 스크롤과 같은 시간 동안 같이 사라지고,
+      // 히어로로 돌아오면 다시 켜서 처음과 같은 스태거로 나타남(76차, 위 setHeroRevealed 참고) —
+      // 스크롤 애니메이션이 이미 느려서(위 설명) 별도의 "먼저 사라지고 나서 이동" 단계 없이
+      // 자연스럽게 겹쳐짐.
+      setHeroRevealed(nextIdx === 0);
       if (nextIdx > scrollPanels.length - 1) {
         // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
         const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);

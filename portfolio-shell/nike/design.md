@@ -2566,3 +2566,52 @@ js(폭 안전장치 로직) 전부 삭제. `scrollPanels` 목록엔 애초에 �
 완전히 보이는 것(스크린샷)을 확인, 이어서 실제 휠 스크롤(히어로→매니페스토→히어로 왕복)로 end-to-end
 확인(스크린샷 두 장 모두 완전히 보이는 히어로로 정상 복귀). `element.getAnimations()`로 키프레임
 자체(opacity 1→0, filter none→blur(16px))가 정확히 등록돼 있는 것도 별도 확인. 콘솔 에러 없음.
+
+## 31. 2026-11-09 76차 — 히어로 재진입 시 "처음처럼" 등장, PRODUCT 신발 낙하 전환
+
+사용자: "다시 hero섹션에 갔을때도 처음처럼 텍스트가 다시 나오게해줘. 그리고 메니페스토 섹션에서
+product섹션으로 넘어갈때 신발이 위에서 떨어지게끔 가능해?"
+
+**히어로 재진입 등장**: 75차는 `.hero__inner` 전체를 한 덩어리로 opacity/blur 페이드했는데, 최초
+로드 때의 `[data-reveal]` 개별 스태거(요소별 blur·순서별 지연, 아래 `.hero [data-reveal]` css)와는
+결이 다른 "한 덩어리" 느낌이었음 — 돌아올 때도 "처음과 완전히 같이" 보이도록, `.hero__inner`
+레벨의 opacity/filter 전환을 걷어내고(css) 대신 `js/main.js`에 `setHeroRevealed(show)`를 추가:
+- `show=false`(떠날 때): 히어로 안의 `[data-reveal]` 4개(kicker·word·tagline·sub)에서
+  `is-revealed`를 떼 — 기존 `.hero [data-reveal]` 역방향 트랜지션(blur+translateY) 그대로 재생.
+- `show=true`(돌아올 때): NIKE 글자별 `letterIn` keyframe(`forwards`라 최초 1회만 재생되고 멈춰
+  있음)을 `animation:none`→리플로우→원복으로 강제 리스타트한 뒤, 다음 프레임에 `is-revealed`를
+  다시 붙임(같은 프레임에서 떼고 붙이면 브라우저가 "변화 없음"으로 묶어버려 트랜지션이 아예 안
+  재생되므로 `requestAnimationFrame`으로 한 프레임 미룸) — 최초 로드와 정확히 같은 스태거·블러·
+  글자별 등장이 매번 재생됨.
+`goTo(dir)`의 `.is-leaving` 토글과 `#top` 앵커 클릭 핸들러를 전부 `setHeroRevealed(...)` 호출로
+교체, 이제 `.is-leaving` 클래스 자체를 더 이상 안 씀(css 룰도 제거).
+
+**검증**: 패널이 hidden이라 실시간 트랜지션 재생은 역시 못 봤지만(30번 항목과 동일한 한계), 전환을
+`transition:none`으로 강제 비활성화하고 클래스만 토글해 "최종 상태"를 읽는 방식으로 로직을
+검증 — 뗀 직후 전 요소 `opacity:0 / translateY(32px) / blur(14px)`, 다시 붙인 직후 전 요소
+`opacity:1 / translateY(0) / blur(0)`로 정확히 확인. 실제 `WheelEvent` 디스패치로 히어로→매니페스토
+→히어로 왕복도 실행해 `is-revealed`가 끝까지 정상적으로 뗐다 붙는 것 확인, 콘솔 에러 없음.
+
+**PRODUCT 신발 낙하**: `.showcase__sticky`가 이미 `overflow:hidden`인 걸 이용 — `.showcase__visual`의
+"등장 전" 기본 transform을 `translate(-50%, -50%)`(제자리)에서 `translate(-50%, -210%)`(자기 높이의
+2.1배 위, sticky 박스 바깥이라 완전히 클리핑되어 안 보임)로 바꿔, 스테이지 1이 되는 순간 기존
+`[data-stage]` 값(`translate(-50%,-50%) scale(1.4) rotate(-14deg)`, 안 건드림)으로 전환되며 "화면
+위에서 떨어져 내려와 안착"하는 경로가 생김. 2·3단계(왼쪽으로 슬라이드)에 쓰이는 기존 easing
+(`cubic-bezier(.22,1,.36,1)`, 끝에 약한 오버슈트 포함)을 그대로 재사용해 "낙하 후 살짝 튕기는"
+느낌을 별도 커브 없이 얻음 — curve를 더 과장되게 바꾸면 2·3단계 좌우 슬라이드에도 같이 영향받아서
+그대로 둠. `opacity 1s→.5s`로 줄여 낙하 자체가 주된 등장 수단이 되게 하고 opacity는 보조로만.
+모바일(`@media (max-width:900px)`) 쪽 `.showcase__visual` 기본 transform도 동일하게
+`translate(-50%,-210%)`로 미러링.
+
+**검증**: `transition:none`으로 강제한 뒤 `dataset.stage`를 지우고/채워 비교 — 기본(stage 없음)
+상태는 `getBoundingClientRect()` 기준 박스 전체(top 1166~bottom 1505)가 sticky 박스 상단(top
+1536)보다 완전히 위라 `overflow:hidden`에 가려짐을 직접 확인(`opacity:0`도 보조로 유지), stage=1
+상태의 최종 transform matrix는 기존과 동일(`scale(1.4) rotate(-14deg)` 대응 값)로 변화 없음 — 설정값
+자체(최종 정착 모습)는 그대로, 시작 위치만 바뀐 것을 수치로 확인. 콘솔 에러 없음.
+
+⚠️ 테스트 중 한 가지 특이사항: 패널이 hidden인 상태로 새로고침 직후 `showcase__sticky`의
+`data-stage`가 스크롤 전인데도 이미 `"1"`로 찍혀 있는 현상을 관찰(마커가 실제로는 뷰포트 밖
+`docTop:1536`에 있는데도) — `IntersectionObserver`도 30번 항목의 rAF·CSS 트랜지션과 같은 부류의
+"패널이 안 보일 때 멎거나 오동작하는" 도구 한계로 추정(이 작업에서 옵저버 코드 자체는 전혀 건드리지
+않았음). 실제 사용자 브라우저(패널이 항상 보이는 상태)에서 재현되는지는 이 세션에서 확인 불가 —
+만약 실제로 신발이 스크롤 없이도 바로 떨어지는 것처럼 보이면 알려달라고 보고에 포함.
