@@ -26,11 +26,12 @@
     // 참고) 캐싱하지 않고 호출 시점에 매번 새로 찾음.
     const letters = heroPanelEl.querySelectorAll(".letter");
     letters.forEach((letter) => { letter.style.animation = "none"; });
-    void heroPanelEl.offsetWidth;
+    void heroPanelEl.offsetWidth; // 리플로우를 강제해 애니메이션 리셋을 확정(다음 줄 전에 반드시 필요)
     letters.forEach((letter) => { letter.style.animation = ""; });
-    // 같은 프레임에서 지웠다 바로 켜면 브라우저가 "변화 없음"으로 합쳐버려 transition이 전혀
-    // 재생되지 않음 — 다음 프레임에 켜야 "0부터 다시 출발"하는 트랜지션이 보장됨.
-    requestAnimationFrame(() => heroRevealEls.forEach((el) => el.classList.add("is-revealed")));
+    // is-revealed도 같은 리플로우 뒤에 동기적으로 바로 붙임 — 이전엔 requestAnimationFrame으로
+    // 한 프레임 미뤘지만, 뗀 시점과 여기 사이엔 이미 몇 초(스크롤해서 다른 섹션 보던 시간)가 지나
+    // 있어 같은 프레임에서 지웠다 켜는 상황 자체가 아님 — 굳이 rAF에 기대지 않고 바로 적용.
+    heroRevealEls.forEach((el) => el.classList.add("is-revealed"));
   }
   function onScroll() {
     const h = document.documentElement;
@@ -148,6 +149,19 @@
       // 스크롤 애니메이션이 이미 느려서(위 설명) 별도의 "먼저 사라지고 나서 이동" 단계 없이
       // 자연스럽게 겹쳐짐.
       setHeroRevealed(nextIdx === 0);
+      // 76차: PRODUCT 신발 낙하가 "섹션에 이미 다 와서야 시작"되던 문제 — .showcase__sticky는
+      // position:sticky라 핀(고정)되기 전까진 보통 흐름으로 페이지와 같이 스크롤되어 올라오고,
+      // 마커 50% 교차(아래 stageIO)는 바로 그 핀되는 순간 근처(= 이 스크롤 애니메이션이 거의 다
+      // 끝났을 때)에야 넘어감 — data-stage가 그때서야 켜지면 신발의 1.1s 낙하 트랜지션이 "스크롤이
+      // 거의 멈춘 뒤"에야 재생을 시작해 체감상 "이미 도착하고 나서 떨어지는" 것처럼 보임. 첫 번째
+      // 마커로 들어가는 이 스크롤이 "시작"하는 지금 미리 켜서(히어로 페이드와 같은 원리, 75차)
+      // 1.1s 스크롤과 1.1s 낙하가 같은 시간 동안 겹쳐 재생되게 함. stageIO는 그대로 두 번째
+      // 마커(2단계) 전환은 계속 전담 — 여기선 "아직 한 번도 안 켜졌을 때"만, 최초 1회만 켠다.
+      const nextPanel = nextIdx <= scrollPanels.length - 1 ? scrollPanels[nextIdx] : null;
+      if (nextPanel && nextPanel.hasAttribute("data-showcase-marker")) {
+        const sticky = document.querySelector("[data-showcase-sticky]");
+        if (sticky && !sticky.dataset.stage) sticky.dataset.stage = "1";
+      }
       if (nextIdx > scrollPanels.length - 1) {
         // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
         const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
