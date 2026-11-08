@@ -38,6 +38,106 @@
     });
   });
 
+  // ---- 섹션 간 휠 스크롤을 크게 느리고 부드럽게 (2026-11-08 74차) ----
+  // "섹션 전환이 휙휙 넘어간다, 많이 많이 부드럽고 느리게" — scroll-behavior:smooth(71차)는 네이티브
+  // scroll-snap의 "정착" 애니메이션에 브라우저가 정하는 짧은 easing만 입힐 뿐, 그 길이를 CSS로
+  // 직접 늘릴 방법이 없음(duration을 지정하는 CSS 속성 자체가 없음) — 원하는 만큼 "느리게" 하려면
+  // 휠 입력을 직접 가로채 우리가 정한 시간(DURATION_MS) 동안 직접 easing으로 스크롤하는 수밖에 없음.
+  // ⚠️ 이 방식은 11차에서 시도했다가 여러 버그(입력이 안 먹히는 느낌, 앵커 클릭과 충돌, 누적 오차,
+  // "preventDefault+scrollTo가 네이티브 scroll-snap 처리를 깨뜨림" — 위 39차 주석·design.md Motion
+  // §5 11차 참고) 끝에 폐기하고 네이티브 scroll-snap(39차)으로 바꾼 전력이 있음. 이번엔 그때와
+  // 다른 점 두 가지로 같은 함정을 피함:
+  //  1) 네이티브 스냅과의 충돌: 우리 애니메이션이 도는 동안만 html에 .is-wheel-animating 클래스를
+  //     달아 scroll-snap-type을 잠깐 꺼둠(css 참고) — 애니메이션이 끝나는 시점엔 이미 정확히 스냅
+  //     위치에 도착해 있으므로 다시 켜도 점프가 없음. 평소(애니메이션 사이사이)엔 스냅이 그대로
+  //     켜져 있어 키보드(Space·PageDown 등 우리가 가로채지 않는 입력)는 기존처럼 네이티브 스냅의
+  //     보호를 그대로 받음.
+  //  2) 입력이 안 먹히는 느낌 방지: 애니메이션 도중 들어온 휠은 버리지 않고 "다음 한 번"만
+  //     대기열(queuedDir, 최대 1개)에 적립 — 애니메이션이 끝나는 즉시 이어서 실행되므로 트랙패드의
+  //     연속된 작은 휠 이벤트 수십 개가 들어와도 같은 방향이면 그냥 누적 없이 "한 패널만" 더
+  //     이동(멀리 플릭해도 한 번에 여러 패널을 건너뛰지 않음 — 네이티브 스냅과 같은 "한 제스처 =
+  //     한 패널" 체감을 유지하면서 속도만 늦춘 것).
+  // 데스크톱(hover+fine pointer)에서만 동작 — 모바일은 wheel 이벤트 자체가 없어 애초에 해당 없고
+  // (design.md 11차와 동일 원칙, 터치 스크롤은 기존 네이티브 스냅 그대로), reduceMotion이면 아예
+  // 끔(네이티브 스냅도 reduced-motion에서 css로 이미 꺼져 있어 평범한 자유 스크롤이 됨).
+  const scrollPanels = [...document.querySelectorAll(".hero, .manifesto, [data-showcase-marker], .lookbook, .cta")];
+  if (scrollPanels.length && !reduceMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    const DURATION_MS = 1100;
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+    function docTop(el) {
+      return el.getBoundingClientRect().top + window.scrollY;
+    }
+    let isAnimating = false;
+    let queuedDir = 0;
+    // keepSnapOff: 목적지가 scroll-snap-align 패널이 아닌 "맨 아래 푸터" 같은 곳이면 true로 호출 —
+    // 애니메이션이 끝나도 .is-wheel-animating(아래 css, scroll-snap-type:none)을 계속 켜둬야 함.
+    // 끄면 네이티브 mandatory 스냅이 "가장 가까운 등록된 스냅 지점(cta)"으로 즉시 되돌려버려(실측으로
+    // 확인한 버그) 푸터에 도착한 순간 다시 cta로 튕겨나감 — 실제 패널로 돌아갈 때(goTo가 항상 진짜
+    // 패널로 이동하며 keepSnapOff 없이 호출)만 다시 켜짐.
+    function animateScrollTo(targetY, keepSnapOff) {
+      const startY = document.documentElement.scrollTop;
+      const delta = targetY - startY;
+      if (Math.abs(delta) < 1) return;
+      document.documentElement.classList.add("is-wheel-animating");
+      isAnimating = true;
+      const start = performance.now();
+      function tick(now) {
+        const t = Math.min(1, (now - start) / DURATION_MS);
+        window.scrollTo({ top: startY + delta * easeInOutCubic(t), left: 0, behavior: "instant" });
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          isAnimating = false;
+          if (!keepSnapOff) document.documentElement.classList.remove("is-wheel-animating");
+          if (queuedDir !== 0) {
+            const dir = queuedDir;
+            queuedDir = 0;
+            goTo(dir);
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    function currentPanelIndex() {
+      const y = document.documentElement.scrollTop;
+      let idx = 0;
+      let best = Infinity;
+      scrollPanels.forEach((el, i) => {
+        const d = Math.abs(docTop(el) - y);
+        if (d < best) { best = d; idx = i; }
+      });
+      return idx;
+    }
+    function goTo(dir) {
+      const idx = currentPanelIndex();
+      const nextIdx = idx + dir;
+      if (nextIdx > scrollPanels.length - 1) {
+        // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
+        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        animateScrollTo(Math.max(maxY, docTop(scrollPanels[scrollPanels.length - 1])), true);
+        return;
+      }
+      if (nextIdx < 0) return;
+      animateScrollTo(docTop(scrollPanels[nextIdx]));
+    }
+    window.addEventListener(
+      "wheel",
+      (e) => {
+        if (e.deltaY === 0) return;
+        e.preventDefault();
+        const dir = e.deltaY > 0 ? 1 : -1;
+        if (isAnimating) {
+          queuedDir = dir;
+          return;
+        }
+        goTo(dir);
+      },
+      { passive: false }
+    );
+  }
+
   // ---- 등장 애니메이션(data-reveal) ----
   const revealEls = document.querySelectorAll("[data-reveal]");
   if (reduceMotion) {

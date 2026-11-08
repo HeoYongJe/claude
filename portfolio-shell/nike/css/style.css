@@ -49,8 +49,16 @@
    애니메이션시키느라 입력이 먹히지 않는 것처럼 느려졌던 것(design.md Motion §5 11차 참고)이고,
    지금은 JS 개입이 전혀 없이 브라우저 네이티브 스냅의 "정착" 단계에만 CSS로 easing을 입히는 것이라
    같은 문제가 재발하지 않음. 앵커 클릭(nav #top·#cta)은 js/main.js에서 scrollIntoView를 여전히
-   behavior:"auto"로 명시 호출하므로 이 smooth 영향을 받지 않고 즉시 이동 그대로 유지됨. */
+   behavior:"auto"로 명시 호출하므로 이 smooth 영향을 받지 않고 즉시 이동 그대로 유지됨.
+   2026-11-08 74차 추가: "많이 많이 부드럽고 느리게" 요청으로 결국 위에서 피했던 JS 휠 가로채기를
+   다시 들임(js/main.js 참고) — 이번엔 애니메이션이 도는 "동안만" 아래 .is-wheel-animating로
+   scroll-snap-type을 꺼서 11차의 "네이티브 스냅과 충돌" 문제를 피함. 평소엔 이 html 규칙(스냅+
+   smooth 정착)이 그대로 키보드 등 JS가 가로채지 않는 입력의 폴백 역할을 함. */
 html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+/* 74차: JS(main.js)가 패널 사이를 직접 느린 easing으로 스크롤하는 동안엔 네이티브 스냅이 그
+   programmatic scrollTo를 끌어당겨 fight하지 않도록 잠깐 꺼둠 — 애니메이션은 항상 정확히 다음
+   스냅 위치에서 끝나므로, 끝나자마자 다시 켜도 위치가 틀어지지 않음. */
+html.is-wheel-animating { scroll-snap-type: none; }
 /* 2026-11-05 39차 버그: overflow-x만 주고 overflow-y를 안 주면 "한 축만 non-visible이면 나머지
    축도 자동으로 auto가 된다"는 CSS 스펙 규칙 때문에 overflow-y가 암묵적으로 auto가 되어 body가
    html과 별개의 스크롤 컨테이너가 되어버림 — html의 scroll-snap-type과 충돌해 특정 패널(스펙)
