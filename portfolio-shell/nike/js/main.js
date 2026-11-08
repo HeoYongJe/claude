@@ -91,45 +91,71 @@
     new MutationObserver(syncManifestoSplit).observe(manifestoTextEl, { childList: true, subtree: true });
   }
 
-  // ---- 히어로 태그라인 위치를 분할선 기준으로 동적 계산 (2026-11-08 67차) ----
+  // ---- 히어로 타이틀·태그라인 위치를 분할선 기준으로 동적 계산 (2026-11-08 67차, 69차 재작성) ----
   // 72px·110px 등 고정 px를 몇 번 조정했지만 전부 특정 뷰포트에서만 맞았음(design.md 65~67차 참고,
   // --hero-split은 뷰포트 "높이"에 비례해 움직이는데 태그라인 위치는 폰트 clamp가 가로폭 기준이라
-  // 높이와 거의 무관 — 세로로 긴 화면에서 분할선이 훨씬 아래로 내려가며 역전). margin-top을 늘리면
-  // `.hero`가 justify-content:center라 늘어난 높이의 절반만 실제 여유로 반영되는 걸 분석적으로
-  // 유도(실측 72→110px 구간에서 정확히 0.5 확인) — 그 공식을 그대로 코드화해 몇 해상도에서 눈대중
-  // 하지 않고 항상 정확히 계산.
+  // 높이와 거의 무관 — 세로로 긴 화면에서 분할선이 훨씬 아래로 내려가며 역전).
+  // 69차 1차 시도: 분할 비율을 60→50%로 바꾸자 반대쪽(NIKE 타이틀)이 분할선에 걸쳐 똑같은 원리를
+  // 반대 방향에 적용했는데(태그라인은 margin-top, 타이틀은 `.hero__inner` 전체를 transform으로
+  // 밀어올림), margin-top 증가가 `.hero__inner`의 레이아웃 높이를 바꿔버려 `.hero`의
+  // justify-content:center가 "타이틀 쪽 여유까지" 다시 움직이는 피드백 루프가 생김 — 호출마다
+  // DOM에 남은 이전 결과(margin 값)가 다음 계산의 기준을 바꿔 수렴하지 않고 계속 어긋났음(실측으로
+  // 확인, 2-pass로 묶어봐도 동일). 근본 원인은 "레이아웃 높이를 바꾸는 보정"과 "그 높이에 의존하는
+  // flex 중앙정렬"을 섞어 쓴 것 — margin 대신 태그라인+서브 묶음을 감싸는 `.hero__below`
+  // 래퍼(index.html)에 transform으로 내리는 방식으로 교체해 레이아웃 높이를 전혀 바꾸지 않게 함.
+  // 이제 타이틀 쪽 보정(.hero__inner의 transform)과 태그라인 쪽 보정(.hero__below의 transform)이
+  // 서로의 계산 기준에 전혀 영향을 주지 않아 독립적으로 한 번씩만 계산해도 항상 정확히 수렴함.
   const heroSplitEl = document.querySelector(".hero");
+  const heroInnerEl = document.querySelector(".hero__inner");
+  const heroWordEl = document.querySelector(".hero__word");
   const heroTagline = document.querySelector(".hero__tagline");
-  if (heroSplitEl && heroTagline) {
+  const heroBelowEl = document.querySelector(".hero__below");
+  if (heroSplitEl && heroInnerEl && heroWordEl && heroTagline && heroBelowEl) {
+    const WORD_TARGET_CLEARANCE_PX = 24;
     const TAGLINE_TARGET_CLEARANCE_PX = 32;
-    const BASE_MARGIN_TOP_PX = 24;
-    // 공식(여유 = margin변화량/2)은 분석적으로 정확하지만, 실측 중 리사이즈/폰트로드 타이밍이
-    // 겹치면 측정 시점의 레이아웃이 과도기 상태라 한 번의 계산이 어긋나는 경우가 있었음(테스트로
-    // 재현) — 그래서 "계산 → 적용 → 재측정해서 여전히 어긋나면 그 결과로 한 번 더 계산"을 최대
-    // 3회 반복해 항상 수렴하도록(이미 정확하면 1회 만에 끝남, 추가 리플로우 비용도 미미).
-    function syncHeroTagline() {
-      let margin = BASE_MARGIN_TOP_PX;
+    function currentSplitY() {
+      const heroRect = heroSplitEl.getBoundingClientRect();
+      const splitPct = parseFloat(getComputedStyle(heroSplitEl).getPropertyValue("--hero-split")) || 50;
+      return heroRect.top + heroRect.height * (splitPct / 100);
+    }
+    // 실측 중 리사이즈/폰트로드 타이밍이 겹치면 측정 시점의 레이아웃이 과도기 상태라 한 번의 계산이
+    // 어긋나는 경우가 있었음(테스트로 재현) — "계산 → 적용 → 재측정해서 여전히 어긋나면 한 번 더
+    // 계산"을 최대 3회 반복해 수렴하도록(이미 정확하면 1회 만에 끝남).
+    function syncHeroLayout() {
+      let shift = 0;
       for (let i = 0; i < 3; i++) {
-        heroTagline.style.marginTop = margin + "px";
-        const heroRect = heroSplitEl.getBoundingClientRect();
-        const splitPct = parseFloat(getComputedStyle(heroSplitEl).getPropertyValue("--hero-split")) || 60;
-        const splitY = heroRect.top + heroRect.height * (splitPct / 100);
-        const rect = heroTagline.getBoundingClientRect();
-        const clearance = rect.top - splitY;
+        heroInnerEl.style.transform = shift > 0 ? "translateY(-" + shift + "px)" : "";
+        const wordClearance = currentSplitY() - heroWordEl.getBoundingClientRect().bottom;
+        const diff = WORD_TARGET_CLEARANCE_PX - wordClearance;
+        if (diff < 1) break;
+        shift = Math.max(0, shift + diff);
+      }
+      let push = 0;
+      for (let i = 0; i < 3; i++) {
+        heroBelowEl.style.transform = push > 0 ? "translateY(" + push + "px)" : "";
+        const clearance = heroTagline.getBoundingClientRect().top - currentSplitY();
         const diff = TAGLINE_TARGET_CLEARANCE_PX - clearance;
         if (Math.abs(diff) < 1) break;
-        margin = Math.max(BASE_MARGIN_TOP_PX, margin + 2 * diff);
+        push = Math.max(0, push + diff);
       }
     }
-    syncHeroTagline();
+    syncHeroLayout();
     // 리사이즈 중간값(브라우저가 최종 크기에 도달하기 전 연속 발생하는 resize 이벤트)에서 계산하면
-    // 그 중간 크기 기준으로 margin이 고정돼버려 최종 크기와 어긋날 수 있어 디바운스.
+    // 그 중간 크기 기준으로 고정돼버려 최종 크기와 어긋날 수 있어 디바운스.
     let resizeTimer = null;
     window.addEventListener("resize", () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(syncHeroTagline, 150);
+      resizeTimer = setTimeout(syncHeroLayout, 150);
     });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeroTagline);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeroLayout);
+    // 69차: 타이틀·태그라인 둘 다 [data-reveal]이라 로드 직후엔 아직 "등장 중"(자기 자신의 transform이
+    // translateY(32px) → none으로 .7~.9s에 걸쳐 전환, 글자별 stagger까지 더하면 최대 ~1.4s)이라, 위
+    // 트리거들이 이보다 먼저 실행되면 아직 자리잡지 않은(32px 아래) 위치를 기준으로 계산해버려 필요
+    // 이상으로 밀어 올리는 과잉 보정이 됨. transitionend로 정확한 종료 시점을 잡으려 해봤지만 이
+    // 테스트 환경에서 reveal이 관찰자 콜백 타이밍상 우리 리스너가 붙기도 전에 이미 끝나버리는 경우가
+    // 있어(IntersectionObserver 콜백이 생각보다 빨리 옴) 실측상 신뢰할 수 없었음 — 대신 전환이
+    // 확실히 끝나는 넉넉한 시간(1.6s, 최대 소요 ~1.4s보다 여유 있게) 뒤에 한 번 더 재계산해 확정.
+    setTimeout(syncHeroLayout, 1600);
   }
 
   // ---- 히어로 글로우: 커서를 따라가는 volt 라이트 (2026-11-08 62차, 옵션2 — 1번 스크롤
