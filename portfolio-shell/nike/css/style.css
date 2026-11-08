@@ -110,7 +110,7 @@ button, input { font: inherit; }
    그라데이션처럼 보이지만 하드 스톱(동일 좌표에 두 색)이라 실제로는 섞이지 않는 두 단색. */
 .hero { position: relative; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
   scroll-snap-align: start;
-  --hero-split: 60%;
+  --hero-split: 50%;
   background: var(--ink); }
 /* 2026-11-08 65차: [data-speed] 공용 규칙 — js(main.js applyParallax)가 매 프레임 `--parallax-y`
    CSS 변수만 갱신하고, 실제 transform은 요소별 CSS가 조합(룩북~CTA 블롭은 이 기본값 그대로 translateY
