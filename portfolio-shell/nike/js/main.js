@@ -126,11 +126,29 @@
     // 실측 중 리사이즈/폰트로드 타이밍이 겹치면 측정 시점의 레이아웃이 과도기 상태라 한 번의 계산이
     // 어긋나는 경우가 있었음(테스트로 재현) — "계산 → 적용 → 재측정해서 여전히 어긋나면 한 번 더
     // 계산"을 최대 3회 반복해 수렴하도록(이미 정확하면 1회 만에 끝남).
+    // 2026-11-08 72차: 사용자가 로드 직후 스크린샷 두 장(등장 애니메이션 "시작할 때"·"끝날 때")을
+    // 비교해 타이틀·태그라인 위치가 서로 다르다고 지적 — 69차의 1.6s setTimeout "안전장치"는 증상을
+    // 늦춰 가릴 뿐 근본 원인은 그대로였음: heroWordEl·heroTagline 둘 다 [data-reveal]이라 "등장
+    // 중"엔 자기 자신의 transform(translateY(32px)→0)이 아직 안 끝난 상태고, 로드 직후 맨 처음
+    // syncHeroLayout() 호출이 바로 그 "아직 안 끝난" 위치를 기준으로 틀린 보정값을 계산해 적용해
+    // 버림 — 그 틀린 상태가 화면에 그대로 보이다가, 나중 호출(폰트로드 등)에서야 맞는 값으로
+    // 바뀌며 "쿵" 하고 위치가 바뀌는 것처럼 보였던 것. 근본 수정: 이 두 엘리먼트를 잴 때만 자신의
+    // reveal transform을 잠깐 "none"으로 지워(등장 애니메이션이 이미 끝난 것처럼) 최종 레이아웃을
+    // 읽고, 같은 동기 실행 안에서 즉시 원래 값으로 되돌림(화면엔 중간 상태가 렌더되지 않아 깜빡임
+    // 없음) — 이제 등장 애니메이션 진행률과 무관하게 매번 같은(맞는) 값을 읽으므로 "시작"과 "끝"의
+    // 계산 결과가 항상 같아짐. 더 이상 과도기 상태에 기댈 필요가 없어 1.6s 안전장치도 제거.
+    function measureFinalRect(el) {
+      const prevTransform = el.style.transform;
+      el.style.transform = "none";
+      const rect = el.getBoundingClientRect();
+      el.style.transform = prevTransform;
+      return rect;
+    }
     function syncHeroLayout() {
       let shift = 0;
       for (let i = 0; i < 3; i++) {
         heroInnerEl.style.transform = shift > 0 ? "translateY(-" + shift + "px)" : "";
-        const wordClearance = currentSplitY() - heroWordEl.getBoundingClientRect().bottom;
+        const wordClearance = currentSplitY() - measureFinalRect(heroWordEl).bottom;
         const diff = WORD_TARGET_CLEARANCE_PX - wordClearance;
         if (diff < 1) break;
         shift = Math.max(0, shift + diff);
@@ -138,7 +156,7 @@
       let push = 0;
       for (let i = 0; i < 3; i++) {
         heroBelowEl.style.transform = push > 0 ? "translateY(" + push + "px)" : "";
-        const clearance = heroTagline.getBoundingClientRect().top - currentSplitY();
+        const clearance = measureFinalRect(heroTagline).top - currentSplitY();
         const diff = TAGLINE_TARGET_CLEARANCE_PX - clearance;
         if (Math.abs(diff) < 1) break;
         push = Math.max(0, push + diff);
@@ -152,15 +170,9 @@
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(syncHeroLayout, 150);
     });
+    // 폰트가 늦게 로드되면 글자 렌더 크기(= heroWordEl 높이)가 바뀌어 재계산이 필요 — reveal
+    // 타이밍과는 무관한 별개의 이유라 그대로 유지.
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeroLayout);
-    // 69차: 타이틀·태그라인 둘 다 [data-reveal]이라 로드 직후엔 아직 "등장 중"(자기 자신의 transform이
-    // translateY(32px) → none으로 .7~.9s에 걸쳐 전환, 글자별 stagger까지 더하면 최대 ~1.4s)이라, 위
-    // 트리거들이 이보다 먼저 실행되면 아직 자리잡지 않은(32px 아래) 위치를 기준으로 계산해버려 필요
-    // 이상으로 밀어 올리는 과잉 보정이 됨. transitionend로 정확한 종료 시점을 잡으려 해봤지만 이
-    // 테스트 환경에서 reveal이 관찰자 콜백 타이밍상 우리 리스너가 붙기도 전에 이미 끝나버리는 경우가
-    // 있어(IntersectionObserver 콜백이 생각보다 빨리 옴) 실측상 신뢰할 수 없었음 — 대신 전환이
-    // 확실히 끝나는 넉넉한 시간(1.6s, 최대 소요 ~1.4s보다 여유 있게) 뒤에 한 번 더 재계산해 확정.
-    setTimeout(syncHeroLayout, 1600);
   }
 
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
