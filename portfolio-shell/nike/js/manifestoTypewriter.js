@@ -34,6 +34,12 @@
       else if (node.tagName === "SPAN" && node.className) tag = "span:" + node.className;
     }
     const text = node.textContent || "";
+    // HTML 소스의 들여쓰기 때문에 <br> 다음 줄에 생기는, 개행이 섞인 공백-전용 텍스트 노드(예:
+    // "\n          ")는 화면에 아무 것도 그리지 않는 순수 포맷팅이라 토큰화하지 않고 건너뜀 —
+    // 안 그러면 다음 태그(.manifesto__line2)의 커서 미리보기 로직(아래 render() 참고)이 이 노드의
+    // "글자"부터 먼저 처리하느라 한 프레임 동안 커서가 margin 적용 전 자리에 떠 보임. 반면
+    // </span> <em> 사이의 의도된 띄어쓰기 한 칸(개행 없음)은 실제 표시 내용이라 그대로 토큰화됨.
+    if (/\n/.test(text) && !text.trim()) return;
     for (const ch of text) tokens.push({ ch, tag });
   });
   if (!tokens.length) return;
@@ -70,8 +76,15 @@
       const isNew = i === count - 1;
       html += isNew ? '<span class="manifesto__char-in">' + escape(t.ch) + "</span>" : escape(t.ch);
     }
-    if (open) html += closeTagHtml(open);
+    // 2026-11-08: 커서가 열린 태그(예: .manifesto__line2의 margin-top) 밖으로 나가면, 그 태그의 글자가
+    // 하나도 안 쳐진 "전환 직후" 프레임(막 <br>이 찍히고 줄2 글자는 아직 없는 순간)에 커서가 margin
+    // 적용 전 위치(분할선에 붙은 자리)에 떠 보이는 문제가 있었음 — 다음에 올 글자의 태그를 미리
+    // 내다봐 커서를 그 안에 넣어서, 글자가 실제로 나타나기 전부터 최종 위치에서 시작하게 함.
+    const cursorTag = open || (count < tokens.length ? tokens[count].tag : null);
+    if (open && open !== cursorTag) { html += closeTagHtml(open); open = null; }
+    if (cursorTag && open !== cursorTag) html += openTagHtml(cursorTag);
     html += '<span class="manifesto__cursor" aria-hidden="true"></span>';
+    if (cursorTag) html += closeTagHtml(cursorTag);
     textEl.innerHTML = html;
     textEl.classList.toggle("is-typed-done", done);
   }
