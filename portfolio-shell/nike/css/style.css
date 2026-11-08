@@ -117,10 +117,15 @@ button, input { font: inherit; }
    비율(50:50/60:40/70:30)을 직접 보고 고르겠다고 해서 `--hero-split`(아래쪽 paper 시작 지점) 하나로
    조절 가능하게. `.showcase`가 이미 쓰던 "단일 linear-gradient로 배경 그리기" 기법 그대로 재사용—
    그라데이션처럼 보이지만 하드 스톱(동일 좌표에 두 색)이라 실제로는 섞이지 않는 두 단색. */
-.hero { position: relative; height: 100vh; height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
-  scroll-snap-align: start;
+/* 2026-11-08 73차: .hero__pinwrap(아래)이 새로 생기며 .hero 자신의 scroll-snap-align은
+   .hero__marker로 옮기고, 대신 position:sticky로 고정 — PRODUCT(.showcase__pinwrap)와 동일한
+   "sticky + margin-bottom 음수로 자기 높이 상쇄" 기법(design.md Components 참고). */
+.hero__pinwrap { position: relative; }
+.hero { position: sticky; top: 0; height: 100vh; height: 100svh; margin-bottom: -100vh; margin-bottom: -100svh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center;
   --hero-split: 50%;
   background: var(--ink); }
+.hero__marker { height: 100vh; height: 100svh; scroll-snap-align: start; }
 /* 2026-11-08 65차: [data-speed] 공용 규칙 — js(main.js applyParallax)가 매 프레임 `--parallax-y`
    CSS 변수만 갱신하고, 실제 transform은 요소별 CSS가 조합(룩북~CTA 블롭은 이 기본값 그대로 translateY
    만, 분할 배경 레이어처럼 scale도 필요하면 더 구체적인 선택자로 아래처럼 override). 전엔 js가
@@ -137,7 +142,13 @@ button, input { font: inherit; }
 .hero__depth { position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(to bottom, var(--ink) var(--hero-split), var(--paper) var(--hero-split));
   transform: scale(1.12) translateY(var(--parallax-y, 0px)); }
-.hero__inner { position: relative; z-index: 1; padding: 0 24px; }
+/* 73차: 전환 트리거(data-stage, js의 heroStageIO) 전용 — transform은 syncHeroLayout(아래 js)이
+   인라인으로 직접 쓰는 속성이라 여기서는 건드리지 않고 opacity·filter만으로 사라짐을 표현해
+   서로 충돌하지 않게 함(인라인 style은 클래스 규칙보다 항상 우선하므로, 같은 transform에 클래스
+   규칙을 더해도 적용되지 않았을 것 — 애초에 겹치지 않는 속성을 골라 이 문제 자체를 피함). */
+.hero__inner { position: relative; z-index: 1; padding: 0 24px;
+  transition: opacity .9s cubic-bezier(.22,1,.36,1), filter .9s cubic-bezier(.22,1,.36,1); }
+.hero[data-stage="2"] .hero__inner { opacity: 0; filter: blur(16px); }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
 .hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
@@ -167,7 +178,8 @@ button, input { font: inherit; }
 /* 63차: bottom:36px로 항상 화면 맨 아래에 고정 — 세 비율(50/60/70%) 모두에서 paper 영역에 걸리므로
    흰 배경 기준 색(muted/ink)으로 고정(기존 muted-on-dark·volt 라인은 흰 배경에서 거의 안 보였음). */
 .hero__scroll { position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: .14em; color: var(--muted); transition: opacity .4s ease; }
-.hero__scroll.is-hidden { opacity: 0; pointer-events: none; }
+.hero__scroll.is-hidden,
+.hero[data-stage="2"] .hero__scroll { opacity: 0; pointer-events: none; }
 .hero__scroll span { width: 1px; height: 36px; background: linear-gradient(var(--ink), transparent); animation: scrollLine 1.8s ease-in-out infinite; }
 @keyframes scrollLine { 0% { opacity: 0; transform: scaleY(0); transform-origin: top; } 40% { opacity: 1; transform: scaleY(1); transform-origin: top; } 60% { transform-origin: bottom; } 100% { opacity: 0; transform: scaleY(0); transform-origin: bottom; } }
 
@@ -947,11 +959,17 @@ button, input { font: inherit; }
   /* 2026-11-05 39차: 네이티브 scroll-snap 강제 정지와 패널 진입 애니메이션 전부 끔 — 보통의
      자유 스크롤 + 즉시 표시로. */
   html { scroll-snap-type: none; }
-  .hero, .manifesto, .showcase__marker, .lookbook, .cta { scroll-snap-align: none; scroll-snap-stop: normal; }
+  .hero, .manifesto, .showcase__marker, .hero__marker, .lookbook, .cta { scroll-snap-align: none; scroll-snap-stop: normal; }
   /* 2026-11-06 42차: PRODUCT의 핀+3단 스크롤(신발 이동·텍스트 등장)은 전정기관 민감성 사용자에게
      가장 거슬릴 수 있는 종류의 모션이라 통째로 꺼야 함 — 마커(스크롤 길이 담당)를 없애고
      sticky도 풀어서 보통의 정적 세로 흐름(키커→신발→정보블록)으로 되돌림. */
   .showcase__marker { display: none; }
+  /* 2026-11-08 73차: 히어로→매니페스토 전환도 같은 이유로 꺼야 함 — 마커를 없애고 .hero의
+     sticky 고정을 풀어 보통의 정적 패널로, 내용은 항상 보이는 상태(opacity/filter 전환 없음)로. */
+  .hero__marker { display: none; }
+  .hero { position: relative; margin-bottom: 0; }
+  .hero__inner { transition: none !important; opacity: 1 !important; filter: none !important; }
+  .hero[data-stage="2"] .hero__scroll { opacity: 1; }
   /* 2026-11-06 47차: `.showcase__info`가 html에서 `.showcase__stage` 밖(`.showcase__sticky`의
      형제)으로 옮겨가며, "신발→정보(킥커+타이틀+리스트)→스펙" 순서를 되살리려면 모두 한 flex
      컨텍스트에 있어야 함 — `.showcase__stage`를 `display:contents`로 박스 자체를 지워 그 자식

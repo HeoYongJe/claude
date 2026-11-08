@@ -175,6 +175,36 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncHeroLayout);
   }
 
+  // ---- 히어로 → 매니페스토 전환 완화 (2026-11-08 73차 파일럿) ----
+  // "섹션 전환이 너무 휙휙 넘어간다, PRODUCT 신발이 빠질 때 정도의 속도·부드러움을" 피드백 —
+  // PRODUCT(아래 showcaseSticky·showcaseMarkers)와 완전히 동일한 패턴·로직 그대로 재사용:
+  // 마커(css에서 각 100vh + scroll-snap-align:start) 2개 중 뷰포트에 50% 이상 들어온 마커의
+  // 순번(1부터)을 .hero의 data-stage로 반영 — 1번 마커 범위(="쉬는 자리", 최초 로드 위치와
+  // 동일 문서 좌표)에 있으면 stage=1(그대로 보임), 2번 마커 범위(스크롤해서 넘어가는 중)에
+  // 들어오면 stage=2로 바뀌며 css의 느린(.9s) opacity/filter 전환이 트리거됨. 위로 다시
+  // 스크롤해 1번 마커 범위로 돌아오면 그 마커가 다시 "50% 이상 교차"로 잡혀 자연스럽게 stage=1로
+  // 복귀(히어로가 다시 나타남) — PRODUCT와 똑같이 정방향 전용 로직(isIntersecting만 처리)이지만
+  // 마커가 자기 범위에 들어올 때마다 다시 트리거되므로 왕복에도 별도 분기 없이 동작함.
+  const heroSticky = document.querySelector("[data-hero-sticky]");
+  const heroMarkers = [...document.querySelectorAll("[data-hero-marker]")];
+  if (heroSticky && heroMarkers.length) {
+    if (reduceMotion) {
+      heroSticky.dataset.stage = "1";
+    } else {
+      const heroStageIO = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              heroSticky.dataset.stage = String(heroMarkers.indexOf(entry.target) + 1);
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      heroMarkers.forEach((marker) => heroStageIO.observe(marker));
+    }
+  }
+
   // ---- 제품 쇼케이스: 2026-11-06 42차 — "섹션 하나도 스크롤마다 단계적으로 전환돼야 한다"는
   //      요청으로, 신발을 .showcase__sticky(position:sticky)로 화면에 고정해두고 그 뒤를 지나가는
   //      투명 마커 2개(각 100svh, css에서 scroll-snap-align:start로 html의 기존 네이티브 스냅에
