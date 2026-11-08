@@ -35,6 +35,13 @@
       if (!target) return;
       e.preventDefault();
       target.scrollIntoView({ behavior: "instant", block: "start" });
+      // 75차: #top 클릭은 휠 애니메이션(goTo)을 거치지 않는 즉시 점프라 .is-leaving이 갱신될
+      // 기회가 없음 — 히어로로 가는 클릭이면 바로 떼서 즉시 보이게(다른 곳으로 가는 클릭은 건드릴
+      // 필요 없음, 이미 히어로가 아니었다면 .is-leaving 상태는 무관).
+      if (link.getAttribute("href") === "#top") {
+        const heroEl = document.querySelector(".hero");
+        if (heroEl) heroEl.classList.remove("is-leaving");
+      }
     });
   });
 
@@ -61,6 +68,7 @@
   // (design.md 11차와 동일 원칙, 터치 스크롤은 기존 네이티브 스냅 그대로), reduceMotion이면 아예
   // 끔(네이티브 스냅도 reduced-motion에서 css로 이미 꺼져 있어 평범한 자유 스크롤이 됨).
   const scrollPanels = [...document.querySelectorAll(".hero, .manifesto, [data-showcase-marker], .lookbook, .cta")];
+  const heroPanelEl = document.querySelector(".hero");
   if (scrollPanels.length && !reduceMotion && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
     const DURATION_MS = 1100;
     function easeInOutCubic(t) {
@@ -113,13 +121,17 @@
     function goTo(dir) {
       const idx = currentPanelIndex();
       const nextIdx = idx + dir;
+      if (nextIdx < 0) return; // 맨 위(히어로)에서 더 위로: 아무 것도 안 함, 상태도 그대로 둠
+      // 75차: 목적지가 히어로(0)가 아니면 .is-leaving을 달아 .hero__inner가 스크롤과 같은 1.1s
+      // 동안 같이 사라지고, 히어로로 돌아오면 떼서 같이 나타남(css 참고) — 스크롤 애니메이션이
+      // 이미 느려서(위 설명) 별도의 "먼저 사라지고 나서 이동" 단계 없이 자연스럽게 겹쳐짐.
+      if (heroPanelEl) heroPanelEl.classList.toggle("is-leaving", nextIdx !== 0);
       if (nextIdx > scrollPanels.length - 1) {
         // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
         const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
         animateScrollTo(Math.max(maxY, docTop(scrollPanels[scrollPanels.length - 1])), true);
         return;
       }
-      if (nextIdx < 0) return;
       animateScrollTo(docTop(scrollPanels[nextIdx]));
     }
     window.addEventListener(
@@ -383,19 +395,6 @@
     window.addEventListener("scroll", () => {
       if (!ticking) { ticking = true; requestAnimationFrame(applyParallax); }
     }, { passive: true });
-  }
-
-  // ---- 마퀴 트랙 폭 안전장치(가뿐 인기여행지 티커와 동일 패턴) ----
-  const marqueeTrack = document.querySelector("[data-marquee-track]");
-  if (marqueeTrack) {
-    const html = marqueeTrack.innerHTML;
-    requestAnimationFrame(() => {
-      const wrapW = marqueeTrack.parentElement.clientWidth || 1;
-      for (let n = 1; n <= 4; n++) {
-        if (marqueeTrack.scrollWidth / 2 >= wrapW * 1.1) break;
-        marqueeTrack.innerHTML = html.repeat(n + 1);
-      }
-    });
   }
 
   // ---- CTA 폼(목업 — 실제 전송 없음) ----
