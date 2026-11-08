@@ -101,6 +101,16 @@
     }
     let isAnimating = false;
     let queuedDir = 0;
+    // 2026-11-09 77차: "스크롤 위로 올릴 때 가끔 매니페스토에 멈추지 않고 한 번 더 올라가 히어로까지
+    // 간다" — 트랙패드 관성(momentum) 스크롤이 첫 번째 홉(예: PRODUCT→매니페스토) 애니메이션이
+    // 도는 동안에도 계속 휠 이벤트를 흘려보내 queuedDir에 다음 방향이 쌓이고, 그 애니메이션이 끝나는
+    // 즉시(대기 없이) 다음 홉이 바로 이어 실행되던 게 원인 — 실제 관성 스크롤을 흉내 낸 synthetic
+    // wheel 연속 디스패치로 재현 확인(매니페스토 scrollTop에서 머무는 시간이 사실상 0이었음). 한
+    // 패널에 도착한 뒤 아주 짧은 "정지 시간"(cooldownUntil) 동안은 휠 입력을 완전히 무시해 관성의
+    // 꼬리를 걸러내고, 대기 중이던 다음 홉도 그 시간만큼 지연시켜 최소한 눈에 보이는 "멈췄다 감"을
+    // 보장함(진짜로 사용자가 다시 스크롤하면 정지 시간 이후 정상적으로 다음 패널로 이동).
+    const SETTLE_MS = 220;
+    let cooldownUntil = 0;
     // keepSnapOff: 목적지가 scroll-snap-align 패널이 아닌 "맨 아래 푸터" 같은 곳이면 true로 호출 —
     // 애니메이션이 끝나도 .is-wheel-animating(아래 css, scroll-snap-type:none)을 계속 켜둬야 함.
     // 끄면 네이티브 mandatory 스냅이 "가장 가까운 등록된 스냅 지점(cta)"으로 즉시 되돌려버려(실측으로
@@ -124,10 +134,11 @@
           // 76-3차: 도착(스크롤 완료) 후에 재생해야 사용자가 멈춰 선 채로 애니메이션 전체를
           // 보게 됨 — 아래 goTo()의 onArrive 참고.
           if (onArrive) onArrive();
+          cooldownUntil = performance.now() + SETTLE_MS;
           if (queuedDir !== 0) {
             const dir = queuedDir;
             queuedDir = 0;
-            goTo(dir);
+            setTimeout(() => goTo(dir), SETTLE_MS);
           }
         }
       }
@@ -185,6 +196,7 @@
       (e) => {
         if (e.deltaY === 0) return;
         e.preventDefault();
+        if (performance.now() < cooldownUntil) return; // 착지 직후 관성 꼬리 입력 무시
         const dir = e.deltaY > 0 ? 1 : -1;
         if (isAnimating) {
           queuedDir = dir;

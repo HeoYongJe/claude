@@ -370,18 +370,22 @@ button, input { font: inherit; }
    간격의 절반)를 더해줘야 함. "94px" = 82px(치우침) + 12px(위 PNG 보정). --title-gap이 짧은
    화면에서 작아지면 이 보정값도 비례해서 줄어들어 계속 리스트와 짝이 맞음(실측 후 확정,
    design.md Components "제품 쇼케이스" 참고). */
-/* 2026-11-09 76차: "매니페스토→PRODUCT 전환 시 신발이 위에서 떨어지듯" 요청 — 기존엔 같은 자리에서
-   scale(.6→1.4)·opacity(0→1)만 바뀌는 "제자리 팝인"이라 낙하감이 없었음. `.showcase__sticky`가
-   `overflow:hidden`(위 참고)인 걸 이용해, 시작 transform의 Y축을 -50%(제자리)가 아니라
-   -210%(자기 높이의 2.1배 위, 완전히 클리핑되어 화면엔 아예 안 보임)로 옮겨 "화면 위에서 떨어져
-   들어와 제자리에 안착"하는 경로로 바꿈 — scale·rotate가 바뀌는 건 그대로 유지(떨어지면서 커지고
-   펴지는 느낌). 기존 easing(cubic-bezier(.22,1,.36,1), 끝에 약한 오버슈트 포함)이 그대로 "낙하 후
-   살짝 튕기는" 랜딩 느낌을 줘서 curve 자체는 바꿀 필요 없음(2·3단계의 좌측 슬라이드 전환에도 같은
-   curve가 쓰이므로 괜히 더 과장된 바운스로 바꾸면 그쪽까지 영향받음). */
+/* 2026-11-09 76차: "매니페스토→PRODUCT 전환 시 신발이 위에서 떨어지듯" 요청 — `.showcase__sticky`가
+   `overflow:hidden`(위 참고)인 걸 이용해, 시작 transform의 Y축을 -50%(제자리)가 아니라 -210%(자기
+   높이의 2.1배 위, 완전히 클리핑되어 화면엔 아예 안 보임)로 옮겨 "화면 위에서 떨어져 들어와 제자리에
+   안착"하는 경로를 만듦.
+   2026-11-09 77차: "튀어나오듯 나온다, 스르륵 페이드로 내려오는 게 더 고급스러울 것 같다" 피드백 —
+   76차는 scale(.6→1.4)·rotate(-16→-14deg)까지 같이 바뀌어서(낙하하며 "커지고 펴지는" 연출) 떨어지는
+   동안 신발이 눈에 띄게 부풀어오르는 느낌이 강했고, 거기에 끝이 빠르게 감속하는 easing(.22,1,.36,1)
+   이 겹쳐 "쑥 튀어나오는" 임팩트로 체감됐음. **수정**: 낙하 구간에서는 scale·rotate를 settled 값과
+   동일하게 고정(크기·각도 변화 없이 Y축 이동 + opacity만 바뀜)해 순수한 "위→아래 글라이드"로 단순화하고,
+   easing도 오버슈트 느낌이 없는 부드러운 감속 곡선(cubic-bezier(.4,0,.2,1))으로 교체, 낙하·페이드
+   둘 다 1.1s→1.3s/1.1s로 늘려 더 느긋하게. 2·3단계 좌측 슬라이드 전환(아래 규칙)은 기존 curve 그대로
+   유지(요청 범위 밖). */
 .showcase__visual { position: absolute; top: calc(50% + 94px + (var(--title-gap) / 2)); left: 50%; z-index: 1;
   width: min(620px, 48vw); height: clamp(360px, 58vh, 620px);
-  transform: translate(-50%, -210%) scale(.6) rotate(-16deg); opacity: 0;
-  transition: left 1s cubic-bezier(.22,1,.36,1), transform 1.1s cubic-bezier(.22,1,.36,1), opacity .5s ease; }
+  transform: translate(-50%, -210%) scale(1.4) rotate(-14deg); opacity: 0;
+  transition: left 1s cubic-bezier(.22,1,.36,1), transform 1.3s cubic-bezier(.4,0,.2,1), opacity 1.1s ease; }
 .showcase__sticky[data-stage] .showcase__visual { opacity: 1; transform: translate(-50%, -50%) scale(1.4) rotate(-14deg); }
 /* ---- 2·3단계: 작아지며 원래 각도(0deg)로 돌아오면서 왼쪽으로 슬라이드 ----
    ⚠️ 2026-11-06 46차 버그: "신발하고 텍스트 박스가 겹쳐져 있다"(스크린샷) — 눈으로만 보고
@@ -914,7 +918,7 @@ button, input { font: inherit; }
      신발·텍스트·숫자를 한 화면에 다 펼치기 어려우므로 이 세로 영역 분리 배치(위/중간/아래)는 그대로
      유지 — 전환 타이밍만 2단계로 당겨짐. */
   .showcase__visual { left: 50%; top: 32%; width: 78vw; height: 30vh;
-    transform: translate(-50%, -210%) scale(.56) rotate(-16deg); }
+    transform: translate(-50%, -210%) scale(1.2) rotate(-14deg); }
   .showcase__sticky[data-stage] .showcase__visual { transform: translate(-50%, -50%) scale(1.2) rotate(-14deg); }
   .showcase__sticky[data-stage="2"] .showcase__visual { left: 50%; top: 15%; transform: translate(-50%, -50%) scale(.7) rotate(0deg); }
   /* 컨테이너 자체는 더 이상 애니메이션하지 않음(title·feature-item이 각자 등장) — 위치·스크롤
