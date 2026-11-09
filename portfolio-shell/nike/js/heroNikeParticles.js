@@ -53,20 +53,19 @@
       return;
     }
     const fontPx = parseFloat(cs.fontSize) || 100;
-    // 80차: 격자(그리드)가 그대로 드러나 "간격이 고르지 않다/인쇄 하프톤 같다"는 지적 — 샘플링
-    // 간격을 촘촘히(÷60) 하고, 각 점을 자기 칸 안에서 무작위로 살짝 흔들어(jitter) 기계적인
-    // 격자 느낌을 지움.
-    const gap = Math.max(2, Math.round(fontPx / 60));
+    // 81차: 80차에서 넣은 jitter(칸 안에서 무작위로 흔들기)가 사용자가 보여준 원본 예시(칼같이
+    // 정렬된 격자, 흔들림 없음)와 반대 방향이었음 — "간격이 일정하지 않다"는 원래 격자가 성겨서
+    // 점과 점 사이 빈틈이 크게 보인다는 뜻이었는데, 그걸 "너무 기계적이다"로 잘못 해석해 흔들어버려
+    // 오히려 울퉁불퉁해짐. jitter 제거 + 격자를 그대로 유지하되, 점 반지름을 격자 간격에 거의 맞춰
+    // (gap의 ~44%) 점끼리 서로 가까이 붙게 키워서 원본처럼 촘촘하고 깔끔한 모자이크로 보이게 함.
+    const gap = Math.max(2, Math.round(fontPx / 46));
     const pts = [];
     for (let y = 0; y < H; y += gap) {
       for (let x = 0; x < W; x += gap) {
-        if (data[(y * W + x) * 4 + 3] > 70) {
-          const jx = x + (Math.random() - 0.5) * gap * 0.8;
-          const jy = y + (Math.random() - 0.5) * gap * 0.8;
-          pts.push([jx, jy]);
-        }
+        if (data[(y * W + x) * 4 + 3] > 110) pts.push([x, y]);
       }
     }
+    const particleR = gap * 0.44;
     particles = pts.map(([hx, hy]) => {
       // 흩어진 상태는 글자 주변이 아니라 히어로 화면 전체(캔버스 전체) 어디든 될 수 있게 —
       // 약간의 여유(±8%)를 둬 가장자리 밖에서 날아들어오는 듯한 느낌도 섞는다.
@@ -77,7 +76,7 @@
         homeY: hy,
         outX,
         outY,
-        r: 0.9 + Math.random() * 1.0,
+        r: particleR,
       };
     });
   }
