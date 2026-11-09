@@ -32,6 +32,17 @@
   let W = 0, H = 0, dpr = 1;
   let particles = [];
 
+  // ⚠️ 84차에서 한 번 시도했다가 폐기한 접근: 실제 글자를 Range.getBoundingClientRect()로
+  // 재서 "잉크 타이트 박스"라 생각하고 캔버스 샘플링 박스와 크기(scale)까지 맞추려 했었음 —
+  // 그런데 Range가 실제로 재는 건 글꼴의 "em 박스"(fontBoundingBoxAscent+Descent, 승강부·하강부
+  // 여유 공간까지 포함된 값)였고, 캔버스 알파 샘플링은 "진짜 잉크만"(actualBoundingBoxAscent/
+  // Descent) 재는 거라 애초에 비교 기준이 서로 다른 값이었음(실측: em박스 255px vs 잉크 140px —
+  // "NIKE"는 전부 대문자라 하강부가 없는데 em박스엔 그 여유가 그대로 포함됨). 이걸 모르고
+  // scale 보정을 넣었다가 세로로 거의 2배(1.93x, 안전장치로 1.6x까지 clamp) 키우는 쪽으로
+  // 잘못 틀어질 뻔해서 되돌림 — `octx.measureText()`로 직접 확인한 결과 width는 이미
+  // letterSpacing 보정만으로 309.00px vs 309.02px(실제)로 사실상 완전히 일치해 추가 보정이
+  // 필요 없었음. 아래는 다시 83차의 중심 맞춤(line-box 기준 offsetLeft/Top)만 사용.
+
   function buildParticles(homeOffsetX, homeOffsetY) {
     if (!W || !H) { particles = []; return; }
     const cs = getComputedStyle(heroWord);
@@ -81,13 +92,14 @@
         }
       }
     }
-    // 83차: "파티클이 합쳐지는 순간 위치가 변동된다(최종 NIKE 텍스트 위치가 맞음)" — 캔버스
-    // fillText의 textBaseline:"middle" 기준 중앙과, 실제 .letter span들이 줄간격(line-height:.9)
-    // 기준으로 렌더링되는 중앙이 폰트 메트릭 차이로 정확히 일치하지 않아 생긴 어긋남. letterSpacing
-    // 보정만으론 세로 방향은 못 맞추므로, 실제 .letter span의 레이아웃 박스(offsetLeft/Top —
-    // transform의 영향을 받지 않는 값이라 글자 애니메이션 진행 상태와 무관하게 항상 정확)를 직접
-    // 재서 캔버스 샘플링 결과의 중심을 거기 맞춰 평행이동시킴 — 폰트 메트릭을 추측하는 대신 실제
-    // 렌더링된 위치를 기준점으로 삼는 쪽이 더 정확.
+    // 83차: 캔버스 fillText의 textBaseline:"middle" 기준 중앙과, 실제 .letter span들이
+    // line-height:.9로 렌더링되는 중앙이 폰트 메트릭 차이로 정확히 일치하지 않아 조립 완료
+    // 순간 "툭" 튀어 보이는 문제 — 실제 .letter span의 레이아웃 박스(offsetLeft/Top, transform
+    // 영향을 받지 않아 글자 애니메이션 진행 상태와 무관하게 항상 정확)를 재서 캔버스 샘플링
+    // 결과의 중심을 거기 맞춰 평행이동. 크기(scale)는 보정하지 않음 — letterSpacing만으로
+    // 이미 캔버스 width(309.00px)가 실제 텍스트 width(309.02px)와 사실상 일치하는 것을
+    // `octx.measureText()`로 직접 확인함(84차에서 별도로 크기까지 맞추려다 폐기, 파일 상단
+    // 주석 참고 — em박스와 잉크박스를 혼동한 잘못된 비교였음).
     let dx = 0, dy = 0;
     const letters = heroWord.querySelectorAll(".letter");
     if (letters.length && pts.length) {

@@ -111,12 +111,11 @@
     // 보장함(진짜로 사용자가 다시 스크롤하면 정지 시간 이후 정상적으로 다음 패널로 이동).
     const SETTLE_MS = 220;
     let cooldownUntil = 0;
-    // keepSnapOff: 목적지가 scroll-snap-align 패널이 아닌 "맨 아래 푸터" 같은 곳이면 true로 호출 —
-    // 애니메이션이 끝나도 .is-wheel-animating(아래 css, scroll-snap-type:none)을 계속 켜둬야 함.
-    // 끄면 네이티브 mandatory 스냅이 "가장 가까운 등록된 스냅 지점(cta)"으로 즉시 되돌려버려(실측으로
-    // 확인한 버그) 푸터에 도착한 순간 다시 cta로 튕겨나감 — 실제 패널로 돌아갈 때(goTo가 항상 진짜
-    // 패널로 이동하며 keepSnapOff 없이 호출)만 다시 켜짐.
-    function animateScrollTo(targetY, keepSnapOff, onArrive) {
+    // 2026-11-09 83차: 예전엔 목적지가 "맨 아래 푸터"(scroll-snap 없는 영역)일 때만 애니메이션
+    // 종료 후에도 .is-wheel-animating(스냅 끔)을 계속 켜둬야 해서 keepSnapOff 매개변수가 있었음
+    // — 이제 goTo()가 마지막 패널(cta) 너머로는 아예 호출하지 않으므로(위 goTo 참고) 항상 스냅을
+    // 다시 켜도 됨, 매개변수 제거.
+    function animateScrollTo(targetY, onArrive) {
       const startY = document.documentElement.scrollTop;
       const delta = targetY - startY;
       if (Math.abs(delta) < 1) { if (onArrive) onArrive(); return; }
@@ -130,7 +129,7 @@
           requestAnimationFrame(tick);
         } else {
           isAnimating = false;
-          if (!keepSnapOff) document.documentElement.classList.remove("is-wheel-animating");
+          document.documentElement.classList.remove("is-wheel-animating");
           // 76-3차: 도착(스크롤 완료) 후에 재생해야 사용자가 멈춰 선 채로 애니메이션 전체를
           // 보게 됨 — 아래 goTo()의 onArrive 참고.
           if (onArrive) onArrive();
@@ -158,6 +157,14 @@
       const idx = currentPanelIndex();
       const nextIdx = idx + dir;
       if (nextIdx < 0) return; // 맨 위(히어로)에서 더 위로: 아무 것도 안 함, 상태도 그대로 둠
+      // 2026-11-09 83차: 예전엔 "마지막 패널(cta) 너머"가 scroll-snap 없는 일반 푸터 영역이라
+      // 거기로 더 스크롤해 보내주는 분기가 있었음 — 이제 footer를 cta 패널 안으로 합쳐서
+      // cta가 진짜 마지막 콘텐츠라, 그 너머로 갈 곳이 없음. 맨 위에서 더 위로 갈 때(위 줄)와
+      // 대칭으로 그냥 아무 것도 안 함 — 예전 분기를 그대로 두면 scrollHeight가 실제 콘텐츠
+      // 높이보다 약간(뷰포트의 ~20%) 더 긴 이유 모를 여유분(스냅 엔진 특성으로 추정, 예전엔
+      // 그 공간이 실제 푸터 콘텐츠에 가려 안 보였음)으로 스냅을 끈 채 넘어가 버려 빈 검은
+      // 화면이 보이는 버그가 있었음(사용자 스크린샷으로 확인).
+      if (nextIdx > scrollPanels.length - 1) return;
       const curPanel = scrollPanels[idx];
       const nextPanel = nextIdx <= scrollPanels.length - 1 ? scrollPanels[nextIdx] : null;
       const curIsMarker = !!(curPanel && curPanel.hasAttribute("data-showcase-marker"));
@@ -183,13 +190,7 @@
         if (enteringHero) setHeroRevealed(true);
         if (enteringShowcaseFresh && showcaseSticky) showcaseSticky.dataset.stage = "1";
       };
-      if (nextIdx > scrollPanels.length - 1) {
-        // 마지막 패널(cta) 너머는 scroll-snap-align이 없는 일반 푸터 영역 — 문서 맨 아래로.
-        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        animateScrollTo(Math.max(maxY, docTop(scrollPanels[scrollPanels.length - 1])), true, onArrive);
-        return;
-      }
-      animateScrollTo(docTop(scrollPanels[nextIdx]), false, onArrive);
+      animateScrollTo(docTop(scrollPanels[nextIdx]), onArrive);
     }
     window.addEventListener(
       "wheel",
