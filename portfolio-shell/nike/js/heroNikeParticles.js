@@ -36,13 +36,18 @@
   // 재서 "잉크 타이트 박스"라 생각하고 캔버스 샘플링 박스와 크기(scale)까지 맞추려 했었음 —
   // 그런데 Range가 실제로 재는 건 글꼴의 "em 박스"(fontBoundingBoxAscent+Descent, 승강부·하강부
   // 여유 공간까지 포함된 값)였고, 캔버스 알파 샘플링은 "진짜 잉크만"(actualBoundingBoxAscent/
-  // Descent) 재는 거라 애초에 비교 기준이 서로 다른 값이었음(실측: em박스 255px vs 잉크 140px —
-  // "NIKE"는 전부 대문자라 하강부가 없는데 em박스엔 그 여유가 그대로 포함됨). 이걸 모르고
-  // scale 보정을 넣었다가 세로로 거의 2배(1.93x, 안전장치로 1.6x까지 clamp) 키우는 쪽으로
-  // 잘못 틀어질 뻔해서 되돌림 — `octx.measureText()`로 직접 확인한 결과 width는 이미
-  // letterSpacing 보정만으로 309.00px vs 309.02px(실제)로 사실상 완전히 일치해 추가 보정이
-  // 필요 없었음. 아래는 다시 83차의 중심 맞춤(line-box 기준 offsetLeft/Top)만 사용.
-
+  // Descent) 재는 거라 애초에 비교 기준이 서로 다른 값이었음. 그건 폐기했지만, 85차에서 사용자가
+  // 조립 완료 순간과 실제 텍스트 사이에 기준선을 그어 직접 비교해 보여준 결과 — 단어 "전체 중심"은
+  // 83차 보정으로 거의 완벽히 맞았어도(0.2px 이내), **글자 하나하나의 위치는 바깥쪽으로 갈수록
+  // 최대 ~10px씩 어긋나 있었음**(N/I/K/E 각 글자의 실제 레이아웃 박스 vs 캔버스 잉크 구간을
+  // 직접 수치로 비교해 확인). 원인은 캔버스 `fillText("NIKE", ...)` 한 번 호출이 캔버스 자체
+  // 폰트 셰이핑 엔진의 커닝(글자쌍 간격)을 쓰는데, 이게 실제 브라우저의 텍스트 레이아웃 엔진과
+  // 글자쌍마다 미묘하게 달라 누적으로 벌어진 것 — `ctx.letterSpacing`으로 균일한 자간은
+  // 맞출 수 있어도 글자쌍별 커닝 차이까지는 못 맞춤.
+  // 85차 수정: "NIKE"를 한 번에 그리지 않고, 실제 `.letter` span 하나하나의 실제 위치
+  // (offsetLeft — transform 영향 없음)에 맞춰 글자를 **개별적으로** 그린다. 그러면 애초에
+  // 캔버스 자체 커닝에 의존할 일이 없어져 글자쌍 간격 차이가 발생할 여지 자체가 없음 — 전체
+  // 중심 맞춤(dx/dy 평행이동)도 더 이상 필요 없어짐(각 글자가 이미 정확한 자리에 그려지므로).
   function buildParticles(homeOffsetX, homeOffsetY) {
     if (!W || !H) { particles = []; return; }
     const cs = getComputedStyle(heroWord);
@@ -51,21 +56,19 @@
     off.height = H;
     const octx = off.getContext("2d");
     octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    // 83차: letter-spacing(-.02em)이 실제 텍스트엔 적용돼 있는데 캔버스 fillText엔 반영이
-    // 안 돼 있었음 — 캔버스가 더 넓게 그려져 조립 완료 순간 실제 글자 위치와 어긋나는 원인 중
-    // 하나. 지원 브라우저(Canvas letterSpacing)에서는 그대로 맞춰줌.
-    if ("letterSpacing" in octx) {
-      try { octx.letterSpacing = cs.letterSpacing; } catch (_) { /* 미지원 브라우저는 무시 */ }
-    }
     octx.textAlign = "center";
     octx.textBaseline = "middle";
     octx.fillStyle = "#fff";
-    octx.fillText(
-      "NIKE",
-      homeOffsetX + heroWord.offsetWidth / 2,
-      homeOffsetY + heroWord.offsetHeight / 2,
-      heroWord.offsetWidth
-    );
+    const letterEls = [...heroWord.querySelectorAll(".letter")];
+    const centerY = homeOffsetY + heroWord.offsetHeight / 2;
+    if (letterEls.length) {
+      letterEls.forEach((l) => {
+        const cx = homeOffsetX + l.offsetLeft + l.offsetWidth / 2;
+        octx.fillText(l.textContent, cx, centerY);
+      });
+    } else {
+      octx.fillText("NIKE", homeOffsetX + heroWord.offsetWidth / 2, centerY, heroWord.offsetWidth);
+    }
     let data;
     try {
       data = octx.getImageData(0, 0, W, H).data;
@@ -80,45 +83,13 @@
     // (gap의 ~44%) 점끼리 서로 가까이 붙게 키워서 원본처럼 촘촘하고 깔끔한 모자이크로 보이게 함.
     const gap = Math.max(2, Math.round(fontPx / 46));
     const pts = [];
-    let sMinX = Infinity, sMinY = Infinity, sMaxX = -Infinity, sMaxY = -Infinity;
     for (let y = 0; y < H; y += gap) {
       for (let x = 0; x < W; x += gap) {
-        if (data[(y * W + x) * 4 + 3] > 110) {
-          pts.push([x, y]);
-          if (x < sMinX) sMinX = x;
-          if (x > sMaxX) sMaxX = x;
-          if (y < sMinY) sMinY = y;
-          if (y > sMaxY) sMaxY = y;
-        }
+        if (data[(y * W + x) * 4 + 3] > 110) pts.push([x, y]);
       }
     }
-    // 83차: 캔버스 fillText의 textBaseline:"middle" 기준 중앙과, 실제 .letter span들이
-    // line-height:.9로 렌더링되는 중앙이 폰트 메트릭 차이로 정확히 일치하지 않아 조립 완료
-    // 순간 "툭" 튀어 보이는 문제 — 실제 .letter span의 레이아웃 박스(offsetLeft/Top, transform
-    // 영향을 받지 않아 글자 애니메이션 진행 상태와 무관하게 항상 정확)를 재서 캔버스 샘플링
-    // 결과의 중심을 거기 맞춰 평행이동. 크기(scale)는 보정하지 않음 — letterSpacing만으로
-    // 이미 캔버스 width(309.00px)가 실제 텍스트 width(309.02px)와 사실상 일치하는 것을
-    // `octx.measureText()`로 직접 확인함(84차에서 별도로 크기까지 맞추려다 폐기, 파일 상단
-    // 주석 참고 — em박스와 잉크박스를 혼동한 잘못된 비교였음).
-    let dx = 0, dy = 0;
-    const letters = heroWord.querySelectorAll(".letter");
-    if (letters.length && pts.length) {
-      let rMinX = Infinity, rMinY = Infinity, rMaxX = -Infinity, rMaxY = -Infinity;
-      letters.forEach((l) => {
-        rMinX = Math.min(rMinX, l.offsetLeft);
-        rMinY = Math.min(rMinY, l.offsetTop);
-        rMaxX = Math.max(rMaxX, l.offsetLeft + l.offsetWidth);
-        rMaxY = Math.max(rMaxY, l.offsetTop + l.offsetHeight);
-      });
-      const realCenterX = homeOffsetX + (rMinX + rMaxX) / 2;
-      const realCenterY = homeOffsetY + (rMinY + rMaxY) / 2;
-      dx = realCenterX - (sMinX + sMaxX) / 2;
-      dy = realCenterY - (sMinY + sMaxY) / 2;
-    }
     const particleR = gap * 0.44;
-    particles = pts.map(([sx, sy]) => {
-      const hx = sx + dx;
-      const hy = sy + dy;
+    particles = pts.map(([hx, hy]) => {
       // 흩어진 상태는 글자 주변이 아니라 히어로 화면 전체(캔버스 전체) 어디든 될 수 있게 —
       // 약간의 여유(±8%)를 둬 가장자리 밖에서 날아들어오는 듯한 느낌도 섞는다.
       const outX = (Math.random() * 1.16 - 0.08) * W;
