@@ -152,9 +152,15 @@ button, input { font: inherit; }
    필요 없어져 제거. */
 .hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
-.hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
+.hero__word { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
 @keyframes letterIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); } }
+/* 2026-11-09 79차: NIKE를 글자 스태거 대신 파티클 조립 연출로 — 실제 텍스트(.letter span들)는
+   레이아웃 기준점(syncHeroLayout의 getBoundingClientRect 측정)과 접근성(aria-label)용으로 그대로
+   남기고 시각적으로만 투명 처리, 그 위에 캔버스(js/heroNikeParticles.js)를 덮어 보여준다. 캔버스
+   준비가 끝난 뒤에만(has-particles) 투명해져서 스크립트가 실패해도 원래 텍스트가 보이는 안전장치. */
+.hero__word.has-particles { color: transparent; }
+.hero__word canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 /* 63차: 태그라인이 paper 쪽에 걸치므로 포인트컬러로 — volt는 흰 배경에서 명도 대비가 거의 없어서
    (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),

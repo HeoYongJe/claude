@@ -43,6 +43,7 @@ const TEXT_STRIPPERS = { ".html": stripHtmlComments, ".css": stripCssComments, "
 // 2026-11-07 53차: 룩북 실사 이미지 5장 추가.
 const FILES = [
   "index.html", "css/style.css", "js/main.js", "js/manifestoTypewriter.js", "js/showcaseSwoosh.js",
+  "js/heroNikeParticles.js",
   "assets/img/nike_s.png",
   "assets/img/lookbook/01-street.webp",
   "assets/img/lookbook/02-training.webp",
