@@ -152,24 +152,14 @@ button, input { font: inherit; }
    필요 없어져 제거. */
 .hero__inner { position: relative; z-index: 1; padding: 0 24px; }
 .hero__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--volt); margin-bottom: 20px; }
-.hero__word { position: relative; font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
+.hero__word { font-family: var(--font-display); font-weight: 700; font-size: clamp(72px, 16vw, 200px); line-height: .9; letter-spacing: -.02em; color: var(--text-on-dark); }
 .hero__word .letter { display: inline-block; opacity: 0; transform: translateY(40px) rotate(-12deg) scale(.6); filter: blur(6px); animation: letterIn .8s cubic-bezier(.2,.9,.25,1) forwards; animation-delay: var(--d, 0s); }
 @keyframes letterIn { to { opacity: 1; transform: translateY(0) rotate(0) scale(1); filter: blur(0); } }
-/* 2026-11-09 79차·80차: NIKE를 글자 스태거 대신 파티클 조립 연출로 — 실제 텍스트(.letter span들)는
-   레이아웃 기준점(syncHeroLayout의 offsetLeft/Top 측정)과 접근성(aria-label)용으로 그대로 남기고
-   시각적으로만 투명 처리, 캔버스(js/heroNikeParticles.js)를 덮어 보여준다. 캔버스 준비가 끝난
-   뒤에만(has-particles) 투명해져서 스크립트가 실패해도 원래 텍스트가 보이는 안전장치.
-   ⚠️ 80차: 캔버스를 처음엔 .hero__word(글자 박스) 안에 뒀더니 "흩어짐이 글자 주변 좁은 영역에
-   갇혀 보인다"는 피드백 — .hero__inner(히어로 전체, 스크롤 줌 transform도 걸리는 요소) 자식으로
-   옮기고 히어로 섹션 전체 크기로 캔버스를 키움(크기·위치는 js가 매 리사이즈마다 계산해 인라인
-   스타일로 지정). */
-.hero__word.has-particles { color: transparent; }
-/* 82차: "다 모인 뒤에는 그냥 원래 폰트 글자로 보이게" — 조립이 끝나면 js가 has-particles를 떼고
-   캔버스에 is-settled를 붙인다. 파티클(캔버스)은 페이드아웃, 실제 글자는 (has-particles가
-   빠지며) 페이드인 — 같은 길이로 크로스페이드. */
-.hero__word { transition: color .3s ease; }
-.hero__inner canvas[data-hero-nike-canvas] { position: absolute; pointer-events: none; opacity: 1; transition: opacity .3s ease; }
-.hero__inner canvas[data-hero-nike-canvas].is-settled { opacity: 0; }
+/* 2026-11-09 79~86차: NIKE를 파티클 조립 연출로 바꾸는 시도를 여러 차례 했으나(글자 모양을
+   캔버스로 재현 → 실제 텍스트와 계속 미묘하게 어긋남, 마지막엔 박스에 맞춘 타원 덩어리로
+   단순화했지만 "글자처럼 안 보인다"는 피드백으로 전부 되돌림) — 원래의 글자별 스태거
+   등장(위 .letter 애니메이션)으로 복귀. js/heroNikeParticles.js는 더 이상 로드하지 않음
+   (파일은 혹시 몰라 보존, 참고: design.md 86차 이후 기록). */
 /* 63차: 태그라인이 paper 쪽에 걸치므로 포인트컬러로 — volt는 흰 배경에서 명도 대비가 거의 없어서
    (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
