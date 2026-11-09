@@ -1,5 +1,8 @@
 /* eslint-disable */
-// 히어로 "NIKE" — 글자 스태거 대신 파티클 조립/흩어짐 연출 (2026-11-09, 79차·80차·82차)
+// 히어로 "NIKE" — 글자 스태거 대신 파티클 조립/흩어짐 연출 (2026-11-09, 79차·80차·82차·86차)
+// 86차: 파티클이 "NIKE" 글자 모양을 캔버스로 재현하려던 걸 전부 버리고(83~85차 거듭 실패,
+// 아래 buildParticles 주석 참고), .hero__word 박스에 꽉 차는 타원형 덩어리로 단순화 —
+// 폰트 렌더링과 무관한 순수 기하학이라 실제 텍스트와 어긋날 여지 자체가 없음.
 // 82차: 조립이 끝난 뒤에도 계속 점으로 남아있지 말고 실제 폰트 글자로 보이도록 — 조립 완료
 // (active) 시점에 캔버스를 페이드아웃하고 숨겨뒀던 실제 텍스트를 페이드인(css transition,
 // has-particles/is-settled 클래스 토글). 흩어질 때(scatter)는 반대로 즉시 원복.
@@ -32,60 +35,35 @@
   let W = 0, H = 0, dpr = 1;
   let particles = [];
 
-  // ⚠️ 84차에서 한 번 시도했다가 폐기한 접근: 실제 글자를 Range.getBoundingClientRect()로
-  // 재서 "잉크 타이트 박스"라 생각하고 캔버스 샘플링 박스와 크기(scale)까지 맞추려 했었음 —
-  // 그런데 Range가 실제로 재는 건 글꼴의 "em 박스"(fontBoundingBoxAscent+Descent, 승강부·하강부
-  // 여유 공간까지 포함된 값)였고, 캔버스 알파 샘플링은 "진짜 잉크만"(actualBoundingBoxAscent/
-  // Descent) 재는 거라 애초에 비교 기준이 서로 다른 값이었음. 그건 폐기했지만, 85차에서 사용자가
-  // 조립 완료 순간과 실제 텍스트 사이에 기준선을 그어 직접 비교해 보여준 결과 — 단어 "전체 중심"은
-  // 83차 보정으로 거의 완벽히 맞았어도(0.2px 이내), **글자 하나하나의 위치는 바깥쪽으로 갈수록
-  // 최대 ~10px씩 어긋나 있었음**(N/I/K/E 각 글자의 실제 레이아웃 박스 vs 캔버스 잉크 구간을
-  // 직접 수치로 비교해 확인). 원인은 캔버스 `fillText("NIKE", ...)` 한 번 호출이 캔버스 자체
-  // 폰트 셰이핑 엔진의 커닝(글자쌍 간격)을 쓰는데, 이게 실제 브라우저의 텍스트 레이아웃 엔진과
-  // 글자쌍마다 미묘하게 달라 누적으로 벌어진 것 — `ctx.letterSpacing`으로 균일한 자간은
-  // 맞출 수 있어도 글자쌍별 커닝 차이까지는 못 맞춤.
-  // 85차 수정: "NIKE"를 한 번에 그리지 않고, 실제 `.letter` span 하나하나의 실제 위치
-  // (offsetLeft — transform 영향 없음)에 맞춰 글자를 **개별적으로** 그린다. 그러면 애초에
-  // 캔버스 자체 커닝에 의존할 일이 없어져 글자쌍 간격 차이가 발생할 여지 자체가 없음 — 전체
-  // 중심 맞춤(dx/dy 평행이동)도 더 이상 필요 없어짐(각 글자가 이미 정확한 자리에 그려지므로).
+  // ⚠️ 83~85차에서 거듭 시도하고 폐기한 접근: 캔버스 `fillText`로 "NIKE"를 그려서(한 번에,
+  // 그다음 글자별로) 그 알파를 샘플링해 실제 텍스트 위치에 맞추려 했음 — 매번 "거의" 맞았지만
+  // (단어 중심 0.2px, 글자 단위도 수 px까지 줄임) 사용자가 실제로 보면 여전히 어긋나 보임.
+  // **근본 원인**: Canvas2D의 텍스트 래스터라이저와 브라우저의 실제 DOM 텍스트 레이아웃/렌더링
+  // 엔진은 애초에 서로 다른 두 시스템 — 같은 폰트·크기를 지정해도 커닝·힌팅·서브픽셀 처리가
+  // 완전히 똑같다는 보장이 없음. 계속 "근사"를 더 정교하게 다듬는 대신, 85차 피드백("hero__word
+  // 위치를 잡고 파티클을 거기 맞추면 되잖아")대로 **글자 모양을 캔버스로 재현하려는 시도 자체를
+  // 버림** — 파티클은 "NIKE"라는 글자 모양을 흉내 내지 않고, `.hero__word`의 실제 박스
+  // (offsetLeft/Top/Width/Height — transform 영향 없는 레이아웃 값, 즉 사용자가 말한 "그 위치")
+  // 안에 꽉 차는 둥근 타원형 덩어리로 모인다. 폰트 렌더링과 전혀 무관한 순수 기하학적 좌표라
+  // 두 렌더링 엔진 사이에 어긋날 여지 자체가 없음 — "글자처럼 보이는 점들"이 아니라 "글자가
+  // 있을 자리에 정확히 뭉쳤다가 글자로 바뀌는" 연출로, 요청("파티클로 느낌만 내고 완성되면
+  // 실제 글자")의 핵심도 그대로 만족.
   function buildParticles(homeOffsetX, homeOffsetY) {
     if (!W || !H) { particles = []; return; }
-    const cs = getComputedStyle(heroWord);
-    const off = document.createElement("canvas");
-    off.width = W;
-    off.height = H;
-    const octx = off.getContext("2d");
-    octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-    octx.textAlign = "center";
-    octx.textBaseline = "middle";
-    octx.fillStyle = "#fff";
-    const letterEls = [...heroWord.querySelectorAll(".letter")];
-    const centerY = homeOffsetY + heroWord.offsetHeight / 2;
-    if (letterEls.length) {
-      letterEls.forEach((l) => {
-        const cx = homeOffsetX + l.offsetLeft + l.offsetWidth / 2;
-        octx.fillText(l.textContent, cx, centerY);
-      });
-    } else {
-      octx.fillText("NIKE", homeOffsetX + heroWord.offsetWidth / 2, centerY, heroWord.offsetWidth);
-    }
-    let data;
-    try {
-      data = octx.getImageData(0, 0, W, H).data;
-    } catch (_) {
-      return;
-    }
-    const fontPx = parseFloat(cs.fontSize) || 100;
-    // 81차: 80차에서 넣은 jitter(칸 안에서 무작위로 흔들기)가 사용자가 보여준 원본 예시(칼같이
-    // 정렬된 격자, 흔들림 없음)와 반대 방향이었음 — "간격이 일정하지 않다"는 원래 격자가 성겨서
-    // 점과 점 사이 빈틈이 크게 보인다는 뜻이었는데, 그걸 "너무 기계적이다"로 잘못 해석해 흔들어버려
-    // 오히려 울퉁불퉁해짐. jitter 제거 + 격자를 그대로 유지하되, 점 반지름을 격자 간격에 거의 맞춰
-    // (gap의 ~44%) 점끼리 서로 가까이 붙게 키워서 원본처럼 촘촘하고 깔끔한 모자이크로 보이게 함.
-    const gap = Math.max(2, Math.round(fontPx / 46));
+    const boxW = heroWord.offsetWidth;
+    const boxH = heroWord.offsetHeight;
+    if (!boxW || !boxH) { particles = []; return; }
+    const cx = homeOffsetX + boxW / 2;
+    const cy = homeOffsetY + boxH / 2;
+    const rx = boxW / 2;
+    const ry = boxH / 2;
+    const fontPx = parseFloat(getComputedStyle(heroWord).fontSize) || 100;
+    const gap = Math.max(2, Math.round(fontPx / 20));
     const pts = [];
-    for (let y = 0; y < H; y += gap) {
-      for (let x = 0; x < W; x += gap) {
-        if (data[(y * W + x) * 4 + 3] > 110) pts.push([x, y]);
+    for (let y = -ry; y <= ry; y += gap) {
+      for (let x = -rx; x <= rx; x += gap) {
+        // 타원 안쪽인지(둥근 경계) — 직사각형 박스 그대로 꽉 채우면 네모져 보여서 타원으로.
+        if ((x * x) / (rx * rx) + (y * y) / (ry * ry) <= 1) pts.push([cx + x, cy + y]);
       }
     }
     const particleR = gap * 0.44;
