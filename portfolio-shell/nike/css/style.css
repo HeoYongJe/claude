@@ -858,7 +858,7 @@ button, input { font: inherit; }
    했었는데, 실제로 보니 "같은 컬러라 웨이브가 잘 보이지도 않고, 여긴 그 움직이는 배경이 없어도 된다"는
    피드백 — 완전 불투명으로 되돌림(과거부터 여러 차례 다듬어온 "CTA는 멈춰서 대비를 주는 지점" 역할
    그대로, design.md Motion §5 참고). */
-.cta { background: var(--volt); text-align: center;
+.cta { position: relative; background: var(--volt); text-align: center;
   min-height: 100vh; min-height: 100svh; display: flex; flex-direction: column; justify-content: center;
   scroll-snap-align: start; }
 .cta__kicker { font-size: 13px; font-weight: 700; letter-spacing: .14em; color: var(--ink); opacity: .6; margin-bottom: 20px; }
@@ -871,6 +871,13 @@ button, input { font: inherit; }
 .cta__done { margin-top: 24px; font-weight: 700; color: var(--ink); }
 .cta__done[hidden] { display: none; }
 .cta__done-note { display: block; margin-top: 6px; font-size: 12px; font-weight: 400; opacity: .7; }
+/* 2026-11-09 83차: 기존 별도 <footer class="foot">(ink 배경, 100vh 아닌 평범한 블록)를 걷어내고
+   이 안으로 흡수 — position:absolute로 패널 하단에 띄워서 .cta 자체의 min-height(100vh)에는
+   영향을 주지 않음(폼이 그대로 세로 중앙 유지). volt 배경 위라 흰 글자 대신 ink 톤 저채도로. */
+.cta__foot { position: absolute; left: 0; right: 0; bottom: 28px; padding: 0 24px;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px; }
+.cta__foot-brand { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--ink); opacity: .55; }
+.cta__foot-note { font-size: 11px; color: var(--ink); opacity: .45; }
 
 /* ---- 드롭 알림 모달(헤더 CTA) — 2026-11-07 59차 ----
    사이트 전역의 "장식적 테두리·그림자 최소화" 원칙에 맞춰 패널은 큰 radius·blur 없이 얇은 1px
@@ -907,13 +914,6 @@ button, input { font: inherit; }
 .modal__done { margin-top: 28px; font-size: 15px; font-weight: 700; color: var(--text-on-dark); line-height: 1.6; }
 .modal__done[hidden] { display: none; }
 .modal__done-note { display: block; margin-top: 8px; font-size: 12px; font-weight: 400; color: var(--muted-on-dark); }
-
-/* ---- 푸터 ---- */
-/* 2026-11-06 40차: 웨이브를 걷어내며 다시 전용 배경(ink)을 명시(22차 이전 원래 톤). */
-.foot { padding: 32px 0; background: var(--ink); }
-.foot__inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-.foot__brand { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--text-on-dark); }
-.foot__note { font-size: 12px; color: var(--muted-on-dark); }
 
 /* ---- 반응형(900px) ---- */
 @media (max-width: 900px) {

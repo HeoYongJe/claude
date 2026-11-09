@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261109n">
+<link rel="stylesheet" href="css/style.css?v=20261109o">
 </head>
 <body>
 
@@ -262,7 +262,11 @@
   </section>
 
   <!-- ============ CTA ============ -->
-  <div class="cta" id="cta">
+  <!-- 2026-11-09 83차: "CTA랑 footer를 하나로 합쳐달라, footer는 내용도 없는데 스크롤 한 번 더
+       해서 자리를 잡아먹을 이유가 없다" — footer가 자체 scroll-snap 패널은 아니었지만(min-height
+       없음), CTA(100vh 패널) 바로 다음 문서 흐름에 떨어져 있어 결과적으로 한 번 더 스크롤해야
+       보였음. footer를 별도 <footer> 블록으로 안 두고 이 100vh CTA 패널 하단에 흡수. -->
+  <footer class="cta" id="cta">
     <div class="container">
       <p class="cta__kicker" data-reveal>DROP SOON</p>
       <h2 class="cta__title" data-reveal>가장 먼저,<br>가장 빠르게.</h2>
@@ -274,16 +278,12 @@
       <p class="cta__done" hidden>신청 완료 — 드롭 소식을 가장 먼저 보내드릴게요.
         <span class="cta__done-note">(포트폴리오 프로토타입 — 실제 메일 발송은 되지 않습니다.)</span></p>
     </div>
-  </div>
-  </div>
-
-  <!-- ============ FOOTER ============ -->
-  <footer class="foot">
-    <div class="container foot__inner">
-      <span class="foot__brand">NIKE</span>
-      <span class="foot__note">비공식 컨셉 프로젝트 · 포트폴리오 케이스스터디 (Nike, Inc.와 무관)</span>
+    <div class="cta__foot">
+      <span class="cta__foot-brand">NIKE</span>
+      <span class="cta__foot-note">비공식 컨셉 프로젝트 · 포트폴리오 케이스스터디 (Nike, Inc.와 무관)</span>
     </div>
   </footer>
+  </div>
 
   <!-- ============ 드롭 알림 모달(헤더 CTA) — 2026-11-07 59차 ============
        브리프 요구사항: 빈값/이메일 형식 검증, 오류 메시지, 신청 중/완료 상태, ESC·바깥클릭 닫기,
@@ -312,6 +312,6 @@
 
   <script src="js/main.js?v=20261109w"></script>
   <script src="js/manifestoTypewriter.js?v=20261108c"></script>
-  <script src="js/heroNikeParticles.js?v=20261109d"></script>
+  <script src="js/heroNikeParticles.js?v=20261109e"></script>
 </body>
 </html>

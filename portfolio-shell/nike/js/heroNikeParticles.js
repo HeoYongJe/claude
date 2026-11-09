@@ -40,6 +40,12 @@
     off.height = H;
     const octx = off.getContext("2d");
     octx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    // 83차: letter-spacing(-.02em)이 실제 텍스트엔 적용돼 있는데 캔버스 fillText엔 반영이
+    // 안 돼 있었음 — 캔버스가 더 넓게 그려져 조립 완료 순간 실제 글자 위치와 어긋나는 원인 중
+    // 하나. 지원 브라우저(Canvas letterSpacing)에서는 그대로 맞춰줌.
+    if ("letterSpacing" in octx) {
+      try { octx.letterSpacing = cs.letterSpacing; } catch (_) { /* 미지원 브라우저는 무시 */ }
+    }
     octx.textAlign = "center";
     octx.textBaseline = "middle";
     octx.fillStyle = "#fff";
@@ -63,13 +69,44 @@
     // (gap의 ~44%) 점끼리 서로 가까이 붙게 키워서 원본처럼 촘촘하고 깔끔한 모자이크로 보이게 함.
     const gap = Math.max(2, Math.round(fontPx / 46));
     const pts = [];
+    let sMinX = Infinity, sMinY = Infinity, sMaxX = -Infinity, sMaxY = -Infinity;
     for (let y = 0; y < H; y += gap) {
       for (let x = 0; x < W; x += gap) {
-        if (data[(y * W + x) * 4 + 3] > 110) pts.push([x, y]);
+        if (data[(y * W + x) * 4 + 3] > 110) {
+          pts.push([x, y]);
+          if (x < sMinX) sMinX = x;
+          if (x > sMaxX) sMaxX = x;
+          if (y < sMinY) sMinY = y;
+          if (y > sMaxY) sMaxY = y;
+        }
       }
     }
+    // 83차: "파티클이 합쳐지는 순간 위치가 변동된다(최종 NIKE 텍스트 위치가 맞음)" — 캔버스
+    // fillText의 textBaseline:"middle" 기준 중앙과, 실제 .letter span들이 줄간격(line-height:.9)
+    // 기준으로 렌더링되는 중앙이 폰트 메트릭 차이로 정확히 일치하지 않아 생긴 어긋남. letterSpacing
+    // 보정만으론 세로 방향은 못 맞추므로, 실제 .letter span의 레이아웃 박스(offsetLeft/Top —
+    // transform의 영향을 받지 않는 값이라 글자 애니메이션 진행 상태와 무관하게 항상 정확)를 직접
+    // 재서 캔버스 샘플링 결과의 중심을 거기 맞춰 평행이동시킴 — 폰트 메트릭을 추측하는 대신 실제
+    // 렌더링된 위치를 기준점으로 삼는 쪽이 더 정확.
+    let dx = 0, dy = 0;
+    const letters = heroWord.querySelectorAll(".letter");
+    if (letters.length && pts.length) {
+      let rMinX = Infinity, rMinY = Infinity, rMaxX = -Infinity, rMaxY = -Infinity;
+      letters.forEach((l) => {
+        rMinX = Math.min(rMinX, l.offsetLeft);
+        rMinY = Math.min(rMinY, l.offsetTop);
+        rMaxX = Math.max(rMaxX, l.offsetLeft + l.offsetWidth);
+        rMaxY = Math.max(rMaxY, l.offsetTop + l.offsetHeight);
+      });
+      const realCenterX = homeOffsetX + (rMinX + rMaxX) / 2;
+      const realCenterY = homeOffsetY + (rMinY + rMaxY) / 2;
+      dx = realCenterX - (sMinX + sMaxX) / 2;
+      dy = realCenterY - (sMinY + sMaxY) / 2;
+    }
     const particleR = gap * 0.44;
-    particles = pts.map(([hx, hy]) => {
+    particles = pts.map(([sx, sy]) => {
+      const hx = sx + dx;
+      const hy = sy + dy;
       // 흩어진 상태는 글자 주변이 아니라 히어로 화면 전체(캔버스 전체) 어디든 될 수 있게 —
       // 약간의 여유(±8%)를 둬 가장자리 밖에서 날아들어오는 듯한 느낌도 섞는다.
       const outX = (Math.random() * 1.16 - 0.08) * W;
