@@ -1,5 +1,8 @@
 /* eslint-disable */
-// 히어로 "NIKE" — 글자 스태거 대신 파티클 조립/흩어짐 연출 (2026-11-09, 79차·80차)
+// 히어로 "NIKE" — 글자 스태거 대신 파티클 조립/흩어짐 연출 (2026-11-09, 79차·80차·82차)
+// 82차: 조립이 끝난 뒤에도 계속 점으로 남아있지 말고 실제 폰트 글자로 보이도록 — 조립 완료
+// (active) 시점에 캔버스를 페이드아웃하고 숨겨뒀던 실제 텍스트를 페이드인(css transition,
+// has-particles/is-settled 클래스 토글). 흩어질 때(scatter)는 반대로 즉시 원복.
 // 실제 텍스트(.hero__word의 .letter span들, js/main.js가 생성)는 건드리지 않고 그대로 둔다 —
 // syncHeroLayout()의 레이아웃 측정 기준점이자 스크린리더용 aria-label 출처라 구조를 깨면 안 됨.
 // main.js의 setHeroRevealed()가 토글하는 .hero__word의 "is-revealed" 클래스만 MutationObserver로
@@ -107,11 +110,17 @@
 
   function assemble() {
     if (state === "active" || state === "assembling") return;
+    // 82차: 조립이 끝나(active) 자리잡은 뒤에도 계속 점으로만 남아있지 말고, 실제 폰트 글자로
+    // 바뀌도록 — 흩어지는 중엔(scatter) 다시 점으로 되돌려야 하니 여기서 선제적으로 원복.
+    canvas.classList.remove("is-settled");
+    heroWord.classList.add("has-particles");
     state = "assembling";
     animStart = performance.now();
   }
   function scatter() {
     if (state === "idle" || state === "scattering") return;
+    canvas.classList.remove("is-settled");
+    heroWord.classList.add("has-particles");
     state = "scattering";
     animStart = performance.now();
   }
@@ -124,7 +133,12 @@
     if (!particles.length || !W || !H) return;
     const elapsed = performance.now() - animStart;
     const t = easeOutCubic(Math.min(1, elapsed / DUR));
-    if (state === "assembling" && t >= 1) state = "active";
+    if (state === "assembling" && t >= 1) {
+      state = "active";
+      // 조립 완료 — 파티클(캔버스)은 페이드아웃하고 실제 폰트 글자를 페이드인(css transition).
+      canvas.classList.add("is-settled");
+      heroWord.classList.remove("has-particles");
+    }
     if (state === "scattering" && t >= 1) state = "idle";
     if (state === "idle") {
       if (!lastDrawnIdle) {

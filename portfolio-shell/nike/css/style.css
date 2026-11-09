@@ -164,7 +164,12 @@ button, input { font: inherit; }
    옮기고 히어로 섹션 전체 크기로 캔버스를 키움(크기·위치는 js가 매 리사이즈마다 계산해 인라인
    스타일로 지정). */
 .hero__word.has-particles { color: transparent; }
-.hero__inner canvas[data-hero-nike-canvas] { position: absolute; pointer-events: none; }
+/* 82차: "다 모인 뒤에는 그냥 원래 폰트 글자로 보이게" — 조립이 끝나면 js가 has-particles를 떼고
+   캔버스에 is-settled를 붙인다. 파티클(캔버스)은 페이드아웃, 실제 글자는 (has-particles가
+   빠지며) 페이드인 — 같은 길이로 크로스페이드. */
+.hero__word { transition: color .3s ease; }
+.hero__inner canvas[data-hero-nike-canvas] { position: absolute; pointer-events: none; opacity: 1; transition: opacity .3s ease; }
+.hero__inner canvas[data-hero-nike-canvas].is-settled { opacity: 0; }
 /* 63차: 태그라인이 paper 쪽에 걸치므로 포인트컬러로 — volt는 흰 배경에서 명도 대비가 거의 없어서
    (§2 Colors 55차에서 이미 겪은 문제) 매니페스토의 "만들어진다"와 동일한 얇은(.5px) ink 스트로크를
    재사용. 이 스트로크는 ink 배경 위에서는 배경색과 거의 같아 사실상 안 보이므로(= 순수 volt로 보임),
