@@ -42,7 +42,7 @@ const TEXT_STRIPPERS = { ".html": stripHtmlComments, ".css": stripCssComments, "
 // 파일 임의 삭제 금지) index.html이 더 이상 참조하지 않아 안전하게 방치됨.
 // 2026-11-07 53차: 룩북 실사 이미지 5장 추가.
 const FILES = [
-  "index.html", "css/style.css", "js/main.js", "js/manifestoTypewriter.js",
+  "index.html", "css/style.css", "js/main.js", "js/manifestoTypewriter.js", "js/showcaseSwoosh.js",
   "assets/img/nike_s.png",
   "assets/img/lookbook/01-street.webp",
   "assets/img/lookbook/02-training.webp",
