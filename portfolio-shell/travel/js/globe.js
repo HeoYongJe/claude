@@ -60,6 +60,11 @@ class GlobeScene {
     this.canvas = canvas;
 
     this.group = new THREE.Group();
+    // 2026-11-10 14차: "위도가 살짝 낮아 보인다, 5도 정도 위로" — 카메라를 정면에서 살짝 위쪽
+    // 위도를 보도록 구체를 X축으로 고정 틸트(한 번만 설정, 매 프레임 좌우 스핀(rotation.y)과는
+    // 독립적으로 유지됨 — "회전은 좌우로만"과 무관한, 고정된 초기 시점 조정일 뿐 인터랙션이나
+    // 애니메이션은 아님). 양의 각도가 "더 북쪽 위도가 화면 중앙에 오도록" 회전하는 방향.
+    this.group.rotation.x = THREE.MathUtils.degToRad(cfg.tiltDeg || 0);
     this.scene.add(this.group);
 
     this._buildOcean();
@@ -291,6 +296,7 @@ class GlobeScene {
     landFillOpacity: 0.025,
     spinSpeed: prefersReduced ? 0 : 0.0011, // rad/frame, ~60fps → 완전히 한 바퀴 도는 데 약 95초
     spinDir: -1, // "left" 방향(원본 기본값)과 동일
+    tiltDeg: 5, // 14차: "위도가 낮아 보인다" — 북쪽으로 5도 더 보이게 고정 틸트
   };
 
   let scene;
