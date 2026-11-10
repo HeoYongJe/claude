@@ -95,6 +95,48 @@
   };
   render();
 
+  // ---- 전체 페이지 휠 스크롤 이징(2026-11-10 13차: "스크롤이 너무 딱딱 끊긴다" 피드백) ----
+  // 네이티브 휠 스크롤은 델타만큼 즉시 점프해서 끊겨 보임 — 휠 이벤트를 가로채 가상 목표
+  // 스크롤 위치를 만들고, 매 프레임 lerp로 그 목표를 향해 부드럽게 다가가며 실제 scrollTo를
+  // 호출(관성 스크롤). 데스크톱 전용(다른 데스크톱 전용 장식 요소들과 같은 기준 — 모바일은
+  // 터치 자체에 이미 자연스러운 모멘텀이 있어 손댈 필요 없음), 국가 상세 모달(.t-modal__body)
+  // 내부 스크롤은 그대로 비켜줘서(자기 영역 안에서 네이티브로) 깨지지 않게 함,
+  // prefers-reduced-motion이면 아예 끔.
+  if (window.innerWidth >= 901 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let scrollTarget = window.scrollY;
+    let scrolling = false;
+    const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+
+    const scrollTick = () => {
+      const cur = window.scrollY;
+      const next = cur + (scrollTarget - cur) * 0.1;
+      // CSS html{scroll-behavior:smooth}가 scrollTo까지 또 자체적으로 스무딩해서 우리 lerp와
+      // 겹쳐 오히려 버벅이게 만듦 — behavior:"instant"로 명시해서 그 CSS 효과를 우회.
+      if (Math.abs(scrollTarget - next) < 0.4) {
+        window.scrollTo({ top: scrollTarget, behavior: "instant" });
+        scrolling = false;
+        return;
+      }
+      window.scrollTo({ top: next, behavior: "instant" });
+      requestAnimationFrame(scrollTick);
+    };
+
+    window.addEventListener("wheel", (e) => {
+      if (e.target instanceof Element && e.target.closest(".t-modal__body")) return; // 모달 내부 스크롤은 개입 안 함
+      e.preventDefault();
+      scrollTarget = Math.max(0, Math.min(maxScroll(), scrollTarget + e.deltaY));
+      if (!scrolling) { scrolling = true; requestAnimationFrame(scrollTick); }
+    }, { passive: false });
+
+    // 스크롤바 드래그·키보드 스크롤 등 휠이 아닌 경로로 위치가 바뀐 경우, 다음 휠 입력이
+    // 엉뚱한 지점에서 튀지 않도록 가상 목표를 실제 위치에 동기화.
+    window.addEventListener("scroll", () => {
+      if (!scrolling) scrollTarget = window.scrollY;
+    }, { passive: true });
+
+    window.addEventListener("resize", () => { scrollTarget = Math.min(scrollTarget, maxScroll()); });
+  }
+
   // (히어로 카드 마우스 틸트 효과 제거 — 뒤틀림 없이 정적으로 둔다)
 
   // ---- 카드/버튼 호버 ----
