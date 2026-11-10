@@ -6,8 +6,10 @@
 // `가뿐_지구본_케이지버전_백업_20261110` 태그에 보존.
 // React/TS 원본은 범용 설정 가능한 컴포넌트(수십 개 props)였지만, 여기선 가뿐 히어로라는 단일
 // 용도로만 쓰이므로 그 prop API를 그대로 옮기지 않고 같은 "기법"(바다 구체 + 위경도 격자 +
-// 실제 대륙 해안선 아웃라인 + 대륙 위 점그리드 + 좌우 자동 회전)만 고정값으로 이식.
-// 드래그/호버 인터랙션은 이번 요청에 없고("회전은 좌우로만") 장식용 배경이라 전부 제외.
+// 실제 대륙 해안선 아웃라인 + 대륙 위 점그리드 + 좌우 회전)만 고정값으로 이식.
+// ⚠️ 10차: "회전은 좌우로만"을 "자동 회전만, 드래그는 빼라"로 잘못 해석했었음 — 실제로는
+// "좌우(Y축)로만 회전하게(상하 틸트는 없이), 마우스 드래그로도 좌우 회전은 되게"가 맞는 요청.
+// 드래그는 가로(dx) 이동만 반영해 Y축 회전만 바꾸고, 세로(dy) 이동은 아예 무시(상하 틸트 없음).
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 const LAND_DATA_URL =
@@ -50,10 +52,12 @@ class GlobeScene {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     const canvas = this.renderer.domElement;
-    canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;";
+    canvas.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:auto;cursor:grab;touch-action:none;";
     container.appendChild(canvas);
     canvas.style.opacity = "0";
     canvas.style.transition = "opacity 1.1s ease";
+    this.canvas = canvas;
 
     this.group = new THREE.Group();
     this.scene.add(this.group);
@@ -61,10 +65,38 @@ class GlobeScene {
     this._buildOcean();
     this._buildGraticule();
     this._buildOutlineRing();
+    this._bindDrag();
 
     this._ro = new ResizeObserver(() => this.setSize(container.clientWidth || 1, container.clientHeight || 1));
     this._ro.observe(container);
     this.setSize(container.clientWidth || 1, container.clientHeight || 1);
+  }
+
+  // 가로(dx) 드래그만 Y축 회전에 반영 — 세로(dy) 이동은 무시해 상하로는 절대 안 기울어짐.
+  _bindDrag() {
+    const DRAG_SENS = 0.006;
+    let dragging = false;
+    let lastX = 0;
+    this.canvas.addEventListener("pointerdown", (e) => {
+      dragging = true;
+      this._dragging = true;
+      lastX = e.clientX;
+      this.canvas.style.cursor = "grabbing";
+      try { this.canvas.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+    this.canvas.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      lastX = e.clientX;
+      this.spinY += dx * DRAG_SENS;
+    });
+    const release = () => {
+      dragging = false;
+      this._dragging = false;
+      this.canvas.style.cursor = "grab";
+    };
+    this.canvas.addEventListener("pointerup", release);
+    this.canvas.addEventListener("pointercancel", release);
   }
 
   _buildOcean() {
@@ -122,7 +154,9 @@ class GlobeScene {
     }
 
     // ---- 대륙 판별용 래스터(등장방형 투영, 자체 구현 — d3-geo 의존 없이 캔버스로 직접 채움) ----
-    const texW = 1024, texH = 512;
+    // 10차: 점그리드를 원본 기본 밀도에 맞춰 훨씬 촘촘하게 바꾸면서(아래 dotStepDeg) 판별
+    // 해상도가 낮으면 해안선 경계가 계단져 보여 1024×512 → 2048×1024로 올림.
+    const texW = 2048, texH = 1024;
     const off = document.createElement("canvas");
     off.width = texW; off.height = texH;
     const ctx = off.getContext("2d", { willReadFrequently: true });
@@ -177,8 +211,8 @@ class GlobeScene {
     const dotCoords = [];
     const baseStep = this.cfg.dotStepDeg;
     for (let lat = -90; lat <= 90; lat += baseStep) {
-      const cosLat = Math.max(0.12, Math.cos((Math.abs(lat) * Math.PI) / 180));
-      const lngStep = baseStep / cosLat;
+      const cosLat = Math.cos((Math.abs(lat) * Math.PI) / 180);
+      const lngStep = cosLat > 0.01 ? baseStep / Math.max(0.3, cosLat) : 360;
       for (let lng = -180; lng < 180; lng += lngStep) {
         if (isOnLand(lng, lat)) dotCoords.push([lng, lat]);
       }
@@ -212,11 +246,13 @@ class GlobeScene {
   }
 
   start() {
-    const step = (tMs) => {
-      if (this.cfg.spinSpeed !== 0) {
+    const step = () => {
+      // 드래그 중이 아닐 때만 자동 회전을 더함(드래그 중엔 사용자 입력과 자동회전이 서로
+      // 맞싸우지 않도록 자동 증가분을 멈춤) — spinY 자체는 드래그 핸들러가 직접 갱신.
+      if (!this._dragging && this.cfg.spinSpeed !== 0) {
         this.spinY += this.cfg.spinSpeed * this.cfg.spinDir;
-        this.group.rotation.y = this.spinY; // 회전은 좌우(Y축)로만 — 상하 틸트·드래그 없음
       }
+      this.group.rotation.y = this.spinY; // 회전은 좌우(Y축)로만 — 상하 틸트는 애초에 없음
       this.renderer.render(this.scene, this.camera);
       this._raf = requestAnimationFrame(step);
     };
@@ -239,13 +275,17 @@ class GlobeScene {
   const cfg = {
     oceanColor: bgColor,   // 바다=히어로 배경색과 동일 — 구체 뒷면이 묻혀 보이지 않고 윤곽만 남음
     lineColor: inkColor,
-    graticuleOpacity: 0.07,
-    outlineOpacity: 0.16,
-    coastOpacity: 0.3,
-    coastSimplify: 3,
-    dotStepDeg: 2.4,
-    dotRadius: 0.0075,
-    dotOpacity: 0.22,
+    // ⚠️ 10차 — "원본 대로면 점그리드가 훨씬 작고 촘촘한데" / "라인 컬러 전체적으로 죽여 은은하게":
+    // dotStepDeg·dotRadius를 원본 기본 props(dots.density=8, dots.size=5)를 실제로 환산한 값에
+    // 맞춤(이전엔 임의로 성긴 값을 썼었음) — density=8 → 위경도 간격 ≈0.93°, size=5 → 반지름
+    // ≈0.0028. 모든 선·점 불투명도도 전반적으로 한 단계씩 낮춤.
+    graticuleOpacity: 0.045,
+    outlineOpacity: 0.1,
+    coastOpacity: 0.18,
+    coastSimplify: 2,
+    dotStepDeg: 0.93,
+    dotRadius: 0.0028,
+    dotOpacity: 0.16,
     spinSpeed: prefersReduced ? 0 : 0.0011, // rad/frame, ~60fps → 완전히 한 바퀴 도는 데 약 95초
     spinDir: -1, // "left" 방향(원본 기본값)과 동일
   };
