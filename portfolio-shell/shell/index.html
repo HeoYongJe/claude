@@ -6,16 +6,10 @@
 <title>YONG JE — Web Publisher Portfolio</title>
 <meta name="description" content="사용자 경험을 만드는 웹 퍼블리셔 YONG JE의 포트폴리오. 시맨틱 마크업, 반응형 웹, 인터랙션 구현.">
 <script>
-// "에이전트 코드" 인트로(2026-11-10) — 최초 방문 여부를 CSS가 참조할 수 있게 아주 이른 시점에
-// <html>에 클래스로 표시. 동기 인라인 스크립트라 첫 페인트 전에 반드시 끝나 깜빡임이 없다.
-// styles.css의 `html.yj-intro-pending [data-build]{opacity:0}` 규칙이 이 클래스를 본다.
-(function () {
-  try {
-    if (!localStorage.getItem("yjIntroSeen")) {
-      document.documentElement.classList.add("yj-intro-pending");
-    }
-  } catch (e) {}
-})();
+// "에이전트 코드" 인트로(2026-11-11 — 매 방문마다 재생으로 변경) — CSS가 참조할 수 있게 아주
+// 이른 시점에 <html>에 클래스로 표시. 동기 인라인 스크립트라 첫 페인트 전에 반드시 끝나
+// 깜빡임이 없다. styles.css의 `html.yj-intro-pending [data-build]{opacity:0}`가 이 클래스를 본다.
+document.documentElement.classList.add("yj-intro-pending");
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
@@ -74,12 +68,12 @@
 
       <!-- connected glass UI-card composition (decorative) -->
       <div class="yj-hero-visual" id="yj-visual" aria-hidden="true">
-        <div class="yj-hero__dots"></div>
-        <div class="yj-hero__glow"></div>
+        <div class="yj-hero__dots" data-build></div>
+        <div class="yj-hero__glow" data-build></div>
 
         <div class="yj-stage">
           <!-- circuit connectors -->
-          <svg class="yj-connectors" viewBox="0 0 550 470" preserveAspectRatio="xMidYMid meet">
+          <svg class="yj-connectors" data-build viewBox="0 0 550 470" preserveAspectRatio="xMidYMid meet">
             <g class="yj-base" fill="none" stroke="rgba(120,150,240,.28)" stroke-width="2" stroke-linecap="round">
               <path d="M375 60 H452 Q464 60 464 72 V178 Q464 190 452 190 H392"></path>
               <path d="M275 112 V196"></path>
@@ -474,7 +468,7 @@
     </div>
   </section>
 
-  <script src="script.js?v=20261111a"></script>
-  <script src="agentIntro.js?v=20261111b"></script>
+  <script src="script.js?v=20261111b"></script>
+  <script src="agentIntro.js?v=20261111d"></script>
 </body>
 </html>

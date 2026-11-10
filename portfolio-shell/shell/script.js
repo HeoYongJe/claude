@@ -20,7 +20,11 @@
     const max = document.documentElement.scrollHeight - window.innerHeight;
     if (bar) bar.style.width = (max > 0 ? (y / max) * 100 : 0) + "%";
     if (nav) nav.classList.toggle("is-solid", y > 60);
-    if (y < window.innerHeight * 1.2) {
+    // 2026-11-11: 에이전트 코드 인트로가 자동 스크롤로 히어로를 벗어날 때 이 히어로 패럴랙스가
+    // 같은 요소(eyebrow/title/sub/visual)의 opacity·transform을 동시에 건드려서 인트로가 막
+    // 완성해둔 모습과 충돌 — 요소가 사라졌다 나타나는 것처럼 보이던 "뒤죽박죽" 현상의 원인.
+    // 인트로가 끝나기 전(`yj-intro-pending`)에는 이 효과를 끈다.
+    if (y < window.innerHeight * 1.2 && !document.documentElement.classList.contains("yj-intro-pending")) {
       if (eyebrow) eyebrow.style.opacity = String(Math.max(0, 1 - y / 300));
       if (title) title.style.transform = `translateY(${y * -0.05}px)`;
       if (sub) sub.style.opacity = String(Math.max(0, 1 - y / 420));

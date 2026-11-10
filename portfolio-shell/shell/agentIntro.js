@@ -10,10 +10,18 @@
 //     맞춘다 — 이 카드들만 박스를 같은 3D 부모(.yj-stage) 안에 로컬 좌표로 넣어 똑같이
 //     회전하게 하고, 박스 그리는 동안만 둥실거림을 멈춰서(animationPlayState) 정확히 맞춤.
 //  3. 더 빠르게: 모든 타이밍을 짧게, 섹션당 병렬 에이전트 수를 늘림.
-// + 새 요청: 완전히 빈 화면에서 시작(이미 index.html 맨 위 인라인 스크립트 + styles.css의
+// + 완전히 빈 화면에서 시작(index.html 맨 위 인라인 스크립트 + styles.css의
 //   `html.yj-intro-pending [data-build]{opacity:0}`로 깜빡임 없이 처리됨) → 히어로 완성 →
 //   02 섹션으로 자동 스크롤 → 완성 → 03 → … → 마지막 섹션 완성 → 맨 위로 자동 스크롤.
-//   최초 방문 1회만(localStorage), 클릭·키·휠 아무거나로 즉시 건너뛰기 가능.
+//   2026-11-11: "새로고침해도 재생 안 됨"이 오히려 이상하다는 피드백 — 매 방문(새로고침 포함)
+//   마다 재생(localStorage 제거). 클릭·키로 즉시 건너뛰기 가능(휠은 막기만 함).
+// ⚠️ 2026-11-11 재지적 — "순서가 뒤죽박죽(히어로 짓다가 2섹션 갔다가 다시 히어로로)" 원인 발견:
+//   script.js의 기존 히어로 패럴랙스(onScroll)가 같은 요소(eyebrow/title/sub/visual)의
+//   opacity·transform을 스크롤 위치에 따라 동시에 건드리고 있었음 — 인트로가 자동 스크롤로
+//   히어로를 지나가는 바로 그 구간(y < innerHeight*1.2)에서 두 시스템이 같은 속성을 서로 다른
+//   값으로 계속 덮어써서 요소가 사라졌다 나타나는 것처럼 보였던 것(실제로 순서가 바뀐 게
+//   아니라 이미 완성된 히어로가 패럴랙스 때문에 다시 흔들린 것). script.js에 `yj-intro-pending`
+//   동안은 그 패럴랙스를 끄도록 수정해 해결.
 (function () {
   "use strict";
   // ⚠️ 모바일/좁은 화면이나 reduced-motion이면 그냥 return만 하면, styles.css의
@@ -24,15 +32,15 @@
     document.documentElement.classList.remove("yj-intro-pending");
     return;
   }
-  if (!document.documentElement.classList.contains("yj-intro-pending")) return; // 재방문
+  if (!document.documentElement.classList.contains("yj-intro-pending")) return; // 방어적 가드(이 클래스는 항상 붙어있어야 정상)
 
-  // ---- 타이밍(전부 "빠르게" 요청으로 짧게) ----
-  const MOVE_MS = 170;
-  const GROW_MS = 170;
-  const HOLD_MS = 200;
-  const CLEAR_MS = 110;
-  const TYPE_MS = 9;
-  const SCROLL_MS = 520;
+  // ---- 타이밍(2026-11-11: "너무 빠르다" 재지적으로 조금 늘림) ----
+  const MOVE_MS = 230;
+  const GROW_MS = 230;
+  const HOLD_MS = 280;
+  const CLEAR_MS = 140;
+  const TYPE_MS = 13;
+  const SCROLL_MS = 650;
   const AGENTS_WIDE = 4; // 섹션당 동시 작업 커서 수
 
   const INLINE_TAGS = new Set(["BR", "EM", "SPAN", "STRONG", "B", "I", "A", "SMALL"]);
@@ -253,6 +261,8 @@
   }
 
   // ---- 스크롤 잠금(사용자 입력만 차단 — 우리 쪽 window.scrollTo는 그대로 동작) ----
+  // ⚠️ html(documentElement)에도 overflow:hidden을 걸면 스크롤 컨테이너 자체가 없어져서 우리
+  // 쪽 window.scrollTo까지 같이 막혀버림 — body에만 건다(기존 프리로더와 같은 방식).
   const BLOCK_KEYS = new Set([" ", "PageDown", "PageUp", "Home", "End", "ArrowDown", "ArrowUp"]);
   function blockKey(e) { if (BLOCK_KEYS.has(e.key)) e.preventDefault(); }
   function blockWheel(e) { e.preventDefault(); }
@@ -280,9 +290,6 @@
       if (el.closest(".yj-stage")) el.style.animationPlayState = "";
     });
   }
-  function markSeen() {
-    try { localStorage.setItem("yjIntroSeen", "1"); } catch (e) {}
-  }
   let skipped = false;
   function skipIntro() {
     if (skipped) return;
@@ -292,20 +299,32 @@
     overlay.remove();
     window.scrollTo(0, 0);
     unlockScroll();
-    markSeen();
     document.documentElement.classList.remove("yj-intro-pending");
     window.removeEventListener("click", skipIntro, true);
     window.removeEventListener("keydown", skipIntro, true);
   }
 
+  // ⚠️ 2026-11-11 재지적 "순서가 뒤죽박죽" — 실제 원인: 아래 안전장치 setTimeout(6000ms)이
+  // MutationObserver가 정상적으로 먼저 발동해도 취소되지 않고 그대로 남아있어서, 6초 뒤에
+  // cb()가 또 한 번 호출됨 — 전체 시퀀스가 통째로 두 번(서로 독립적으로) 동시에 돌면서 둘이
+  // 서로 다른 목표로 스크롤을 다투는 바람에 화면이 왔다갔다하는 것처럼 보였던 것. cb()가
+  // 정확히 한 번만 불리도록 수정.
   function afterPreloader(cb) {
     const preloader = document.getElementById("yj-preloader");
     if (!preloader) { cb(); return; }
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      mo.disconnect();
+      clearTimeout(timer);
+      cb();
+    };
     const mo = new MutationObserver(() => {
-      if (!document.getElementById("yj-preloader")) { mo.disconnect(); cb(); }
+      if (!document.getElementById("yj-preloader")) finish();
     });
     mo.observe(document.body, { childList: true });
-    setTimeout(() => { mo.disconnect(); cb(); }, 6000);
+    const timer = setTimeout(finish, 6000);
   }
 
   afterPreloader(async () => {
@@ -348,7 +367,6 @@
       await animateScrollTo(0, SCROLL_MS);
       overlay.remove();
       unlockScroll();
-      markSeen();
       document.documentElement.classList.remove("yj-intro-pending");
       window.removeEventListener("click", skipIntro, true);
       window.removeEventListener("keydown", skipIntro, true);
