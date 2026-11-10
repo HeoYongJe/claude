@@ -35,6 +35,7 @@
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
   const heroGlobe = hero && hero.querySelector("[data-hero-globe]");
+  const heroTitleEl = hero && hero.querySelector(".hero__title");
   const whySecEl = document.getElementById("why");
   const tpopSecEl = document.querySelector(".t-pop");
   const navEl = document.querySelector(".nav");
@@ -54,9 +55,28 @@
 
   // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
 
+  // 지구본 시작 앵커(2026-11-10 6차): "-5vw 같은 vw% 어림짐작"이 뷰포트 폭에 따라 타이틀과
+  // 어긋나던 문제를 없애려고, 타이틀 첫 줄("지금 원화로") 실제 DOM 좌표를 런타임에 직접
+  // 측정해서 그 좌표를 기준으로 지구본 시작 위치를 잡는다. 반드시 스크롤 맨 위(히어로 변형
+  // 전, heroInner에 translateY가 아직 안 걸린 상태)에서 측정해야 정확해서, pageYOffset이
+  // 거의 0일 때만 측정하고 캐싱 — 리사이즈되면 캐시를 비워 다음 프레임에 다시 잼.
+  let titleAnchor = null;
+  const ensureTitleAnchor = () => {
+    if (titleAnchor || !heroTitleEl || window.pageYOffset > 2) return;
+    const firstLine = heroTitleEl.childNodes[0];
+    if (!firstLine) return;
+    const range = document.createRange();
+    range.selectNodeContents(firstLine);
+    const r = range.getClientRects()[0];
+    if (!r || !r.width) return;
+    titleAnchor = { left: r.left, top: r.top };
+  };
+  window.addEventListener("resize", () => { titleAnchor = null; });
+
   // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
   const render = () => {
     // ── 1) 읽기(레이아웃 유발) 모두 먼저 — 쓰기 뒤에 읽으면 강제 동기 레이아웃(thrash)이 남 ──
+    ensureTitleAnchor();
     const y = window.pageYOffset;
     const vh = window.innerHeight;
     const vw = window.innerWidth;
@@ -120,6 +140,12 @@
     //   간격 스크린샷을 비교해 눈으로 확인) 어떤 순간엔 선이 거의 안 보일 만큼 옅어짐 — 구조적
     //   버그는 아니지만 체감상 "안 보인다"는 피드백이 나올 만큼 기준선 자체가 약했던 것.
     //   → netGlow(케이지 밝기)와 기준 opacity를 올려 "얇아지는 순간"에도 어느 정도 보이게 함.
+    // ⚠️ 6차 — "시작점이 타이틀 끝에 박혀있다 / 좌우 스윙이 한쪽에서만 왔다갔다한다" 재지적:
+    //   기존엔 CSS top:11vh;left:-5vw(화면 왼쪽 끝 고정)에 아주 작은 transform(최대 ±vw*0.22)만
+    //   더하는 구조라, 그 작은 보정폭이 화면 왼쪽 끝 "그 자리"에서만 흔들려 타이틀과도 안 맞고
+    //   화면 오른쪽까지 닿지도 못했음. CSS는 top:0;left:0으로 바꾸고, JS가 transform으로
+    //   "뷰포트 절대좌표"를 직접 계산 — 시작(leftBound)은 위에서 실측한 타이틀 좌표, 끝
+    //   (rightBound)은 화면 오른쪽 끝 근처로 잡아 진짜 화면 전체 폭을 오가게 함.
     if (heroGlobe) {
       let targetX = state.globeX, targetY = state.globeY, targetOp = 0;
       if (globeTarget) {
@@ -134,8 +160,18 @@
         const tl = (globeTarget.el === hero)
           ? Math.min(1, sy / vh)
           : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
-        targetY = tl * vh * 0.55;
-        targetX = Math.sin(tl * Math.PI * 1.2) * vw * 0.22;
+        const gw = heroGlobe.offsetWidth || 660;
+        const gh = heroGlobe.offsetHeight || gw;
+        // leftBound: 타이틀 "지금 원화로" 시작점에 케이지 덩어리가 걸치는 자리(실측 기반).
+        // 아직 측정 전(리사이즈 직후 1프레임 등)이면 대략값으로 대체.
+        const leftBound = titleAnchor ? (titleAnchor.left - gw * 0.28) : -gw * 0.14;
+        const topAnchor = titleAnchor ? (titleAnchor.top - gh * 0.18) : vh * 0.11;
+        const rightBound = vw - gw * 0.72; // 화면 오른쪽 끝 쪽으로(살짝 걸치며 피크)
+        // 0→1→0 진자 — tl=0(섹션 진입)과 tl=1(섹션 이탈) 둘 다 leftBound로 돌아와, 다음
+        // 섹션으로 넘어갈 때도 자연스럽게 이어짐. 한 섹션 체류 동안 왼쪽↔오른쪽을 2번 왕복.
+        const swing = (1 - Math.cos(tl * Math.PI * 2)) / 2;
+        targetX = leftBound + (rightBound - leftBound) * swing;
+        targetY = topAnchor + tl * vh * 0.55;
         // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
         // 나머지 섹션은 정박지를 바꿀 때 뚝 끊기지 않도록 진입/이탈 양쪽 다 8%씩 부드럽게.
         const enterFade = (globeTarget.el === hero) ? 1 : Math.min(1, tl / 0.08);
