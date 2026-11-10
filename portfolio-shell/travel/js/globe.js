@@ -95,8 +95,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   if (dotCoords.length) {
     const dotGeom = new THREE.SphereGeometry(0.009, 4, 4);
-    // 2026-11-10 디테일 조정: 점은 더 옅게(그리드 선을 더 살리기 위해 상대적으로 낮춤)
-    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.22 });
+    // 2026-11-10 디테일 조정(2차): "오브제가 아니라 배경처럼" — 점은 더 옅게.
+    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.14 });
     const dots = new THREE.InstancedMesh(dotGeom, dotMat, dotCoords.length);
     const m = new THREE.Matrix4();
     dotCoords.forEach(([lng, lat], i) => {
@@ -108,11 +108,12 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     globeGroup.add(dots);
   }
 
-  // 위도/경도 그리드 — 구체 형태를 실제로 드러내는 핵심 요소라 점보다 뚜렷하게.
-  // 2026-11-10: "구체모형이 떨어진다(안 보인다)"는 피드백 — border색(아주 연한 회색)은 에어
-  // 오트밀 배경과 명도 대비가 거의 없어 opacity를 올려도 안 보였음(색 자체의 문제) → ink색으로
-  // 교체하고 opacity도 올림.
-  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.85 });
+  // 위도/경도 그리드 — 구체 형태를 드러내는 핵심 요소.
+  // 2026-11-10: "구체모형이 안 보인다"는 피드백 — border색(아주 연한 회색)은 에어오트밀
+  // 배경과 명도 대비가 거의 없어 opacity를 올려도 안 보였음(색 자체의 문제) → ink색으로 교체.
+  // 2026-11-10(2차): 교체 직후 0.85는 "찐하다/오브제 같다"는 피드백 — ink색 유지한 채
+  // opacity만 크게 낮춰 "선이 있긴 한데 아주 연하게" 수준으로.
+  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.32 });
   function addGraticuleLine(points) {
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     globeGroup.add(new THREE.LineLoop(geom, graticuleMat));

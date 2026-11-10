@@ -220,18 +220,30 @@ ul, ol { list-style: none; padding: 0; }
 /* 2026-10-22: eyebrow 삭제로 타이틀이 칼럼 첫 요소가 되면서 보정 필요 없어짐(구 39px → 0) —
    align-items:flex-start만으로 카드 상단이 이제 타이틀 시작선과 바로 맞음(§7 .hero__grid 주석 참고). */
 .hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
-/* 2026-11-10 — 히어로 배경 지구본(originkit Globe 참고 컴포넌트를 vanilla+라이트테마로 재구성,
-   js/globe.js). .hero__grid(z-index:10)보다 낮은 z-index라 타이틀·카드 뒤에 자연스럽게 깔림.
+/* 히어로 배경 지구본(originkit Globe 참고 컴포넌트를 vanilla+라이트테마로 재구성, js/globe.js).
    모바일(1열 레이아웃)에서는 숨김 — 배경으로 깔 여유 공간이 없고 WebGL 비용도 아낌.
-   ⚠️ 2026-11-10 디테일 조정 — "우측 상단에 있다가 스크롤하면 크리스마스 트리 장식처럼 같이
-   밑으로 따라내려가게": 중앙 고정+위로 가는 옅은 패럴럭스였던 걸 우측 상단 코너 앵커로
-   바꾸고, js(main.js)가 스크롤 진행률(t)만큼 아래로 크게 내려가는 transform을 적용(.hero는
-   sticky라 화면은 고정돼 있고, 지구본만 화면 안에서 아래로 쭉 흘러내려가 보임 — 전경
-   텍스트(heroInner)는 반대로 위로 사라지는 것과 대비). */
-.hero__bgwrap { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
-.hero__globe { position: absolute; top: 2%; right: -6%; width: min(760px, 70vw); aspect-ratio: 1; opacity: .34; }
+   ⚠️ 2026-11-10 디테일 조정(2차) — "선이 너무 찐하다·오브제처럼 보인다, 카드에 좀 걸쳐도
+   된다, 스크롤은 나선형으로, #why 섹션에서도 보여야 한다" 피드백 반영:
+   - canvas 엘리먼트(.hero__globe) 자체를 position:fixed로 — 뷰포트 기준 좌표라 어느 DOM
+     부모 밑에 있어도 화면상 위치/이동은 js(main.js)가 매 프레임 같은 함수로 계산해 끊김 없음.
+   - .hero 안 .hero__bgwrap, .why 안 .why__bgwrap 두 "정박지"를 두고 스크롤 진행에 따라
+     main.js가 실제 엘리먼트를 appendChild로 옮김 — 각 섹션 안에서는 그 섹션의 기존
+     z-index 체계(타이틀·카드가 항상 위) 안에 자연스럽게 편입되므로, 전역 z-index를 새로
+     발급할 필요가 없고 .rank/.t-pop/.footer의 기존 스택 순서(design.md에 한 번 문제됐던
+     영역)엔 전혀 손대지 않음.
+   - mask-image로 캔버스 가장자리를 부드럽게 페이드 — 원형 실루엣이 또렷하게 도려낸 것처럼
+     보이는 "오브제감"을 줄이고 배경에 자연스럽게 녹아들게.
+   - opacity·transform은 전부 main.js가 매 프레임 설정(여기 CSS 값은 JS 로드 전 초기값일 뿐). */
+.hero__bgwrap, .why__bgwrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.hero__bgwrap { z-index: 1; }
+.hero__globe {
+  position: fixed; top: 12vh; right: -4vw; width: min(600px, 56vw); aspect-ratio: 1;
+  opacity: .18; will-change: transform, opacity;
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 100%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 52%, transparent 100%);
+}
 .hero__globe canvas { display: block; width: 100%; height: 100%; }
-@media (max-width: 900px) { .hero__bgwrap { display: none; } }
+@media (max-width: 900px) { .hero__bgwrap, .why__bgwrap { display: none; } }
 /* 2026-10-21: "SCROLL ↓" 문구 대신 1px 세로선이 아래로 흐르는 미니멀 애니메이션으로 교체(지침서 —
    포트폴리오에 문구형 스크롤 유도는 투머치하다는 지적). 장식용이라 index.html에서 aria-hidden 처리. */
 .hero__scroll { position: absolute; z-index: 10; bottom: 36px; left: 50%; transform: translateX(-50%);

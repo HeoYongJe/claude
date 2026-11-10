@@ -23,7 +23,7 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  const state = { rmode: "strong", sm: 0 };
+  const state = { rmode: "strong", sm: 0, globeInWhy: false };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
@@ -35,6 +35,9 @@
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
   const heroGlobe = hero && hero.querySelector("[data-hero-globe]");
+  const heroGlobeHost = hero && hero.querySelector(".hero__bgwrap");
+  const whySecEl = document.getElementById("why");
+  const whyGlobeHost = whySecEl && whySecEl.querySelector(".why__bgwrap");
   const navEl = document.querySelector(".nav");
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
@@ -54,6 +57,7 @@
     const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
     const railH = railEl ? railEl.clientHeight : 0;
     const rankBottom = (railEl && rankSecEl) ? rankSecEl.getBoundingClientRect().bottom : 0;
+    const whyRect = (heroGlobe && whySecEl) ? whySecEl.getBoundingClientRect() : null;
 
     // ── 2) 계산 ──
     const target = Math.min(1, Math.max(0, y / max));
@@ -83,10 +87,24 @@
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
-      // 배경 지구본: 우측 상단에 있다가 스크롤하면 크리스마스 트리 장식처럼 화면 안에서 아래로
-      // 흘러내려가는 느낌(2026-11-10 디테일 조정) — 전경 텍스트(heroInner)는 반대로 위로
-      // 사라지는 것과 대비. vh 비례라 화면 크기 달라져도 "내려가는 정도"가 비슷하게 느껴짐.
-      if (heroGlobe) heroGlobe.style.transform = `translateY(${(t * vh * 0.45).toFixed(1)}px)`;
+    }
+    // 배경 지구본(2026-11-10 2차 조정): position:fixed라 뷰포트 좌표로 계속 움직이고,
+    // hero 구간이 끝나면(sy>=vh) .hero__bgwrap→.why__bgwrap로 실제 appendChild — 각 섹션
+    // 안에서는 그 섹션의 기존 z-index(타이틀/카드가 늘 위)를 그대로 따라가게 둠.
+    // 나선형: 세로 하강 + 좌우 사인파. #why를 다 지나면(tg=1 근방) 페이드아웃하고 .rank부턴 안 보임.
+    if (heroGlobe && heroGlobeHost && whyGlobeHost && whyRect) {
+      const whyAbsBottom = whyRect.bottom + y;
+      const tg = Math.min(1, sy / Math.max(1, whyAbsBottom));
+      const wantInWhy = sy >= vh;
+      if (wantInWhy !== state.globeInWhy) {
+        (wantInWhy ? whyGlobeHost : heroGlobeHost).appendChild(heroGlobe);
+        state.globeInWhy = wantInWhy;
+      }
+      const spiralY = tg * vh * 0.7;
+      const spiralX = Math.sin(tg * Math.PI * 2.2) * vh * 0.1;
+      heroGlobe.style.transform = `translate(${spiralX.toFixed(1)}px, ${spiralY.toFixed(1)}px)`;
+      const fadeOut = tg > 0.55 ? Math.max(0, 1 - (tg - 0.55) / 0.4) : 1;
+      heroGlobe.style.opacity = (0.18 * fadeOut).toFixed(3);
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
