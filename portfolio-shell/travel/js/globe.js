@@ -282,11 +282,13 @@ class GlobeScene {
     lineColor: inkColor,
     // ⚠️ 11차 — "점그리드 징그럽다, 차라리 은은한 컬러로" — 점(InstancedMesh 수천 개) 대신
     // 대륙 모양 그대로 반투명 색 하나로 채움(landFillOpacity, 원본 fill="solid" 모드와 동일).
+    // ⚠️ 12차 — "색이 너무 튄다, GAPPUN 워터마크와 같은 color:#1E293B;opacity:.025로" —
+    // landFillOpacity를 그 워터마크 값과 동일하게 0.07→0.025로.
     graticuleOpacity: 0.045,
     outlineOpacity: 0.1,
     coastOpacity: 0.18,
     coastSimplify: 2,
-    landFillOpacity: 0.07,
+    landFillOpacity: 0.025,
     spinSpeed: prefersReduced ? 0 : 0.0011, // rad/frame, ~60fps → 완전히 한 바퀴 도는 데 약 95초
     spinDir: -1, // "left" 방향(원본 기본값)과 동일
   };
