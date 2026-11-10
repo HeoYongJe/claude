@@ -55,14 +55,19 @@
 
   // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
 
-  // 지구본 시작 앵커(2026-11-10 6차): "-5vw 같은 vw% 어림짐작"이 뷰포트 폭에 따라 타이틀과
+  // 지구본 시작 앵커(2026-11-10 6차/7차): "-5vw 같은 vw% 어림짐작"이 뷰포트 폭에 따라 타이틀과
   // 어긋나던 문제를 없애려고, 타이틀 첫 줄("지금 원화로") 실제 DOM 좌표를 런타임에 직접
-  // 측정해서 그 좌표를 기준으로 지구본 시작 위치를 잡는다. 반드시 스크롤 맨 위(히어로 변형
-  // 전, heroInner에 translateY가 아직 안 걸린 상태)에서 측정해야 정확해서, pageYOffset이
-  // 거의 0일 때만 측정하고 캐싱 — 리사이즈되면 캐시를 비워 다음 프레임에 다시 잼.
+  // 측정해서 그 좌표를 기준으로 지구본 시작 위치를 잡는다.
+  // ⚠️ 7차: 6차는 "스크롤 맨 위일 때 딱 한 번만 측정하고 캐싱"했는데, 이게 실제 배포 환경에서
+  // 웹폰트(Pretendard, CDN)가 아직 로드되기 전에 먼저 실행돼 폴백 폰트 기준 좌표를 캐싱해버리고,
+  // 폰트가 나중에 로드돼 줄 위치가 바뀌어도 다시 재는 계기가 없어 어긋났을 가능성이 큼(로컬
+  // 테스트는 폰트가 이미 캐시돼 있어 재현이 안 됐던 것으로 추정). → 캐싱을 없애고, 스크롤
+  // 맨 위에 있는 동안은 **매 프레임 계속 다시 측정**(비용이 거의 없는 Range 호출이라 괜찮음) —
+  // 폰트가 언제 로드되든 다음 프레임에 바로 정확한 좌표로 갱신됨. 스크롤이 시작되면(히어로가
+  // 변형되기 시작하면) 그 시점의 마지막 값을 그대로 고정.
   let titleAnchor = null;
   const ensureTitleAnchor = () => {
-    if (titleAnchor || !heroTitleEl || window.pageYOffset > 2) return;
+    if (!heroTitleEl || window.pageYOffset > 2) return;
     const firstLine = heroTitleEl.childNodes[0];
     if (!firstLine) return;
     const range = document.createRange();
@@ -71,7 +76,6 @@
     if (!r || !r.width) return;
     titleAnchor = { left: r.left, top: r.top };
   };
-  window.addEventListener("resize", () => { titleAnchor = null; });
 
   // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
   const render = () => {
@@ -162,14 +166,24 @@
           : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
         const gw = heroGlobe.offsetWidth || 660;
         const gh = heroGlobe.offsetHeight || gw;
-        // leftBound: 타이틀 "지금 원화로" 시작점에 케이지 덩어리가 걸치는 자리(실측 기반).
+        // leftBound: "지금 원화로" 시작점에 케이지가 절반쯤 걸치는 자리(실측 기반) — 7차:
+        // 0.28배였던 걸 0.66배로 늘림. gw(660px)가 텍스트 폭(333px)보다 커서 0.28배로는 공이
+        // 텍스트 전체를 통째로 삼켜버려(136~611px vs 텍스트 136~469px) "걸쳐서"가 아니라
+        // "완전히 뒤덮음"이 됐었음 — 0.66배를 쓰면 공 오른쪽 끝이 텍스트 중간쯤(약 360px)에
+        // 걸려 절반만 겹치는 진짜 "걸쳐진" 모양이 됨.
         // 아직 측정 전(리사이즈 직후 1프레임 등)이면 대략값으로 대체.
-        const leftBound = titleAnchor ? (titleAnchor.left - gw * 0.28) : -gw * 0.14;
+        const leftBound = titleAnchor ? (titleAnchor.left - gw * 0.66) : -gw * 0.5;
         const topAnchor = titleAnchor ? (titleAnchor.top - gh * 0.18) : vh * 0.11;
         const rightBound = vw - gw * 0.72; // 화면 오른쪽 끝 쪽으로(살짝 걸치며 피크)
-        // 0→1→0 진자 — tl=0(섹션 진입)과 tl=1(섹션 이탈) 둘 다 leftBound로 돌아와, 다음
-        // 섹션으로 넘어갈 때도 자연스럽게 이어짐. 한 섹션 체류 동안 왼쪽↔오른쪽을 2번 왕복.
-        const swing = (1 - Math.cos(tl * Math.PI * 2)) / 2;
+        // ⚠️ 7차 — "스크롤 조금만 해도 벌써 왼쪽으로 되돌아간다" 재지적: 기존엔 섹션별 진행률
+        // (tl, 0→1)로 진자를 돌려서 "섹션 하나 체류하는 동안 왕복 2회"였는데, 히어로 한 구간
+        // (뷰포트 높이 1개 분량 스크롤)만으로도 왕복이 다 끝나버려 "오른쪽으로 가나 싶더니 금방
+        // 왼쪽으로 되돌아간다"로 느껴졌음. → 섹션별 tl이 아니라 **페이지 전체 스크롤 진행률
+        // (gp, 0→1)**로 갈아끼움 — 전체 스크롤 여정에 걸쳐 천천히 한 방향으로 진행되다가 훨씬
+        // 나중에야(여러 섹션 지난 뒤) 되돌아옴. 세로 하강(targetY)은 기존처럼 섹션별 tl 유지
+        // (섹션 진입마다 다시 위에서부터 천천히 내려오는 느낌은 그대로 두는 게 맞다고 판단).
+        const GLOBAL_SWING_CYCLES = 1.15;
+        const swing = (1 - Math.cos(gp * Math.PI * GLOBAL_SWING_CYCLES)) / 2;
         targetX = leftBound + (rightBound - leftBound) * swing;
         targetY = topAnchor + tl * vh * 0.55;
         // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
