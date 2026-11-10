@@ -93,15 +93,21 @@
   }
 
   // ---- reveal on scroll ----
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+  // 2026-11-11: 최초 방문(agentIntro.js가 처음부터 끝까지 직접 빌드)에서는 이 단순 리빌을
+  // 끈다 — 같은 [data-reveal] 요소를 두 시스템이 동시에 건드리면 opacity/transform이 충돌함.
+  // 재방문(agentIntro.js가 아무것도 안 함)에서는 그대로 기존처럼 동작.
+  const skipScrollReveal = document.documentElement.classList.contains("yj-intro-pending");
+  if (!skipScrollReveal) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+    document.querySelectorAll("[data-reveal]").forEach((el, i) => {
+      el.style.transitionDelay = ((i % 3) * 0.09) + "s";
+      io.observe(el);
     });
-  }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
-  document.querySelectorAll("[data-reveal]").forEach((el, i) => {
-    el.style.transitionDelay = ((i % 3) * 0.09) + "s";
-    io.observe(el);
-  });
+  }
 
   // 히어로 회로/노드는 CSS 기본 상태로 처음부터 완성돼 보인다(순차 draw 없음).
   // 잔잔한 빛 흐름만 .yj-flow CSS 애니메이션으로 유지.

@@ -5,9 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>YONG JE — Web Publisher Portfolio</title>
 <meta name="description" content="사용자 경험을 만드는 웹 퍼블리셔 YONG JE의 포트폴리오. 시맨틱 마크업, 반응형 웹, 인터랙션 구현.">
+<script>
+// "에이전트 코드" 인트로(2026-11-10) — 최초 방문 여부를 CSS가 참조할 수 있게 아주 이른 시점에
+// <html>에 클래스로 표시. 동기 인라인 스크립트라 첫 페인트 전에 반드시 끝나 깜빡임이 없다.
+// styles.css의 `html.yj-intro-pending [data-build]{opacity:0}` 규칙이 이 클래스를 본다.
+(function () {
+  try {
+    if (!localStorage.getItem("yjIntroSeen")) {
+      document.documentElement.classList.add("yj-intro-pending");
+    }
+  } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=20261111a">
 </head>
 <body>
 
@@ -30,8 +42,8 @@
 
   <!-- nav -->
   <nav class="yj-nav" id="yj-nav">
-    <a href="#top" class="yj-nav__logo">YONG JE</a>
-    <div class="yj-nav__menu">
+    <a href="#top" class="yj-nav__logo" data-build>YONG JE</a>
+    <div class="yj-nav__menu" data-build>
       <a href="#top" class="yj-navlink active" data-nav="top">Intro</a>
       <a href="#works" class="yj-navlink" data-nav="works">Works</a>
       <a href="#about" class="yj-navlink" data-nav="about">About</a>
@@ -44,17 +56,17 @@
   <section id="top" class="yj-hero">
     <div class="yj-hero-grid">
       <div>
-        <div class="yj-hero__eyebrow" id="yj-eyebrow">
+        <div class="yj-hero__eyebrow" id="yj-eyebrow" data-build>
           <span class="yj-hero__eyebrow-line"></span>
           <span class="yj-hero__eyebrow-text">UX-DRIVEN WEB PUBLISHER</span>
         </div>
-        <h1 class="yj-hero__title" id="yj-title">
+        <h1 class="yj-hero__title" id="yj-title" data-build>
           사용자 <span class="yj-hero__title-accent">경험</span>을<br>만드는 퍼블리셔
         </h1>
-        <p class="yj-hero__sub" id="yj-sub">
+        <p class="yj-hero__sub" id="yj-sub" data-build>
           사용하기 편한 경험은<br>좋은 구조와 작은 디테일에서 시작됩니다.
         </p>
-        <a href="#works" class="yj-circuit">
+        <a href="#works" class="yj-circuit" data-build>
           <svg viewBox="0 0 220 56" preserveAspectRatio="none" aria-hidden="true"><rect x="0.5" y="0.5" width="219" height="55" rx="27.5" pathLength="100"></rect></svg>
           View Selected Work <span class="yj-circuit__arrow">→</span>
         </a>
@@ -92,7 +104,7 @@
           </svg>
 
           <!-- 1. browser / wireframe card -->
-          <div class="yj-glass yj-glass--browser">
+          <div class="yj-glass yj-glass--browser" data-build>
             <div class="yj-glass__dots"><span></span><span></span><span></span></div>
             <div class="yj-glass__wire">
               <svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M0 0 L100 60 M100 0 L0 60" stroke="rgba(150,180,255,.28)" stroke-width="1" fill="none"></path></svg>
@@ -100,14 +112,14 @@
           </div>
 
           <!-- 2. text lines card -->
-          <div class="yj-glass yj-glass--text">
+          <div class="yj-glass yj-glass--text" data-build>
             <div class="yj-skel"></div>
             <div class="yj-skel"></div>
             <div class="yj-skel"></div>
           </div>
 
           <!-- 3. small toggle card -->
-          <div class="yj-glass yj-glass--toggle">
+          <div class="yj-glass yj-glass--toggle" data-build>
             <div class="yj-glass__toggle-row">
               <span class="yj-glass__switch"><i></i></span>
               <span class="yj-skel"></span>
@@ -116,7 +128,7 @@
           </div>
 
           <!-- 4. center portrait card -->
-          <div class="yj-glass yj-glass--portrait">
+          <div class="yj-glass yj-glass--portrait" data-build>
             <div class="yj-glass__preview">
               <svg width="34" height="26" viewBox="0 0 34 26" fill="none"><rect x="1" y="1" width="32" height="24" rx="3" stroke="rgba(160,190,255,.6)" stroke-width="1.4"></rect><circle cx="10" cy="9" r="2.6" fill="rgba(160,190,255,.6)"></circle><path d="M4 22 L13 13 L19 18 L24 13 L30 20" stroke="rgba(160,190,255,.6)" stroke-width="1.4" fill="none"></path></svg>
             </div>
@@ -126,7 +138,7 @@
           </div>
 
           <!-- 5. avatar card -->
-          <div class="yj-glass yj-glass--avatar">
+          <div class="yj-glass yj-glass--avatar" data-build>
             <div class="yj-glass__row">
               <span class="yj-glass__avatar"></span>
               <div class="yj-glass__lines">
@@ -138,7 +150,7 @@
           </div>
 
           <!-- 6. small card -->
-          <div class="yj-glass yj-glass--small">
+          <div class="yj-glass yj-glass--small" data-build>
             <div class="yj-glass__row--tight">
               <span class="yj-glass__bullet"></span>
               <span class="yj-skel"></span>
@@ -147,7 +159,7 @@
           </div>
 
           <!-- 7. button card -->
-          <div class="yj-glass yj-glass--button">
+          <div class="yj-glass yj-glass--button" data-build>
             <div class="yj-glass__btn"></div>
             <div class="yj-skel"></div>
           </div>
@@ -169,18 +181,18 @@
       <div class="yj-think-grid">
         <!-- intro -->
         <div>
-          <div class="yj-think__eyebrow" data-reveal>
+          <div class="yj-think__eyebrow" data-reveal data-build>
             <span class="yj-think__num">02</span>
             <span class="yj-think__kicker">THINK</span>
           </div>
-          <h2 class="yj-think__title" data-reveal>좋은 경험은<br><span class="yj-accent">구조</span>에서 시작됩니다.</h2>
-          <p class="yj-think__lead" data-reveal>사용자가 생각하지 않아도 되는 흐름,<br>그 흐름을 만드는 것이<br>퍼블리셔의 역할이라고 믿습니다.</p>
+          <h2 class="yj-think__title" data-reveal data-build>좋은 경험은<br><span class="yj-accent">구조</span>에서 시작됩니다.</h2>
+          <p class="yj-think__lead" data-reveal data-build>사용자가 생각하지 않아도 되는 흐름,<br>그 흐름을 만드는 것이<br>퍼블리셔의 역할이라고 믿습니다.</p>
         </div>
 
         <!-- 4 steps -->
         <div class="yj-steps">
           <!-- 01 정보 정의 -->
-          <div class="yj-step" data-reveal>
+          <div class="yj-step" data-reveal data-build>
             <div class="yj-step__icon">
               <svg viewBox="0 0 84 60" fill="none">
                 <g stroke="currentColor" stroke-width="1.5">
@@ -198,7 +210,7 @@
           <span class="yj-step__arrow" aria-hidden="true">→</span>
 
           <!-- 02 구조 설계 -->
-          <div class="yj-step" data-reveal>
+          <div class="yj-step" data-reveal data-build>
             <div class="yj-step__icon">
               <svg viewBox="0 0 104 66" fill="none">
                 <rect class="yj-ico-blue" x="45" y="2" width="14" height="11" rx="2"></rect>
@@ -222,7 +234,7 @@
           <span class="yj-step__arrow" aria-hidden="true">→</span>
 
           <!-- 03 인터랙션 설계 -->
-          <div class="yj-step" data-reveal>
+          <div class="yj-step" data-reveal data-build>
             <div class="yj-step__icon">
               <svg viewBox="0 0 84 66" fill="none">
                 <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -242,7 +254,7 @@
           <span class="yj-step__arrow" aria-hidden="true">→</span>
 
           <!-- 04 경험 완성 -->
-          <div class="yj-step" data-reveal>
+          <div class="yj-step" data-reveal data-build>
             <div class="yj-step__icon">
               <svg viewBox="0 0 88 66" fill="none">
                 <g stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
@@ -267,15 +279,15 @@
     <div class="yj-shell">
       <div class="yj-head">
         <div>
-          <div class="yj-head__num" data-reveal>03</div>
-          <h2 class="yj-head__title" data-reveal>Selected Work</h2>
+          <div class="yj-head__num" data-reveal data-build>03</div>
+          <h2 class="yj-head__title" data-reveal data-build>Selected Work</h2>
         </div>
-        <a href="#works" class="yj-head__link" data-reveal>All Projects <span>→</span></a>
+        <a href="#works" class="yj-head__link" data-reveal data-build>All Projects <span>→</span></a>
       </div>
 
       <div class="yj-works-grid">
         <!-- work 01 -->
-        <a href="/travel/" target="_blank" rel="noopener" class="yj-work" data-reveal>
+        <a href="/travel/" target="_blank" rel="noopener" class="yj-work" data-reveal data-build>
           <div class="yj-thumb yj-work__thumb">
             <!-- replace with: <img src="assets/work-1.jpg" alt="LawPilot"> -->
             <div class="yj-ph">환율기반 여행 서비스</div>
@@ -291,7 +303,7 @@
           </div>
         </a>
         <!-- work 02 -->
-        <a href="/nike/" target="_blank" rel="noopener" class="yj-work" data-reveal>
+        <a href="/nike/" target="_blank" rel="noopener" class="yj-work" data-reveal data-build>
           <div class="yj-thumb yj-work__thumb">
             <div class="yj-ph">NIKE 리뉴얼</div>
             <span class="yj-work__num">02</span>
@@ -306,7 +318,7 @@
           </div>
         </a>
         <!-- work 03 -->
-        <a href="#works" class="yj-work" data-reveal>
+        <a href="#works" class="yj-work" data-reveal data-build>
           <div class="yj-thumb yj-work__thumb">
             <div class="yj-ph">ALLIZA</div>
             <span class="yj-work__num">03</span>
@@ -329,14 +341,14 @@
     <div class="yj-shell">
       <div class="yj-head yj-head--wide">
         <div>
-          <div class="yj-head__num" data-reveal>04</div>
-          <h2 class="yj-head__title" data-reveal>Design Principles</h2>
+          <div class="yj-head__num" data-reveal data-build>04</div>
+          <h2 class="yj-head__title" data-reveal data-build>Design Principles</h2>
         </div>
-        <p class="yj-head__note" data-reveal>사용자의 경험을 먼저 생각하는<br>저만의 세 가지 원칙입니다.</p>
+        <p class="yj-head__note" data-reveal data-build>사용자의 경험을 먼저 생각하는<br>저만의 세 가지 원칙입니다.</p>
       </div>
       <div class="yj-principles">
         <!-- Purpose -->
-        <div class="yj-principle" data-reveal>
+        <div class="yj-principle" data-reveal data-build>
           <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="currentColor" stroke-width="2"></circle><circle cx="20" cy="20" r="5" fill="currentColor"></circle></svg></span>
           <div>
             <h3 class="yj-principle__title">Purpose</h3>
@@ -344,7 +356,7 @@
           </div>
         </div>
         <!-- Clarity -->
-        <div class="yj-principle" data-reveal>
+        <div class="yj-principle" data-reveal data-build>
           <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><rect x="6" y="6" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="22" y="6" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="6" y="22" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect><rect x="22" y="22" width="12" height="12" rx="2" stroke="currentColor" stroke-width="2"></rect></svg></span>
           <div>
             <h3 class="yj-principle__title">Clarity</h3>
@@ -352,7 +364,7 @@
           </div>
         </div>
         <!-- Precision -->
-        <div class="yj-principle" data-reveal>
+        <div class="yj-principle" data-reveal data-build>
           <span class="yj-principle__icon"><svg width="34" height="34" viewBox="0 0 40 40" fill="none"><path d="M20 7v26M7 20h26" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg></span>
           <div>
             <h3 class="yj-principle__title">Precision</h3>
@@ -368,13 +380,13 @@
     <div class="yj-shell">
       <div class="yj-about-grid">
         <div>
-          <div class="yj-head__num" data-reveal>05</div>
-          <h2 class="yj-about__title" data-reveal>About Me</h2>
-          <p class="yj-about__lead" data-reveal>웹 퍼블리싱을 기반으로<br>사용자 중심의 웹 경험을 만드는 것을 좋아합니다.</p>
+          <div class="yj-head__num" data-reveal data-build>05</div>
+          <h2 class="yj-about__title" data-reveal data-build>About Me</h2>
+          <p class="yj-about__lead" data-reveal data-build>웹 퍼블리싱을 기반으로<br>사용자 중심의 웹 경험을 만드는 것을 좋아합니다.</p>
         </div>
 
         <div class="yj-skills">
-          <div class="yj-skillgroup" data-reveal>
+          <div class="yj-skillgroup" data-reveal data-build>
             <div class="yj-skillgroup__head">
               <span class="yj-skillgroup__dot"></span>
               <span class="yj-skillgroup__label">주력</span>
@@ -388,7 +400,7 @@
               <span class="yj-chip">Flexbox</span>
             </div>
           </div>
-          <div class="yj-skillgroup" data-reveal>
+          <div class="yj-skillgroup" data-reveal data-build>
             <div class="yj-skillgroup__head">
               <span class="yj-skillgroup__dot yj-skillgroup__dot--learning"></span>
               <span class="yj-skillgroup__label yj-skillgroup__label--muted">학습 중</span>
@@ -401,7 +413,7 @@
           </div>
         </div>
 
-        <div class="yj-thumb yj-about__photo" data-reveal>
+        <div class="yj-thumb yj-about__photo" data-reveal data-build>
           <!-- replace with: <img src="assets/desk.jpg" alt="작업 공간"> -->
           <div class="yj-ph">작업 공간 사진</div>
         </div>
@@ -415,14 +427,14 @@
     <div class="yj-shell yj-contact__inner">
       <div class="yj-contact-outer">
         <div>
-          <div class="yj-head__num yj-contact__num" data-reveal>06</div>
-          <h2 class="yj-contact__title" data-reveal>Let's Build<br>Better Experiences</h2>
-          <p class="yj-contact__lead" data-reveal>함께 더 나은 경험을 만들어가요.</p>
+          <div class="yj-head__num yj-contact__num" data-reveal data-build>06</div>
+          <h2 class="yj-contact__title" data-reveal data-build>Let's Build<br>Better Experiences</h2>
+          <p class="yj-contact__lead" data-reveal data-build>함께 더 나은 경험을 만들어가요.</p>
         </div>
 
         <div class="yj-contact-grid">
           <!-- Email -->
-          <a href="mailto:hyj.campus@gmail.com" class="yj-work yj-contact-card" data-reveal>
+          <a href="mailto:hyj.campus@gmail.com" class="yj-work yj-contact-card" data-reveal data-build>
             <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" stroke="currentColor" stroke-width="1.8"></rect><path d="M4 7l8 6 8-6" stroke="currentColor" stroke-width="1.8"></path></svg></span>
             <div class="yj-contact-card__body">
               <div class="yj-contact-card__title">Email</div>
@@ -431,7 +443,7 @@
             <span class="yj-arrow yj-arrow--plain">→</span>
           </a>
           <!-- GitHub -->
-          <a href="https://github.com/HeoYongJe" target="_blank" rel="noopener" class="yj-work yj-contact-card" data-reveal>
+          <a href="https://github.com/HeoYongJe" target="_blank" rel="noopener" class="yj-work yj-contact-card" data-reveal data-build>
             <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 015 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0012 2z"></path></svg></span>
             <div class="yj-contact-card__body">
               <div class="yj-contact-card__title">GitHub</div>
@@ -440,7 +452,7 @@
             <span class="yj-arrow yj-arrow--plain">→</span>
           </a>
           <!-- Velog -->
-          <a href="https://velog.io/@yj_heo/posts" target="_blank" rel="noopener" class="yj-work yj-contact-card" data-reveal>
+          <a href="https://velog.io/@yj_heo/posts" target="_blank" rel="noopener" class="yj-work yj-contact-card" data-reveal data-build>
             <span class="yj-contact-card__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"></path><path d="M14 3v4h4M9 12h6M9 16h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg></span>
             <div class="yj-contact-card__body">
               <div class="yj-contact-card__title">Velog</div>
@@ -462,7 +474,7 @@
     </div>
   </section>
 
-  <script src="script.js"></script>
-  <script src="agentIntro.js"></script>
+  <script src="script.js?v=20261111a"></script>
+  <script src="agentIntro.js?v=20261111b"></script>
 </body>
 </html>

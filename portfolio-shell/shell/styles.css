@@ -365,6 +365,13 @@ p{margin:0}
 [data-reveal]{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
 [data-reveal].is-in{opacity:1;transform:none}
 
+/* "에이전트 코드" 인트로 전용(2026-11-11, agentIntro.js) — 최초 방문(`html.yj-intro-pending`,
+   index.html 맨 위 인라인 스크립트가 붙임)에서만 [data-build]를 숨김. 재방문(클래스 없음)에서는
+   이 규칙이 아예 안 걸려서, data-reveal도 같이 붙은 요소는 위 기존 스크롤 리빌 그대로 동작,
+   히어로 전용(data-reveal 없는) 요소는 그냥 평소처럼 바로 보임 — 인트로 관련 코드가 전혀
+   끼어들지 않는다. */
+html.yj-intro-pending [data-build]{opacity:0}
+
 /* ==========================================================================
    responsive
    ========================================================================== */
@@ -394,16 +401,22 @@ p{margin:0}
   .yj-preloader{display:none}
 }
 
-/* "에이전트 코드" 인트로 오버레이(2026-11-10, agentIntro.js) — 프리로더가 걷힌 뒤 히어로의
-   텍스트·글래스 카드를 여러 색 커서가 박스로 그리고, 그 안에서 콘텐츠가 타이핑/페이드로
-   나타나는 연출. fixed라 스크롤과 무관하게 뷰포트 좌표로 그리고, 끝나면 JS가 전부 제거. */
+/* "에이전트 코드" 인트로 오버레이(agentIntro.js, 2026-11-11 전체 페이지 버전) — 프리로더가
+   걷힌 뒤 전 섹션의 [data-build] 요소를 여러 색 커서가 박스로 그리고, 그 안에서 콘텐츠가
+   타이핑/페이드로 나타나는 연출. 끝나면 JS가 전부 제거.
+   `.ac-box`는 두 곳에 올 수 있음 — 보통은 `#agent-cursor-overlay`(뷰포트 고정)의 자식이지만,
+   히어로 글래스 카드(3D 회전+무한 둥실거림 중인 `.yj-stage`의 자식)를 그릴 때는 그 카드와
+   똑같이 회전하도록 `.yj-stage` 안에 로컬 좌표로 직접 그림(agentIntro.js의 drawBox 참고) —
+   그래서 `.ac-box`는 어느 부모에 있어도 자기 혼자 위치가 맞게끔 pointer-events:none·z-index를
+   명시적으로 갖는다. 핸들·배지는 항상 뷰포트 고정(3D 안에 두면 점/글자가 비스듬히 누움). */
 #agent-cursor-overlay{position:fixed;inset:0;z-index:300;pointer-events:none}
-.ac-cursor{position:absolute;top:0;left:0;width:22px;height:22px;opacity:0;
-  transition:left .48s cubic-bezier(.4,0,.2,1),top .48s cubic-bezier(.4,0,.2,1),opacity .26s ease}
+.ac-cursor{position:absolute;top:0;left:0;width:22px;height:22px;opacity:0;z-index:300;pointer-events:none;
+  transition:left .17s linear,top .17s linear,opacity .18s ease}
 .ac-cursor svg{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
 .ac-box{position:absolute;top:0;left:0;width:0;height:0;opacity:0;border-width:1.5px;border-style:solid;background:transparent;
-  transition:width .48s cubic-bezier(.4,0,.2,1),height .48s cubic-bezier(.4,0,.2,1),opacity .26s ease}
+  z-index:50;pointer-events:none;
+  transition:width .17s linear,height .17s linear,opacity .18s ease}
 .ac-handle{position:absolute;top:0;left:0;width:7px;height:7px;background:#070a11;border-width:1.5px;border-style:solid;
-  opacity:0;transform:translate(-50%,-50%);transition:opacity .2s ease}
-.ac-badge{position:absolute;top:0;left:0;padding:2px 6px;border-radius:4px;color:#fff;opacity:0;
-  font:600 11px/1.4 var(--font-pretendard);white-space:nowrap;transition:opacity .26s ease}
+  opacity:0;z-index:300;pointer-events:none;transform:translate(-50%,-50%);transition:opacity .15s ease}
+.ac-badge{position:absolute;top:0;left:0;padding:2px 6px;border-radius:4px;color:#fff;opacity:0;z-index:300;pointer-events:none;
+  font:600 11px/1.4 var(--font-pretendard);white-space:nowrap;transition:opacity .18s ease}
