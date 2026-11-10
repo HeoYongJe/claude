@@ -226,10 +226,12 @@ ul, ol { list-style: none; padding: 0; }
    케이지+shimmer 버전으로 되돌리려면 git 태그 `가뿐_지구본_케이지버전_백업_20261110` 참고. */
 .hero__bgwrap { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .hero__globe {
-  /* 히어로 섹션 하단 가운데에 중심을 맞추고, 자기 높이의 46%만큼 아래로 밀어 "절반만 걸치게"
-     — 나머지 절반은 .hero/.hero__bgwrap의 overflow:hidden에 의해 잘림(별도 마스킹 불필요). */
-  position: absolute; left: 50%; bottom: 0; width: min(900px, 86vw); aspect-ratio: 1;
-  transform: translate(-50%, 46%); pointer-events: none;
+  /* 히어로 섹션 하단 가운데에 중심을 맞추고, 자기 높이만큼 아래로 밀어 "반만 걸치게" — 나머지는
+     .hero/.hero__bgwrap의 overflow:hidden에 의해 잘림(별도 마스킹 불필요).
+     2026-11-10 11차: "위치 좀 더 아래로, 크기는 더 크게" — width 900px→1100px(86vw→94vw),
+     translateY 46%→56%(퍼센트는 자기 높이 기준이라 커진 크기에 비례해서 같이 더 내려감). */
+  position: absolute; left: 50%; bottom: 0; width: min(1100px, 94vw); aspect-ratio: 1;
+  transform: translate(-50%, 56%); pointer-events: none;
 }
 .hero__globe canvas { display: block; width: 100%; height: 100%; }
 @media (max-width: 900px) { .hero__bgwrap { display: none; } }
@@ -437,11 +439,12 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- WHY (서비스 소개) ---- */
 /* position+z-index로 sticky 히어로 위를 확실히 덮도록 명시(2026-10-21, 위 .hero 주석 참고) */
-/* 2026-11-10 9차: 하단 padding을 "18vw(워터마크 폰트 크기) + 110px" 공식으로 늘림 — 아래
+/* 2026-11-10 9차: 하단 padding을 "18vw(워터마크 폰트 크기) + 여유값" 공식으로 늘림 — 아래
    .why__watermark(구 .hero__watermark, 히어로에서 이리로 이동)가 카드 그리드와 안 겹치게
    폰트 크기에 비례해서 여유 공간을 띄워주는 것. 고정 px이 아니라 calc()로 묶은 이유는 뷰포트
-   폭이 달라져도(18vw 자체가 가변이라) 항상 같은 비율로 안전 마진이 유지되게 하기 위함. */
-.why { position: relative; z-index: 1; padding: 132px 0 calc(18vw + 110px); background: #FFFFFF; overflow: hidden; }
+   폭이 달라져도(18vw 자체가 가변이라) 항상 같은 비율로 안전 마진이 유지되게 하기 위함.
+   11차: "아직 부족하다"는 재지적으로 여유값 110px→190px로 더 늘림. */
+.why { position: relative; z-index: 1; padding: 132px 0 calc(18vw + 190px); background: #FFFFFF; overflow: hidden; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
 /* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 섹션 맨 아래쪽에 깔아 질감만 더함(2026-11-10
@@ -775,7 +778,7 @@ ul, ol { list-style: none; padding: 0; }
      상하 패딩이 섞여 리듬이 어긋나 보였음(`.t-pop`만 좁고 `.rank`/`.why`는 여전히 데스크톱 패딩) —
      같은 900px 지점에서 같이 줄도록 통일. */
   .rank { padding: 72px 0 64px; }
-  .why { padding: 72px 0 calc(18vw + 90px); }
+  .why { padding: 72px 0 calc(18vw + 160px); }
   .why__grid { grid-template-columns: 1fr; }
   .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }

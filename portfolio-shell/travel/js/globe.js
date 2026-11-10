@@ -207,33 +207,38 @@ class GlobeScene {
       }
     }
 
-    // ---- 대륙 위 점그리드 ----
-    const dotCoords = [];
-    const baseStep = this.cfg.dotStepDeg;
-    for (let lat = -90; lat <= 90; lat += baseStep) {
-      const cosLat = Math.cos((Math.abs(lat) * Math.PI) / 180);
-      const lngStep = cosLat > 0.01 ? baseStep / Math.max(0.3, cosLat) : 360;
-      for (let lng = -180; lng < 180; lng += lngStep) {
-        if (isOnLand(lng, lat)) dotCoords.push([lng, lat]);
+    // ---- 대륙 위 은은한 색 채우기(2026-11-10 11차: 점그리드가 "징그럽다"는 피드백으로 교체) ----
+    // 원본 컴포넌트의 fill="solid" 모드와 동일한 방식 — 대륙 모양대로 텍스처를 만들어 구체 위에
+    // 덧씌움(개별 점 수천 개 대신 매끈한 반투명 색면 하나). 텍스처 (u,v)→(lng,lat) 변환식은
+    // 원본 그대로 사용(THREE.SphereGeometry 기본 UV와 latLngToVec3 좌표계가 정확히 맞물리는
+    // 식이라 임의로 바꾸면 해안선 아웃라인과 어긋남).
+    const fillCanvas = document.createElement("canvas");
+    fillCanvas.width = texW; fillCanvas.height = texH;
+    const fctx = fillCanvas.getContext("2d");
+    const img = fctx.createImageData(texW, texH);
+    const data = img.data;
+    const fillColor = hexToThreeColor(this.cfg.lineColor);
+    const fr = Math.round(fillColor.r * 255), fg = Math.round(fillColor.g * 255), fb = Math.round(fillColor.b * 255);
+    const fa = Math.round(this.cfg.landFillOpacity * 255);
+    for (let ty = 0; ty < texH; ty++) {
+      for (let tx = 0; tx < texW; tx++) {
+        const u = tx / texW, v = ty / texH;
+        let lng = (u - 0.25) * 360;
+        lng = ((((lng + 180) % 360) + 360) % 360) - 180;
+        const lat = (v - 0.5) * 180;
+        const idx = (ty * texW + tx) * 4;
+        if (isOnLand(lng, lat)) {
+          data[idx] = fr; data[idx + 1] = fg; data[idx + 2] = fb; data[idx + 3] = fa;
+        }
       }
     }
-    if (dotCoords.length) {
-      const dotGeo = new THREE.SphereGeometry(this.cfg.dotRadius, 4, 4);
-      const dotMat = new THREE.MeshBasicMaterial({
-        color: hexToThreeColor(this.cfg.lineColor),
-        transparent: true,
-        opacity: this.cfg.dotOpacity,
-      });
-      const inst = new THREE.InstancedMesh(dotGeo, dotMat, dotCoords.length);
-      const m = new THREE.Matrix4();
-      dotCoords.forEach(([lng, lat], i) => {
-        const p = latLngToVec3(lat, lng, this.radius * 1.001);
-        m.setPosition(p.x, p.y, p.z);
-        inst.setMatrixAt(i, m);
-      });
-      inst.instanceMatrix.needsUpdate = true;
-      this.group.add(inst);
-    }
+    fctx.putImageData(img, 0, 0);
+    const fillTexture = new THREE.CanvasTexture(fillCanvas);
+    fillTexture.flipY = false;
+    fillTexture.needsUpdate = true;
+    const fillGeo = new THREE.SphereGeometry(this.radius * 1.0015, 64, 64);
+    const fillMat = new THREE.MeshBasicMaterial({ map: fillTexture, transparent: true });
+    this.group.add(new THREE.Mesh(fillGeo, fillMat));
 
     this.renderer.domElement.style.opacity = "1";
   }
@@ -275,17 +280,13 @@ class GlobeScene {
   const cfg = {
     oceanColor: bgColor,   // 바다=히어로 배경색과 동일 — 구체 뒷면이 묻혀 보이지 않고 윤곽만 남음
     lineColor: inkColor,
-    // ⚠️ 10차 — "원본 대로면 점그리드가 훨씬 작고 촘촘한데" / "라인 컬러 전체적으로 죽여 은은하게":
-    // dotStepDeg·dotRadius를 원본 기본 props(dots.density=8, dots.size=5)를 실제로 환산한 값에
-    // 맞춤(이전엔 임의로 성긴 값을 썼었음) — density=8 → 위경도 간격 ≈0.93°, size=5 → 반지름
-    // ≈0.0028. 모든 선·점 불투명도도 전반적으로 한 단계씩 낮춤.
+    // ⚠️ 11차 — "점그리드 징그럽다, 차라리 은은한 컬러로" — 점(InstancedMesh 수천 개) 대신
+    // 대륙 모양 그대로 반투명 색 하나로 채움(landFillOpacity, 원본 fill="solid" 모드와 동일).
     graticuleOpacity: 0.045,
     outlineOpacity: 0.1,
     coastOpacity: 0.18,
     coastSimplify: 2,
-    dotStepDeg: 0.93,
-    dotRadius: 0.0028,
-    dotOpacity: 0.16,
+    landFillOpacity: 0.07,
     spinSpeed: prefersReduced ? 0 : 0.0011, // rad/frame, ~60fps → 완전히 한 바퀴 도는 데 약 95초
     spinDir: -1, // "left" 방향(원본 기본값)과 동일
   };
