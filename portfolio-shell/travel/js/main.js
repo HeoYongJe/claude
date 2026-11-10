@@ -106,12 +106,20 @@
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
     }
-    // 배경 지구본(2026-11-10 4차): canvas 자체는 position:fixed라 뷰포트 좌표로 계속 움직이고,
+    // 배경 지구본(2026-11-10 5차): canvas 자체는 position:fixed라 뷰포트 좌표로 계속 움직이고,
     // 화면에 걸친 섹션의 정박지(위 globeTarget)로 appendChild — 그 섹션 기존 z-index(타이틀/
-    // 카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된 0→1 진행률(tl)로 매번 새로 "휙
-    // 내려오며 좌우로 흔들리는" 스윕을 반복. 목표 위치(targetX/Y/Op)를 바로 대입하지 않고
-    // state.globeX/Y/Op에 매 프레임 조금씩만(EASE) 보간 — 빠른 스크롤이나 정박지 전환 때 목표가
-    // 뚝 끊겨도 실제 엘리먼트는 부드럽게 쫓아가게("UFO처럼 휙휙" 움직이던 걸 수정).
+    // 카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된 0→1 진행률(tl)로 "천천히 내려오며
+    // 살짝 좌우로 흔들리는" 움직임을 만듦.
+    // ⚠️ "스크롤이 너무 빠르다" 피드백 — 위치(POS)와 투명도(OP)의 보간 속도를 분리:
+    //   위치는 아주 느리게(EASE_POS) 쫓아가게 해서 움직임 자체가 차분해지고,
+    //   투명도는 더 빠르게(EASE_OP) 목표를 따라가게 해서 짧은 섹션을 빠르게 지나가도
+    //   "있는데 안 보이는" 상태가 안 생기게 함(실측: 빠른 스크롤 시뮬레이션으로 #why 구간
+    //   내내 opacity가 0.5대를 유지하는 것 확인, 2026-11-10).
+    // ⚠️ "#why에서 안 보인다" 재확인 — 실제로는 opacity·위치·정박지 모두 정상이었지만, 케이지가
+    //   자체 회전(spin)하면서 카메라를 향한 면적이 시시각각 달라져(같은 스크롤 위치에서 3초
+    //   간격 스크린샷을 비교해 눈으로 확인) 어떤 순간엔 선이 거의 안 보일 만큼 옅어짐 — 구조적
+    //   버그는 아니지만 체감상 "안 보인다"는 피드백이 나올 만큼 기준선 자체가 약했던 것.
+    //   → netGlow(케이지 밝기)와 기준 opacity를 올려 "얇아지는 순간"에도 어느 정도 보이게 함.
     if (heroGlobe) {
       let targetX = state.globeX, targetY = state.globeY, targetOp = 0;
       if (globeTarget) {
@@ -126,18 +134,19 @@
         const tl = (globeTarget.el === hero)
           ? Math.min(1, sy / vh)
           : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
-        targetY = tl * vh * 0.8;
-        targetX = Math.sin(tl * Math.PI * 2.2) * vw * 0.38;
+        targetY = tl * vh * 0.55;
+        targetX = Math.sin(tl * Math.PI * 1.2) * vw * 0.22;
         // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
         // 나머지 섹션은 정박지를 바꿀 때 뚝 끊기지 않도록 진입/이탈 양쪽 다 8%씩 부드럽게.
         const enterFade = (globeTarget.el === hero) ? 1 : Math.min(1, tl / 0.08);
         const exitFade = Math.min(1, (1 - tl) / 0.08);
-        targetOp = 0.55 * Math.max(0, Math.min(enterFade, exitFade));
+        targetOp = 0.62 * Math.max(0, Math.min(enterFade, exitFade));
       }
-      const EASE = 0.07;
-      state.globeX += (targetX - state.globeX) * EASE;
-      state.globeY += (targetY - state.globeY) * EASE;
-      state.globeOp += (targetOp - state.globeOp) * EASE;
+      const EASE_POS = 0.025;
+      const EASE_OP = 0.12;
+      state.globeX += (targetX - state.globeX) * EASE_POS;
+      state.globeY += (targetY - state.globeY) * EASE_POS;
+      state.globeOp += (targetOp - state.globeOp) * EASE_OP;
       heroGlobe.style.transform = `translate(${state.globeX.toFixed(1)}px, ${state.globeY.toFixed(1)}px)`;
       heroGlobe.style.opacity = state.globeOp.toFixed(3);
     }

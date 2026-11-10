@@ -707,7 +707,10 @@ class GlobeScene {
     hoverOn: !prefersReduced,
     sizePercent: 100,
     dots: { size: 6, wobble: 5, flicker: 6 },
-    cage: { detail: 1, spread: 8, glow: 7 },
+    // 2026-11-10 5차: 케이지가 자체 회전하면서 카메라를 향한 면적이 계속 달라져(같은 스크롤
+    // 위치에서도 시간에 따라 선이 또렷했다 옅어졌다 함) "안 보인다"는 피드백으로 이어짐 —
+    // 옅어지는 순간에도 어느 정도 보이도록 기준 밝기(glow)를 7→9로.
+    cage: { detail: 1, spread: 8, glow: 9 },
     shimmer: { color: accentColor, speed: 6, style: "sweep", angle: 90, width: 7 },
     waves: { color: accentColor, color2: inkColor, size: 7, glow: 7, speed: 5 },
     hover: { fill: 5, glow: 6, reach: 8 },
