@@ -23,7 +23,7 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  const state = { rmode: "strong", sm: 0, globeHostEl: null };
+  const state = { rmode: "strong", sm: 0, globeHostEl: null, globeX: 0, globeY: 0, globeOp: 0 };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
@@ -106,12 +106,14 @@
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
     }
-    // 배경 지구본(2026-11-10 3차 조정): canvas 자체는 position:fixed라 뷰포트 좌표로 계속
-    // 움직이고, 현재 화면 중앙에 가장 가까운 섹션의 정박지(위 globeTarget)로 appendChild —
-    // 그 섹션 기존 z-index(타이틀/카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된
-    // 0→1 진행률(tl)로 매번 새로 "휙 내려오며 좌우로 흔들리는" 스윕을 반복 — 하나의 연속된
-    // "스크롤 지표"처럼 읽히게. 어느 정박지에도 안 걸치면(.cta/.footer 구간) 페이드아웃.
+    // 배경 지구본(2026-11-10 4차): canvas 자체는 position:fixed라 뷰포트 좌표로 계속 움직이고,
+    // 화면에 걸친 섹션의 정박지(위 globeTarget)로 appendChild — 그 섹션 기존 z-index(타이틀/
+    // 카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된 0→1 진행률(tl)로 매번 새로 "휙
+    // 내려오며 좌우로 흔들리는" 스윕을 반복. 목표 위치(targetX/Y/Op)를 바로 대입하지 않고
+    // state.globeX/Y/Op에 매 프레임 조금씩만(EASE) 보간 — 빠른 스크롤이나 정박지 전환 때 목표가
+    // 뚝 끊겨도 실제 엘리먼트는 부드럽게 쫓아가게("UFO처럼 휙휙" 움직이던 걸 수정).
     if (heroGlobe) {
+      let targetX = state.globeX, targetY = state.globeY, targetOp = 0;
       if (globeTarget) {
         if (state.globeHostEl !== globeTarget.host) {
           globeTarget.host.appendChild(heroGlobe);
@@ -124,18 +126,20 @@
         const tl = (globeTarget.el === hero)
           ? Math.min(1, sy / vh)
           : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
-        const spiralY = tl * vh * 0.8;
-        const spiralX = Math.sin(tl * Math.PI * 2.2) * vw * 0.38;
-        heroGlobe.style.transform = `translate(${spiralX.toFixed(1)}px, ${spiralY.toFixed(1)}px)`;
+        targetY = tl * vh * 0.8;
+        targetX = Math.sin(tl * Math.PI * 2.2) * vw * 0.38;
         // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
         // 나머지 섹션은 정박지를 바꿀 때 뚝 끊기지 않도록 진입/이탈 양쪽 다 8%씩 부드럽게.
         const enterFade = (globeTarget.el === hero) ? 1 : Math.min(1, tl / 0.08);
         const exitFade = Math.min(1, (1 - tl) / 0.08);
-        const edgeFade = Math.max(0, Math.min(enterFade, exitFade));
-        heroGlobe.style.opacity = (0.3 * edgeFade).toFixed(3);
-      } else {
-        heroGlobe.style.opacity = "0";
+        targetOp = 0.55 * Math.max(0, Math.min(enterFade, exitFade));
       }
+      const EASE = 0.07;
+      state.globeX += (targetX - state.globeX) * EASE;
+      state.globeY += (targetY - state.globeY) * EASE;
+      state.globeOp += (targetOp - state.globeOp) * EASE;
+      heroGlobe.style.transform = `translate(${state.globeX.toFixed(1)}px, ${state.globeY.toFixed(1)}px)`;
+      heroGlobe.style.opacity = state.globeOp.toFixed(3);
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
