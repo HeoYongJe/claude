@@ -95,8 +95,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   if (dotCoords.length) {
     const dotGeom = new THREE.SphereGeometry(0.009, 4, 4);
-    // 2026-11-10 디테일 조정(2차): "오브제가 아니라 배경처럼" — 점은 더 옅게.
-    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.14 });
+    // 2026-11-10(3차): 2차 조정 때 너무 낮춰서 전체적으로 "너무 흐림" 피드백 — 살짝 올림.
+    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.2 });
     const dots = new THREE.InstancedMesh(dotGeom, dotMat, dotCoords.length);
     const m = new THREE.Matrix4();
     dotCoords.forEach(([lng, lat], i) => {
@@ -113,20 +113,30 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 배경과 명도 대비가 거의 없어 opacity를 올려도 안 보였음(색 자체의 문제) → ink색으로 교체.
   // 2026-11-10(2차): 교체 직후 0.85는 "찐하다/오브제 같다"는 피드백 — ink색 유지한 채
   // opacity만 크게 낮춰 "선이 있긴 한데 아주 연하게" 수준으로.
-  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.32 });
-  function addGraticuleLine(points) {
+  // 2026-11-10(3차): "가운데 세로중심라인만 너무 진하다" — 경도선(자오선)은 극-극 반원이라
+  // LineLoop로 그리면 끝점(북극)을 시작점(남극)으로 되돌리는 "닫는 선분"이 추가되는데, 이 닫는
+  // 선분이 하필 극축(수직 중심선)과 정확히 겹침. 경도선 11개 전부가 같은 극축 닫는 선분을
+  // 긋다 보니 그 한 줄만 11겹으로 겹쳐 그려져 유독 진하게 보였던 것(버그) — 자오선은 애초에
+  // 닫힌 루프가 아니므로 LineLoop 대신 열린 Line으로 교체. 위도선(평행선)은 진짜로 한 바퀴
+  // 도는 닫힌 루프라 LineLoop 그대로 유지.
+  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.46 });
+  function addGraticuleLoop(points) {
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     globeGroup.add(new THREE.LineLoop(geom, graticuleMat));
+  }
+  function addGraticuleOpen(points) {
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    globeGroup.add(new THREE.Line(geom, graticuleMat));
   }
   for (let lat = -60; lat <= 60; lat += 30) {
     const pts = [];
     for (let i = 0; i <= 64; i++) pts.push(latLngToVec3(lat, (i / 64) * 360 - 180, radius));
-    addGraticuleLine(pts);
+    addGraticuleLoop(pts);
   }
   for (let lng = -150; lng < 180; lng += 30) {
     const pts = [];
     for (let i = 0; i <= 64; i++) pts.push(latLngToVec3((i / 64) * 180 - 90, lng, radius));
-    addGraticuleLine(pts);
+    addGraticuleOpen(pts);
   }
 
   // ⚠️ 2026-11-10: 여기 있던 "외곽 테두리"는 z=0 평면에 그린 2D 원을 globeGroup(계속 회전)에

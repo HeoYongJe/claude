@@ -23,7 +23,7 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  const state = { rmode: "strong", sm: 0, globeInWhy: false };
+  const state = { rmode: "strong", sm: 0, globeHostEl: null };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
@@ -35,15 +35,22 @@
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
   const heroGlobe = hero && hero.querySelector("[data-hero-globe]");
-  const heroGlobeHost = hero && hero.querySelector(".hero__bgwrap");
   const whySecEl = document.getElementById("why");
-  const whyGlobeHost = whySecEl && whySecEl.querySelector(".why__bgwrap");
+  const tpopSecEl = document.querySelector(".t-pop");
   const navEl = document.querySelector(".nav");
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
   const planeWrap = root.querySelector(".t-planewrap");
   const rankSecEl = document.getElementById("rank");
   const railLen = 784;
+  // 배경 지구본이 머물 수 있는 "정박지" — 섹션별로 하나씩. .cta는 배경이 짙은 --ink라
+  // 같은 ink색 선이 묻혀 보이지 않으므로 의도적으로 제외(그 직전에 opacity 0으로 페이드아웃).
+  const globeSections = heroGlobe ? [
+    { el: hero, host: hero.querySelector(".hero__bgwrap") },
+    { el: whySecEl, host: whySecEl && whySecEl.querySelector(".why__bgwrap") },
+    { el: rankSecEl, host: rankSecEl && rankSecEl.querySelector(".rank__bgwrap") },
+    { el: tpopSecEl, host: tpopSecEl && tpopSecEl.querySelector(".tpop__bgwrap") },
+  ].filter((s) => s.el && s.host) : [];
 
   // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
 
@@ -52,12 +59,23 @@
     // ── 1) 읽기(레이아웃 유발) 모두 먼저 — 쓰기 뒤에 읽으면 강제 동기 레이아웃(thrash)이 남 ──
     const y = window.pageYOffset;
     const vh = window.innerHeight;
+    const vw = window.innerWidth;
     const max = Math.max(1, document.documentElement.scrollHeight - vh);
     const vc = vh / 2;
     const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
     const railH = railEl ? railEl.clientHeight : 0;
     const rankBottom = (railEl && rankSecEl) ? rankSecEl.getBoundingClientRect().bottom : 0;
-    const whyRect = (heroGlobe && whySecEl) ? whySecEl.getBoundingClientRect() : null;
+    // 지구본이 지금 어느 섹션 정박지에 있어야 하는지 — 화면에 걸쳐있는 후보 중 "가장 앞서(아래로)
+    // 진행된" 섹션을 고른다(순서대로 돌면서 걸리는 마지막 걸 채택). "중앙에 가장 가까운" 기준은
+    // hero가 sticky라 떠난 뒤에도 잔여 가시 영역이 커서 why로 안 넘어가고 계속 이기는 문제가
+    // 있었음(히어로 자기 진행률 tl=1로 다 됐는데도 계속 선택됨) — 뒤쪽 섹션이 조금이라도
+    // 걸치면 바로 넘겨주는 이 방식이 섹션 순서를 따라 자연스럽게 핸드오프됨.
+    let globeTarget = null, globeTargetRect = null;
+    for (const s of globeSections) {
+      const r = s.el.getBoundingClientRect();
+      if (r.bottom <= 0 || r.top >= vh) continue;
+      globeTarget = s; globeTargetRect = r;
+    }
 
     // ── 2) 계산 ──
     const target = Math.min(1, Math.max(0, y / max));
@@ -88,23 +106,36 @@
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
     }
-    // 배경 지구본(2026-11-10 2차 조정): position:fixed라 뷰포트 좌표로 계속 움직이고,
-    // hero 구간이 끝나면(sy>=vh) .hero__bgwrap→.why__bgwrap로 실제 appendChild — 각 섹션
-    // 안에서는 그 섹션의 기존 z-index(타이틀/카드가 늘 위)를 그대로 따라가게 둠.
-    // 나선형: 세로 하강 + 좌우 사인파. #why를 다 지나면(tg=1 근방) 페이드아웃하고 .rank부턴 안 보임.
-    if (heroGlobe && heroGlobeHost && whyGlobeHost && whyRect) {
-      const whyAbsBottom = whyRect.bottom + y;
-      const tg = Math.min(1, sy / Math.max(1, whyAbsBottom));
-      const wantInWhy = sy >= vh;
-      if (wantInWhy !== state.globeInWhy) {
-        (wantInWhy ? whyGlobeHost : heroGlobeHost).appendChild(heroGlobe);
-        state.globeInWhy = wantInWhy;
+    // 배경 지구본(2026-11-10 3차 조정): canvas 자체는 position:fixed라 뷰포트 좌표로 계속
+    // 움직이고, 현재 화면 중앙에 가장 가까운 섹션의 정박지(위 globeTarget)로 appendChild —
+    // 그 섹션 기존 z-index(타이틀/카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된
+    // 0→1 진행률(tl)로 매번 새로 "휙 내려오며 좌우로 흔들리는" 스윕을 반복 — 하나의 연속된
+    // "스크롤 지표"처럼 읽히게. 어느 정박지에도 안 걸치면(.cta/.footer 구간) 페이드아웃.
+    if (heroGlobe) {
+      if (globeTarget) {
+        if (state.globeHostEl !== globeTarget.host) {
+          globeTarget.host.appendChild(heroGlobe);
+          state.globeHostEl = globeTarget.host;
+        }
+        const r = globeTargetRect;
+        // .hero는 sticky라 rect가 늘 top:0에 고정돼 있어 일반 공식(섹션이 아래서 올라오는 진행률)이
+        // 안 맞음(처음부터 화면을 꽉 채운 상태로 시작) — 기존 히어로 핀 진행률(sy/vh, 0부터 시작)을
+        // 그대로 씀. 나머지(스크롤에 따라 진짜로 올라오는 섹션)는 rect 기반 진행률.
+        const tl = (globeTarget.el === hero)
+          ? Math.min(1, sy / vh)
+          : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+        const spiralY = tl * vh * 0.8;
+        const spiralX = Math.sin(tl * Math.PI * 2.2) * vw * 0.38;
+        heroGlobe.style.transform = `translate(${spiralX.toFixed(1)}px, ${spiralY.toFixed(1)}px)`;
+        // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
+        // 나머지 섹션은 정박지를 바꿀 때 뚝 끊기지 않도록 진입/이탈 양쪽 다 8%씩 부드럽게.
+        const enterFade = (globeTarget.el === hero) ? 1 : Math.min(1, tl / 0.08);
+        const exitFade = Math.min(1, (1 - tl) / 0.08);
+        const edgeFade = Math.max(0, Math.min(enterFade, exitFade));
+        heroGlobe.style.opacity = (0.3 * edgeFade).toFixed(3);
+      } else {
+        heroGlobe.style.opacity = "0";
       }
-      const spiralY = tg * vh * 0.7;
-      const spiralX = Math.sin(tg * Math.PI * 2.2) * vh * 0.1;
-      heroGlobe.style.transform = `translate(${spiralX.toFixed(1)}px, ${spiralY.toFixed(1)}px)`;
-      const fadeOut = tg > 0.55 ? Math.max(0, 1 - (tg - 0.55) / 0.4) : 1;
-      heroGlobe.style.opacity = (0.18 * fadeOut).toFixed(3);
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);
