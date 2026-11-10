@@ -1,0 +1,173 @@
+/* eslint-disable */
+// 히어로 배경 지구본 — 사용자가 제공한 originkit.dev Globe(React/Three.js) 컴포넌트를 참고해
+// 이 프로젝트(바닐라 JS, React 없음)에 맞게 새로 작성 (2026-11-10).
+// 원본 그대로 포팅하지 않고 이 용도("히어로 카드 뒤 은은한 배경")에 필요한 것만 남겨 단순화:
+//   - 자동 회전만(드래그·호버멈춤·텍스처 채우기 모드 등 상호작용 기능은 뺌 — 배경 장식이라 불필요)
+//   - d3-geo 의존성 제거 — 등장방형(equirectangular) 투영 하나만 쓰므로 직접 계산
+//   - 대륙 윤곽선은 원본의 TubeGeometry(3D 튜브) 대신 단순 LineLoop로 — 작은 배경 지구본에서는
+//     시각 차이가 거의 없고 코드가 훨씬 가벼움
+// 라이트 테마(가뿐 배경은 밝은 아이보리) 대응: 원본은 검은 배경+흰 점 기준이라, 지구본 자체를
+// 반투명한 "윤곽선+점"으로만 그리고(구체 표면 채움 없음) 브랜드 색상(--ink/--accent)을 입힘.
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+
+(async function () {
+  "use strict";
+  const container = document.querySelector("[data-hero-globe]");
+  if (!container) return;
+  // 모바일(1열 레이아웃)은 배경으로 깔 공간이 없고 WebGL 비용도 큼 — css(.hero__bgwrap)에서도
+  // 900px 이하는 숨기지만, 그 폭에서 아예 초기화(fetch·렌더러 생성)조차 안 하도록 js에서도 가드.
+  if (window.innerWidth < 901) return;
+  if (!window.WebGLRenderingContext) return;
+
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const cs = getComputedStyle(document.documentElement);
+  const inkColor = (cs.getPropertyValue("--ink") || "#1E293B").trim();
+  const accentColor = (cs.getPropertyValue("--accent") || "#E76F51").trim();
+  const borderColor = (cs.getPropertyValue("--border") || "#E2E8F0").trim();
+
+  // 자체 호스팅 간소화 지형 데이터(원본 2.7MB geojson을 섬 제거·좌표 반올림으로 85KB까지 축소,
+  // 자세한 내용은 design.md 2026-11-10 항목 참고) — [[lng,lat], ...] 링(ring) 배열.
+  let landRings;
+  try {
+    const res = await fetch("js/worldLand.json");
+    landRings = await res.json();
+  } catch (_) {
+    return; // 배경 장식일 뿐 페이지 기능과 무관 — 못 받으면 조용히 생략
+  }
+  if (!landRings || !landRings.length) return;
+
+  function latLngToVec3(lat, lng, radius) {
+    const latRad = (lat * Math.PI) / 180;
+    const lngRad = (lng * Math.PI) / 180;
+    return new THREE.Vector3(
+      Math.cos(latRad) * Math.sin(lngRad) * radius,
+      Math.sin(latRad) * radius,
+      Math.cos(latRad) * Math.cos(lngRad) * radius
+    );
+  }
+
+  // ---- 육지 판별용 래스터 마스크(등장방형 투영) — d3 없이 직접 그림 ----
+  const maskW = 720, maskH = 360;
+  const maskCanvas = document.createElement("canvas");
+  maskCanvas.width = maskW;
+  maskCanvas.height = maskH;
+  const mctx = maskCanvas.getContext("2d");
+  mctx.fillStyle = "#fff";
+  landRings.forEach((ring) => {
+    mctx.beginPath();
+    ring.forEach(([lng, lat], i) => {
+      const x = ((lng + 180) / 360) * maskW;
+      const y = ((90 - lat) / 180) * maskH;
+      if (i === 0) mctx.moveTo(x, y);
+      else mctx.lineTo(x, y);
+    });
+    mctx.closePath();
+    mctx.fill();
+  });
+  const maskData = mctx.getImageData(0, 0, maskW, maskH).data;
+  function isOnLand(lng, lat) {
+    let x = Math.round(((lng + 180) / 360) * maskW) % maskW;
+    if (x < 0) x += maskW;
+    const y = Math.max(0, Math.min(maskH - 1, Math.round(((90 - lat) / 180) * maskH)));
+    return maskData[(y * maskW + x) * 4 + 3] > 10;
+  }
+
+  // ---- Three.js 장면 ----
+  const radius = 1;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(0, 0, 2.85);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
+
+  const globeGroup = new THREE.Group();
+  scene.add(globeGroup);
+
+  // 대륙 점(잉크 톤, 은은하게)
+  const dotCoords = [];
+  const step = 3.4;
+  for (let lat = -82; lat <= 82; lat += step) {
+    const cosLat = Math.max(0.12, Math.cos((lat * Math.PI) / 180));
+    const lngStep = step / cosLat;
+    for (let lng = -180; lng < 180; lng += lngStep) {
+      if (isOnLand(lng, lat)) dotCoords.push([lng, lat]);
+    }
+  }
+  if (dotCoords.length) {
+    const dotGeom = new THREE.SphereGeometry(0.009, 4, 4);
+    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.4 });
+    const dots = new THREE.InstancedMesh(dotGeom, dotMat, dotCoords.length);
+    const m = new THREE.Matrix4();
+    dotCoords.forEach(([lng, lat], i) => {
+      const p = latLngToVec3(lat, lng, radius);
+      m.setPosition(p.x, p.y, p.z);
+      dots.setMatrixAt(i, m);
+    });
+    dots.instanceMatrix.needsUpdate = true;
+    globeGroup.add(dots);
+  }
+
+  // 위도/경도 그리드(아주 옅게, 구체의 입체감만 더함)
+  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(borderColor), transparent: true, opacity: 0.55 });
+  function addGraticuleLine(points) {
+    const geom = new THREE.BufferGeometry().setFromPoints(points);
+    globeGroup.add(new THREE.LineLoop(geom, graticuleMat));
+  }
+  for (let lat = -60; lat <= 60; lat += 30) {
+    const pts = [];
+    for (let i = 0; i <= 64; i++) pts.push(latLngToVec3(lat, (i / 64) * 360 - 180, radius));
+    addGraticuleLine(pts);
+  }
+  for (let lng = -150; lng < 180; lng += 30) {
+    const pts = [];
+    for (let i = 0; i <= 64; i++) pts.push(latLngToVec3((i / 64) * 180 - 90, lng, radius));
+    addGraticuleLine(pts);
+  }
+
+  // 외곽 테두리(구체 실루엣) — 아주 옅게
+  const rimPts = [];
+  for (let i = 0; i <= 128; i++) {
+    const a = (i / 128) * Math.PI * 2;
+    rimPts.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0));
+  }
+  globeGroup.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rimPts), new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.18 })));
+
+  // 포인트컬러(테라코타) 마커 — "오늘의 추천"(현재 히어로 카드 기준 일본) + 출발지(서울)를 짚어줌.
+  const markerPositions = [
+    { lat: 35.68, lng: 139.69 }, // Tokyo
+    { lat: 37.57, lng: 126.98 }, // Seoul
+  ];
+  const markerMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(accentColor) });
+  const markerGlowMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(accentColor), transparent: true, opacity: 0.25 });
+  markerPositions.forEach(({ lat, lng }) => {
+    const p = latLngToVec3(lat, lng, radius * 1.018);
+    const marker = new THREE.Mesh(new THREE.SphereGeometry(0.034, 16, 16), markerMat);
+    marker.position.copy(p);
+    globeGroup.add(marker);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.062, 16, 16), markerGlowMat);
+    glow.position.copy(p);
+    globeGroup.add(glow);
+  });
+
+  globeGroup.rotation.y = -0.5;
+  globeGroup.rotation.x = 0.32;
+
+  function resize() {
+    const w = container.clientWidth || 1;
+    const h = container.clientHeight || 1;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+  resize();
+  window.addEventListener("resize", resize);
+
+  const rotSpeed = prefersReduced ? 0 : 0.0017;
+  function tick() {
+    requestAnimationFrame(tick);
+    globeGroup.rotation.y += rotSpeed;
+    renderer.render(scene, camera);
+  }
+  tick();
+})();

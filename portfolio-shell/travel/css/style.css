@@ -220,6 +220,17 @@ ul, ol { list-style: none; padding: 0; }
 /* 2026-10-22: eyebrow 삭제로 타이틀이 칼럼 첫 요소가 되면서 보정 필요 없어짐(구 39px → 0) —
    align-items:flex-start만으로 카드 상단이 이제 타이틀 시작선과 바로 맞음(§7 .hero__grid 주석 참고). */
 .hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
+/* 2026-11-10 — 히어로 배경 지구본(originkit Globe 참고 컴포넌트를 vanilla+라이트테마로 재구성,
+   js/globe.js). .hero__grid(z-index:10)보다 낮은 z-index라 타이틀·카드 뒤에 자연스럽게 깔림.
+   .hero__grid와 같은 1200px 중앙 정렬 기준으로 위치를 맞춰, 넓은 화면에서도 카드(2번째 칼럼)
+   뒤쪽에 오도록(.hero 전체 폭 기준으로 잡으면 와이드 화면에서 카드와 멀어짐). 모바일(1열
+   레이아웃)에서는 숨김 — 배경으로 깔 여유 공간이 없고 WebGL 비용도 아낌. */
+.hero__bgwrap { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.hero__bgwrap__inner { position: relative; max-width: 1200px; height: 100%; margin: 0 auto; padding: 0 24px; }
+.hero__globe { position: absolute; top: 50%; right: 0; width: min(640px, 50%); aspect-ratio: 1; transform: translateY(-52%); opacity: .85; }
+.hero__globe canvas { display: block; width: 100%; height: 100%; }
+@media (max-width: 1150px) { .hero__globe { width: min(560px, 55%); } }
+@media (max-width: 900px) { .hero__bgwrap { display: none; } }
 /* 2026-10-21: "SCROLL ↓" 문구 대신 1px 세로선이 아래로 흐르는 미니멀 애니메이션으로 교체(지침서 —
    포트폴리오에 문구형 스크롤 유도는 투머치하다는 지적). 장식용이라 index.html에서 aria-hidden 처리. */
 .hero__scroll { position: absolute; z-index: 10; bottom: 36px; left: 50%; transform: translateX(-50%);
