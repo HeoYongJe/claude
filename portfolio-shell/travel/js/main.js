@@ -83,9 +83,10 @@
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
-      // 배경 지구본: 전경(heroInner, -60px)보다 느리게 움직여 패럴럭스 깊이감 — 스크롤마다
-      // 위치가 스르륵 바뀌며 "진짜 배경" 느낌을 냄(2026-11-10, 사용자 요청).
-      if (heroGlobe) heroGlobe.style.transform = `translate(-50%, calc(-50% + ${(t * -28).toFixed(1)}px))`;
+      // 배경 지구본: 우측 상단에 있다가 스크롤하면 크리스마스 트리 장식처럼 화면 안에서 아래로
+      // 흘러내려가는 느낌(2026-11-10 디테일 조정) — 전경 텍스트(heroInner)는 반대로 위로
+      // 사라지는 것과 대비. vh 비례라 화면 크기 달라져도 "내려가는 정도"가 비슷하게 느껴짐.
+      if (heroGlobe) heroGlobe.style.transform = `translateY(${(t * vh * 0.45).toFixed(1)}px)`;
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);

@@ -23,7 +23,6 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const cs = getComputedStyle(document.documentElement);
   const inkColor = (cs.getPropertyValue("--ink") || "#1E293B").trim();
   const accentColor = (cs.getPropertyValue("--accent") || "#E76F51").trim();
-  const borderColor = (cs.getPropertyValue("--border") || "#E2E8F0").trim();
 
   // 자체 호스팅 간소화 지형 데이터(원본 2.7MB geojson을 섬 제거·좌표 반올림으로 85KB까지 축소,
   // 자세한 내용은 design.md 2026-11-10 항목 참고) — [[lng,lat], ...] 링(ring) 배열.
@@ -96,7 +95,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   }
   if (dotCoords.length) {
     const dotGeom = new THREE.SphereGeometry(0.009, 4, 4);
-    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.4 });
+    // 2026-11-10 디테일 조정: 점은 더 옅게(그리드 선을 더 살리기 위해 상대적으로 낮춤)
+    const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.22 });
     const dots = new THREE.InstancedMesh(dotGeom, dotMat, dotCoords.length);
     const m = new THREE.Matrix4();
     dotCoords.forEach(([lng, lat], i) => {
@@ -108,8 +108,11 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     globeGroup.add(dots);
   }
 
-  // 위도/경도 그리드(아주 옅게, 구체의 입체감만 더함)
-  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(borderColor), transparent: true, opacity: 0.55 });
+  // 위도/경도 그리드 — 구체 형태를 실제로 드러내는 핵심 요소라 점보다 뚜렷하게.
+  // 2026-11-10: "구체모형이 떨어진다(안 보인다)"는 피드백 — border색(아주 연한 회색)은 에어
+  // 오트밀 배경과 명도 대비가 거의 없어 opacity를 올려도 안 보였음(색 자체의 문제) → ink색으로
+  // 교체하고 opacity도 올림.
+  const graticuleMat = new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.85 });
   function addGraticuleLine(points) {
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     globeGroup.add(new THREE.LineLoop(geom, graticuleMat));
