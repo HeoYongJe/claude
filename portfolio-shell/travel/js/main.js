@@ -23,7 +23,10 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  const state = { rmode: "strong", sm: 0, globeHostEl: null, globeX: 0, globeY: 0, globeOp: 0 };
+  // globeX/Y는 null로 시작(=아직 자리 안 잡힘 표시) — 0으로 두면 "화면 좌상단 모서리"가 되어
+  // 첫 목표 위치(타이틀 뒤)까지 easing으로 스르륵 미끄러져 들어가는 의도치 않은 "입장 애니메이션"
+  // 이 생김(2026-11-10 8차, 사용자 지적). 첫 프레임엔 easing 없이 바로 목표 위치에 꽂아야 함.
+  const state = { rmode: "strong", sm: 0, globeHostEl: null, globeX: null, globeY: null, globeOp: 0 };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
@@ -194,8 +197,15 @@
       }
       const EASE_POS = 0.025;
       const EASE_OP = 0.12;
-      state.globeX += (targetX - state.globeX) * EASE_POS;
-      state.globeY += (targetY - state.globeY) * EASE_POS;
+      if (state.globeX === null) {
+        // 첫 프레임 — easing 없이 바로 목표 위치에 꽂아서 "모서리에서 미끄러져 들어오는" 입장
+        // 애니메이션이 생기지 않게 함(이후부터는 정상적으로 easing 적용).
+        state.globeX = targetX;
+        state.globeY = targetY;
+      } else {
+        state.globeX += (targetX - state.globeX) * EASE_POS;
+        state.globeY += (targetY - state.globeY) * EASE_POS;
+      }
       state.globeOp += (targetOp - state.globeOp) * EASE_OP;
       heroGlobe.style.transform = `translate(${state.globeX.toFixed(1)}px, ${state.globeY.toFixed(1)}px)`;
       heroGlobe.style.opacity = state.globeOp.toFixed(3);
