@@ -1,8 +1,10 @@
 /* eslint-disable */
-// 히어로 "GAPPUN" 배경 워터마크 — originkit RandomLetterSwap 컴포넌트를 바닐라 JS로 포팅
-// (2026-11-10). 마우스를 올리면 글자가 무작위 순서로 세로로 swap, 떼면 역순으로 되돌아감
-// (원본 "pingpong" 모드). 텍스트 색상·크기는 기존 .hero__watermark 규칙을 그대로 두고(요청:
-// "컬러 사이즈 건들지말고") 글자별 span 구조 + 애니메이션만 새로 추가.
+// "GAPPUN" 배경 워터마크 — originkit RandomLetterSwap 컴포넌트를 바닐라 JS로 포팅
+// (2026-11-10, 9차에 히어로→#why 하단으로 위치 이동: .hero__watermark → .why__watermark).
+// 마우스를 올리면 글자가 무작위 순서로 세로로 swap, 떼면 역순으로 되돌아감(원본 "pingpong" 모드).
+// 텍스트 색상·크기는 기존 워터마크 규칙을 그대로 두고(요청: "컬러 사이즈 건들지말고") 글자별
+// span 구조 + 애니메이션만 새로 추가. 이 스크립트는 `[data-letter-swap]` 속성만 보므로 마크업이
+// 어느 섹션에 있든 그대로 동작(셀렉터 변경 불필요).
 // framer-motion 의존 없이 CSS transition + transitionDelay(글자별 스태거)로 동일한 효과를 냄.
 (function () {
   "use strict";

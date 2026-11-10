@@ -23,10 +23,7 @@
   // 도시 이미지: 위키백과에서 자동 수집(tools/fetch-city-images.js → js/cityImages.js).
   const CITY_IMG = (typeof CITY_IMAGES !== "undefined") ? CITY_IMAGES : {};
 
-  // globeX/Y는 null로 시작(=아직 자리 안 잡힘 표시) — 0으로 두면 "화면 좌상단 모서리"가 되어
-  // 첫 목표 위치(타이틀 뒤)까지 easing으로 스르륵 미끄러져 들어가는 의도치 않은 "입장 애니메이션"
-  // 이 생김(2026-11-10 8차, 사용자 지적). 첫 프레임엔 easing 없이 바로 목표 위치에 꽂아야 함.
-  const state = { rmode: "strong", sm: 0, globeHostEl: null, globeX: null, globeY: null, globeOp: 0 };
+  const state = { rmode: "strong", sm: 0 };
 
   const isLocalDev = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = isLocalDev ? "" : "https://travel-lyart-five.vercel.app";
@@ -37,72 +34,29 @@
   const hero = root.querySelector(".t-hero");
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
-  const heroGlobe = hero && hero.querySelector("[data-hero-globe]");
-  const heroTitleEl = hero && hero.querySelector(".hero__title");
-  const whySecEl = document.getElementById("why");
-  const tpopSecEl = document.querySelector(".t-pop");
   const navEl = document.querySelector(".nav");
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
   const planeWrap = root.querySelector(".t-planewrap");
   const rankSecEl = document.getElementById("rank");
   const railLen = 784;
-  // 배경 지구본이 머물 수 있는 "정박지" — 섹션별로 하나씩. .cta는 배경이 짙은 --ink라
-  // 같은 ink색 선이 묻혀 보이지 않으므로 의도적으로 제외(그 직전에 opacity 0으로 페이드아웃).
-  const globeSections = heroGlobe ? [
-    { el: hero, host: hero.querySelector(".hero__bgwrap") },
-    { el: whySecEl, host: whySecEl && whySecEl.querySelector(".why__bgwrap") },
-    { el: rankSecEl, host: rankSecEl && rankSecEl.querySelector(".rank__bgwrap") },
-    { el: tpopSecEl, host: tpopSecEl && tpopSecEl.querySelector(".tpop__bgwrap") },
-  ].filter((s) => s.el && s.host) : [];
 
   // 트레일은 CSS 점선(dasharray) + 아래→위로 y2를 늘려 채운다(아래 render 루프).
-
-  // 지구본 시작 앵커(2026-11-10 6차/7차): "-5vw 같은 vw% 어림짐작"이 뷰포트 폭에 따라 타이틀과
-  // 어긋나던 문제를 없애려고, 타이틀 첫 줄("지금 원화로") 실제 DOM 좌표를 런타임에 직접
-  // 측정해서 그 좌표를 기준으로 지구본 시작 위치를 잡는다.
-  // ⚠️ 7차: 6차는 "스크롤 맨 위일 때 딱 한 번만 측정하고 캐싱"했는데, 이게 실제 배포 환경에서
-  // 웹폰트(Pretendard, CDN)가 아직 로드되기 전에 먼저 실행돼 폴백 폰트 기준 좌표를 캐싱해버리고,
-  // 폰트가 나중에 로드돼 줄 위치가 바뀌어도 다시 재는 계기가 없어 어긋났을 가능성이 큼(로컬
-  // 테스트는 폰트가 이미 캐시돼 있어 재현이 안 됐던 것으로 추정). → 캐싱을 없애고, 스크롤
-  // 맨 위에 있는 동안은 **매 프레임 계속 다시 측정**(비용이 거의 없는 Range 호출이라 괜찮음) —
-  // 폰트가 언제 로드되든 다음 프레임에 바로 정확한 좌표로 갱신됨. 스크롤이 시작되면(히어로가
-  // 변형되기 시작하면) 그 시점의 마지막 값을 그대로 고정.
-  let titleAnchor = null;
-  const ensureTitleAnchor = () => {
-    if (!heroTitleEl || window.pageYOffset > 2) return;
-    const firstLine = heroTitleEl.childNodes[0];
-    if (!firstLine) return;
-    const range = document.createRange();
-    range.selectNodeContents(firstLine);
-    const r = range.getClientRects()[0];
-    if (!r || !r.width) return;
-    titleAnchor = { left: r.left, top: r.top };
-  };
+  // 배경 지구본(2026-11-10 9차)은 이제 히어로 하단에 반만 걸치는 고정 장식이라(원점: originkit
+  // "Globe" 랜드마스크 버전으로 교체, js/globe.js) 스크롤 추적·섹션 핸드오프가 필요 없어짐 —
+  // 관련 로직(정박지 전환·타이틀 앵커 실측·좌우 진자 스윙) 전부 제거. 위치/회전/페이드 전부
+  // js/globe.js 안에서 CSS+자체 렌더 루프로 처리.
 
   // ---- 연속 이징 렌더 루프(관성 스크롤 느낌) ----
   const render = () => {
     // ── 1) 읽기(레이아웃 유발) 모두 먼저 — 쓰기 뒤에 읽으면 강제 동기 레이아웃(thrash)이 남 ──
-    ensureTitleAnchor();
     const y = window.pageYOffset;
     const vh = window.innerHeight;
-    const vw = window.innerWidth;
     const max = Math.max(1, document.documentElement.scrollHeight - vh);
     const vc = vh / 2;
     const offs = layers.map((l) => { const r = l.getBoundingClientRect(); return r.top + r.height / 2 - vc; });
     const railH = railEl ? railEl.clientHeight : 0;
     const rankBottom = (railEl && rankSecEl) ? rankSecEl.getBoundingClientRect().bottom : 0;
-    // 지구본이 지금 어느 섹션 정박지에 있어야 하는지 — 화면에 걸쳐있는 후보 중 "가장 앞서(아래로)
-    // 진행된" 섹션을 고른다(순서대로 돌면서 걸리는 마지막 걸 채택). "중앙에 가장 가까운" 기준은
-    // hero가 sticky라 떠난 뒤에도 잔여 가시 영역이 커서 why로 안 넘어가고 계속 이기는 문제가
-    // 있었음(히어로 자기 진행률 tl=1로 다 됐는데도 계속 선택됨) — 뒤쪽 섹션이 조금이라도
-    // 걸치면 바로 넘겨주는 이 방식이 섹션 순서를 따라 자연스럽게 핸드오프됨.
-    let globeTarget = null, globeTargetRect = null;
-    for (const s of globeSections) {
-      const r = s.el.getBoundingClientRect();
-      if (r.bottom <= 0 || r.top >= vh) continue;
-      globeTarget = s; globeTargetRect = r;
-    }
 
     // ── 2) 계산 ──
     const target = Math.min(1, Math.max(0, y / max));
@@ -132,83 +86,6 @@
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
-    }
-    // 배경 지구본(2026-11-10 5차): canvas 자체는 position:fixed라 뷰포트 좌표로 계속 움직이고,
-    // 화면에 걸친 섹션의 정박지(위 globeTarget)로 appendChild — 그 섹션 기존 z-index(타이틀/
-    // 카드가 늘 위) 안에 자연스럽게 편입됨. 섹션마다 독립된 0→1 진행률(tl)로 "천천히 내려오며
-    // 살짝 좌우로 흔들리는" 움직임을 만듦.
-    // ⚠️ "스크롤이 너무 빠르다" 피드백 — 위치(POS)와 투명도(OP)의 보간 속도를 분리:
-    //   위치는 아주 느리게(EASE_POS) 쫓아가게 해서 움직임 자체가 차분해지고,
-    //   투명도는 더 빠르게(EASE_OP) 목표를 따라가게 해서 짧은 섹션을 빠르게 지나가도
-    //   "있는데 안 보이는" 상태가 안 생기게 함(실측: 빠른 스크롤 시뮬레이션으로 #why 구간
-    //   내내 opacity가 0.5대를 유지하는 것 확인, 2026-11-10).
-    // ⚠️ "#why에서 안 보인다" 재확인 — 실제로는 opacity·위치·정박지 모두 정상이었지만, 케이지가
-    //   자체 회전(spin)하면서 카메라를 향한 면적이 시시각각 달라져(같은 스크롤 위치에서 3초
-    //   간격 스크린샷을 비교해 눈으로 확인) 어떤 순간엔 선이 거의 안 보일 만큼 옅어짐 — 구조적
-    //   버그는 아니지만 체감상 "안 보인다"는 피드백이 나올 만큼 기준선 자체가 약했던 것.
-    //   → netGlow(케이지 밝기)와 기준 opacity를 올려 "얇아지는 순간"에도 어느 정도 보이게 함.
-    // ⚠️ 6차 — "시작점이 타이틀 끝에 박혀있다 / 좌우 스윙이 한쪽에서만 왔다갔다한다" 재지적:
-    //   기존엔 CSS top:11vh;left:-5vw(화면 왼쪽 끝 고정)에 아주 작은 transform(최대 ±vw*0.22)만
-    //   더하는 구조라, 그 작은 보정폭이 화면 왼쪽 끝 "그 자리"에서만 흔들려 타이틀과도 안 맞고
-    //   화면 오른쪽까지 닿지도 못했음. CSS는 top:0;left:0으로 바꾸고, JS가 transform으로
-    //   "뷰포트 절대좌표"를 직접 계산 — 시작(leftBound)은 위에서 실측한 타이틀 좌표, 끝
-    //   (rightBound)은 화면 오른쪽 끝 근처로 잡아 진짜 화면 전체 폭을 오가게 함.
-    if (heroGlobe) {
-      let targetX = state.globeX, targetY = state.globeY, targetOp = 0;
-      if (globeTarget) {
-        if (state.globeHostEl !== globeTarget.host) {
-          globeTarget.host.appendChild(heroGlobe);
-          state.globeHostEl = globeTarget.host;
-        }
-        const r = globeTargetRect;
-        // .hero는 sticky라 rect가 늘 top:0에 고정돼 있어 일반 공식(섹션이 아래서 올라오는 진행률)이
-        // 안 맞음(처음부터 화면을 꽉 채운 상태로 시작) — 기존 히어로 핀 진행률(sy/vh, 0부터 시작)을
-        // 그대로 씀. 나머지(스크롤에 따라 진짜로 올라오는 섹션)는 rect 기반 진행률.
-        const tl = (globeTarget.el === hero)
-          ? Math.min(1, sy / vh)
-          : Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
-        const gw = heroGlobe.offsetWidth || 660;
-        const gh = heroGlobe.offsetHeight || gw;
-        // leftBound: "지금 원화로" 시작점에 케이지가 절반쯤 걸치는 자리(실측 기반) — 7차:
-        // 0.28배였던 걸 0.66배로 늘림. gw(660px)가 텍스트 폭(333px)보다 커서 0.28배로는 공이
-        // 텍스트 전체를 통째로 삼켜버려(136~611px vs 텍스트 136~469px) "걸쳐서"가 아니라
-        // "완전히 뒤덮음"이 됐었음 — 0.66배를 쓰면 공 오른쪽 끝이 텍스트 중간쯤(약 360px)에
-        // 걸려 절반만 겹치는 진짜 "걸쳐진" 모양이 됨.
-        // 아직 측정 전(리사이즈 직후 1프레임 등)이면 대략값으로 대체.
-        const leftBound = titleAnchor ? (titleAnchor.left - gw * 0.66) : -gw * 0.5;
-        const topAnchor = titleAnchor ? (titleAnchor.top - gh * 0.18) : vh * 0.11;
-        const rightBound = vw - gw * 0.72; // 화면 오른쪽 끝 쪽으로(살짝 걸치며 피크)
-        // ⚠️ 7차 — "스크롤 조금만 해도 벌써 왼쪽으로 되돌아간다" 재지적: 기존엔 섹션별 진행률
-        // (tl, 0→1)로 진자를 돌려서 "섹션 하나 체류하는 동안 왕복 2회"였는데, 히어로 한 구간
-        // (뷰포트 높이 1개 분량 스크롤)만으로도 왕복이 다 끝나버려 "오른쪽으로 가나 싶더니 금방
-        // 왼쪽으로 되돌아간다"로 느껴졌음. → 섹션별 tl이 아니라 **페이지 전체 스크롤 진행률
-        // (gp, 0→1)**로 갈아끼움 — 전체 스크롤 여정에 걸쳐 천천히 한 방향으로 진행되다가 훨씬
-        // 나중에야(여러 섹션 지난 뒤) 되돌아옴. 세로 하강(targetY)은 기존처럼 섹션별 tl 유지
-        // (섹션 진입마다 다시 위에서부터 천천히 내려오는 느낌은 그대로 두는 게 맞다고 판단).
-        const GLOBAL_SWING_CYCLES = 1.15;
-        const swing = (1 - Math.cos(gp * Math.PI * GLOBAL_SWING_CYCLES)) / 2;
-        targetX = leftBound + (rightBound - leftBound) * swing;
-        targetY = topAnchor + tl * vh * 0.55;
-        // hero는 로드 직후부터 바로 보여야 하므로 진입 페이드 생략(처음 섹션이라 "들어오는" 게 아님),
-        // 나머지 섹션은 정박지를 바꿀 때 뚝 끊기지 않도록 진입/이탈 양쪽 다 8%씩 부드럽게.
-        const enterFade = (globeTarget.el === hero) ? 1 : Math.min(1, tl / 0.08);
-        const exitFade = Math.min(1, (1 - tl) / 0.08);
-        targetOp = 0.62 * Math.max(0, Math.min(enterFade, exitFade));
-      }
-      const EASE_POS = 0.025;
-      const EASE_OP = 0.12;
-      if (state.globeX === null) {
-        // 첫 프레임 — easing 없이 바로 목표 위치에 꽂아서 "모서리에서 미끄러져 들어오는" 입장
-        // 애니메이션이 생기지 않게 함(이후부터는 정상적으로 easing 적용).
-        state.globeX = targetX;
-        state.globeY = targetY;
-      } else {
-        state.globeX += (targetX - state.globeX) * EASE_POS;
-        state.globeY += (targetY - state.globeY) * EASE_POS;
-      }
-      state.globeOp += (targetOp - state.globeOp) * EASE_OP;
-      heroGlobe.style.transform = `translate(${state.globeX.toFixed(1)}px, ${state.globeY.toFixed(1)}px)`;
-      heroGlobe.style.opacity = state.globeOp.toFixed(3);
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);

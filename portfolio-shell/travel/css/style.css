@@ -195,21 +195,6 @@ ul, ol { list-style: none; padding: 0; }
    전부 불투명 배경이라 덮인 뒤로는 안 보임) — position:sticky는 문서 흐름을 그대로 유지해 레이아웃엔 영향 없음. */
 .hero { position: sticky; top: 0; z-index: 0; min-height: 100vh; display: flex; align-items: center; overflow: hidden; background: var(--bg); }
 .hero { min-height: 100svh; }   /* 지원 브라우저: 주소창 수축 시 레이아웃 점프 제거 */
-/* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 배경 맨 아래쪽에 깔아 질감만 더함(메인 텍스트·카드 시선 방해 금지) */
-.hero__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
-  margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
-  color: #1E293B; opacity: .025; white-space: nowrap; user-select: none; }
-/* 2026-11-10 — originkit RandomLetterSwap 포팅(js/heroWatermarkSwap.js): 호버 시 글자가
-   무작위 순서로 세로로 swap. 색상·크기는 위 규칙 그대로 두고(요청: "컬러 사이즈 건들지말고"),
-   호버가 실제로 걸리려면 pointer-events가 none이면 안 되므로(기존 none → auto) 그 부분만
-   기능상 필요해서 변경. 글자별 span 구조·애니메이션은 아래에서 전부 새로 추가. */
-.hero__watermark { pointer-events: auto; }
-.hero__watermark .wm-letter { position: relative; display: inline-block; overflow: hidden; }
-.hero__watermark .wm-letter--space { width: 0.3em; }
-.hero__watermark .wm-letter-primary,
-.hero__watermark .wm-letter-secondary { display: block; transition: transform .55s cubic-bezier(.34,1.56,.64,1); padding-bottom: .08em; }
-.hero__watermark .wm-letter-primary { transform: translateY(0); }
-.hero__watermark .wm-letter-secondary { position: absolute; left: 0; top: 0; transform: translateY(100%); }
 /* align-items:flex-start(2026-10-21, 구 center) — 카드 상단을 타이틀("지금 원화로") 시작선에 맞춤.
    카드 쪽 margin-top(.hero__cardwrap)으로 eyebrow 배지 높이만큼 내려서 맞춘다(아래 주석 참고). */
 .hero__grid { position: relative; z-index: 10; max-width: 1200px; margin: 0 auto; padding: 0px 24px 132px 24px; width: 100%; display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: flex-start; }
@@ -231,33 +216,23 @@ ul, ol { list-style: none; padding: 0; }
 /* 2026-10-22: eyebrow 삭제로 타이틀이 칼럼 첫 요소가 되면서 보정 필요 없어짐(구 39px → 0) —
    align-items:flex-start만으로 카드 상단이 이제 타이틀 시작선과 바로 맞음(§7 .hero__grid 주석 참고). */
 .hero__cardwrap { animation: t-float 6s ease-in-out infinite; }
-/* 히어로 배경 지구본(originkit Globe 컴포넌트 전체 포팅, js/globe.js — 2026-11-10 4차).
-   모바일(1열 레이아웃)에서는 숨김 — 배경으로 깔 여유 공간이 없고 WebGL 비용도 아낌.
-   ⚠️ 2026-11-10 4차 — "지도(구체) 모양이 안 보이니 의미없다"는 피드백으로 위경도 랜드마스크
-   방식을 버리고 originkit 원본(Fibonacci 점구체+정이십면체 와이어프레임 케이지)을 그대로
-   포팅 — 케이지 실루엣 자체가 뚜렷한 "구" 모양을 만들어주므로 더 이상 mask-image로 가장자리를
-   죽이지 않음(그러면 실루엣이 다시 흐려짐 — 이전 조정과 정반대 방향).
-   - 정박지(__bgwrap)는 .hero/.why/.rank/.t-pop 네 곳, main.js가 스크롤에 따라 appendChild로
-     옮김(이 페이지엔 .cta 섹션 자체가 없음).
-   - canvas 엘리먼트(.hero__globe) 자체는 position:fixed — 뷰포트 기준 좌표라 어느 정박지에
-     있어도 화면상 위치는 js가 매 프레임 계산. 목표 위치를 바로 대입하지 않고 매 프레임
-     살짝씩 보간(lerp)해 "UFO처럼 휙휙" 끊기던 걸 부드럽게 수정.
-   - canvas 자체는 pointer-events:auto로 드래그 회전(원본 기능) 가능 — 래퍼(__bgwrap)는
-     pointer-events:none이라 그 위에 깔린 타이틀·카드·버튼 클릭은 그대로 그쪽이 받음(같은
-     픽셀에서 더 위 z-index가 항상 먼저 맞으므로 충돌 없음).
-   - opacity·transform은 전부 main.js가 매 프레임 설정(여기 CSS 값은 JS 로드 전 초기값일 뿐). */
-.hero__bgwrap, .why__bgwrap, .rank__bgwrap, .tpop__bgwrap { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.hero__bgwrap { z-index: 1; }
+/* 히어로 배경 지구본(originkit "Globe" 랜드마스크 버전 포팅, js/globe.js — 2026-11-10 9차).
+   이전(4~8차)엔 originkit "Globe Mesh"(케이지+shimmer)를 스크롤 따라 hero→why→rank→t-pop
+   네 섹션을 오가는 복잡한 구조였는데, 반복된 위치/방향 어긋남 피드백 끝에 사용자가 레이아웃
+   참고 이미지와 함께 "히어로 하단에 반만 걸치는 고정 장식, 좌우 회전만"으로 단순화 요청 —
+   스크롤 추적·정박지 전환·타이틀 앵커 실측이 전부 필요 없어져 **순수 CSS로 고정 배치**만 하면
+   됨(위치를 따라다니게 하려고 JS가 매 프레임 transform을 계산하던 것 전부 제거, main.js도
+   정리). 모바일(1열 레이아웃)에서는 숨김 — 배경으로 깔 여유 공간이 없고 WebGL 비용도 아낌.
+   케이지+shimmer 버전으로 되돌리려면 git 태그 `가뿐_지구본_케이지버전_백업_20261110` 참고. */
+.hero__bgwrap { position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
 .hero__globe {
-  /* 2026-11-10 6차: top/left를 vw% 어림값으로 고정하던 걸 그만두고 0/0으로 비움 — 실제 위치는
-     main.js가 타이틀("지금 원화로") 실측 좌표 기준으로 transform(translate)만으로 전부 계산.
-     (vw% 고정값은 뷰포트 폭이 커지면 타이틀과 어긋나고, 화면 왼쪽 끝에 박혀 좌우 스윙도
-     그 근처에서만 작게 흔들리는 문제가 있었음.) */
-  position: fixed; top: 0; left: 0; width: min(660px, 60vw); aspect-ratio: 1;
-  opacity: 0; will-change: transform, opacity; pointer-events: none;
+  /* 히어로 섹션 하단 가운데에 중심을 맞추고, 자기 높이의 46%만큼 아래로 밀어 "절반만 걸치게"
+     — 나머지 절반은 .hero/.hero__bgwrap의 overflow:hidden에 의해 잘림(별도 마스킹 불필요). */
+  position: absolute; left: 50%; bottom: 0; width: min(900px, 86vw); aspect-ratio: 1;
+  transform: translate(-50%, 46%); pointer-events: none;
 }
-.hero__globe canvas { display: block; width: 100%; height: 100%; pointer-events: auto; }
-@media (max-width: 900px) { .hero__bgwrap, .why__bgwrap, .rank__bgwrap, .tpop__bgwrap { display: none; } }
+.hero__globe canvas { display: block; width: 100%; height: 100%; }
+@media (max-width: 900px) { .hero__bgwrap { display: none; } }
 /* 2026-10-21: "SCROLL ↓" 문구 대신 1px 세로선이 아래로 흐르는 미니멀 애니메이션으로 교체(지침서 —
    포트폴리오에 문구형 스크롤 유도는 투머치하다는 지적). 장식용이라 index.html에서 aria-hidden 처리. */
 .hero__scroll { position: absolute; z-index: 10; bottom: 36px; left: 50%; transform: translateX(-50%);
@@ -462,9 +437,25 @@ ul, ol { list-style: none; padding: 0; }
 
 /* ---- WHY (서비스 소개) ---- */
 /* position+z-index로 sticky 히어로 위를 확실히 덮도록 명시(2026-10-21, 위 .hero 주석 참고) */
-.why { position: relative; z-index: 1; padding: 132px 0; background: #FFFFFF; }
+/* 2026-11-10 9차: 하단 padding을 "18vw(워터마크 폰트 크기) + 110px" 공식으로 늘림 — 아래
+   .why__watermark(구 .hero__watermark, 히어로에서 이리로 이동)가 카드 그리드와 안 겹치게
+   폰트 크기에 비례해서 여유 공간을 띄워주는 것. 고정 px이 아니라 calc()로 묶은 이유는 뷰포트
+   폭이 달라져도(18vw 자체가 가변이라) 항상 같은 비율로 안전 마진이 유지되게 하기 위함. */
+.why { position: relative; z-index: 1; padding: 132px 0 calc(18vw + 110px); background: #FFFFFF; overflow: hidden; }
 .why__head { max-width: 620px; }
 .why__grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; margin-top: 48px; }
+/* 매크로 워터마크 — 거대 "GAPPUN" 텍스트를 아주 옅게 섹션 맨 아래쪽에 깔아 질감만 더함(2026-11-10
+   9차: 히어로에서 이 자리로 이동 — 히어로는 이제 지구본 장식 전용, 워터마크는 #why 하단으로).
+   색상·크기·호버 글자 스왑 로직은 이전과 완전히 동일, 셀렉터만 .hero__watermark → .why__watermark. */
+.why__watermark { position: absolute; left: 0; right: 0; bottom: 0; z-index: 0; display: flex; align-items: flex-end; justify-content: center;
+  margin: 0; padding-bottom: 50px; font-family: "Unbounded", "Pretendard", sans-serif; font-weight: 900; font-size: 18vw; line-height: 1;
+  color: #1E293B; opacity: .025; white-space: nowrap; user-select: none; pointer-events: auto; }
+.why__watermark .wm-letter { position: relative; display: inline-block; overflow: hidden; }
+.why__watermark .wm-letter--space { width: 0.3em; }
+.why__watermark .wm-letter-primary,
+.why__watermark .wm-letter-secondary { display: block; transition: transform .55s cubic-bezier(.34,1.56,.64,1); padding-bottom: .08em; }
+.why__watermark .wm-letter-primary { transform: translateY(0); }
+.why__watermark .wm-letter-secondary { position: absolute; left: 0; top: 0; transform: translateY(100%); }
 .why-card { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
 .why-card__icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; color: var(--ink); }
 .why-card__icon svg { width: 30px; height: 30px; }
@@ -784,7 +775,7 @@ ul, ol { list-style: none; padding: 0; }
      상하 패딩이 섞여 리듬이 어긋나 보였음(`.t-pop`만 좁고 `.rank`/`.why`는 여전히 데스크톱 패딩) —
      같은 900px 지점에서 같이 줄도록 통일. */
   .rank { padding: 72px 0 64px; }
-  .why { padding: 72px 0; }
+  .why { padding: 72px 0 calc(18vw + 90px); }
   .why__grid { grid-template-columns: 1fr; }
   .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }

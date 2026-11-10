@@ -10,9 +10,9 @@ const LOCAL_ROOT = path.join(__dirname, "..", "travel");
 const REMOTE_DIR = cfg.remoteRoot.replace(/\/$/, "") + "/travel";
 
 // 2026-10-20: 재시작하며 히어로 배경 영상(sky.mp4/sky-poster.jpg)을 다시 제거해 FILES에서도 뺌.
-// 2026-11-10: 지구본이 위경도 랜드마스크(worldLand.json) 방식에서 Fibonacci 점구체+케이지
-// 방식(js/globe.js)으로 교체되며 더 이상 이 데이터를 쓰지 않음 — FILES에서 제외(파일 자체는
-// 혹시 몰라 디스크에 남겨둠).
+// 2026-11-10: 지구본이 위경도 랜드마스크(worldLand.json) → Fibonacci 점구체+케이지 →
+// (9차) 다시 실제 대륙 GeoJSON 기반 랜드마스크(원격 fetch, 로컬 파일 불필요) 순으로 교체됨 —
+// js/globe.js 하나로 전부 자체 포함, 별도 데이터 파일 없음(worldLand.json은 디스크에만 남아있음).
 const FILES = ["index.html", "css/style.css", "js/main.js", "js/countryDetail.js", "js/cityImages.js", "js/currencyCountryMap.js", "js/rankingSnapshot.js", "js/globe.js", "js/heroWatermarkSwap.js", "manifest.webmanifest", "assets/icons/favicon.svg", "assets/icons/icon-192.png", "assets/icons/icon-512.png", "assets/icons/icon-maskable-512.png"];
 
 (async () => {
