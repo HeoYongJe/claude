@@ -243,6 +243,21 @@ ul, ol { list-style: none; padding: 0; }
   background: var(--muted); animation: t-scrollline 1.8s ease-in-out infinite; }
 @keyframes t-scrollline { 0% { top: -40%; } 100% { top: 100%; } }
 
+/* "에이전트 코드" 인트로 오버레이(2026-11-10, js/agentCursorIntro.js) — 페이지 로드 직후 몇 초간
+   실제 히어로 요소들 위에 가상 커서·선택 박스·치수 배지를 얹어 "여러 에이전트가 화면을 짜고
+   있다"는 느낌을 줌. fixed라 스크롤과 무관하게 뷰포트 좌표로 그리고, 애니메이션이 끝나면
+   JS가 전부 DOM에서 제거(상시 존재하는 레이어 아님). */
+#agent-cursor-overlay { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+.ac-cursor { position: absolute; top: 0; left: 0; width: 22px; height: 22px; opacity: 0;
+  transition: left .52s cubic-bezier(.4,0,.2,1), top .52s cubic-bezier(.4,0,.2,1), opacity .26s ease; }
+.ac-cursor svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1px 2px rgba(0,0,0,.28)); }
+.ac-box { position: absolute; top: 0; left: 0; width: 0; height: 0; opacity: 0; border-width: 1.5px; border-style: solid; background: transparent;
+  transition: width .52s cubic-bezier(.4,0,.2,1), height .52s cubic-bezier(.4,0,.2,1), opacity .26s ease; }
+.ac-handle { position: absolute; top: 0; left: 0; width: 7px; height: 7px; background: #fff; border-width: 1.5px; border-style: solid;
+  opacity: 0; transform: translate(-50%, -50%); transition: opacity .2s ease; }
+.ac-badge { position: absolute; top: 0; left: 0; padding: 2px 6px; border-radius: 4px; color: #fff; opacity: 0;
+  font: 600 11px/1.4 "Pretendard", sans-serif; white-space: nowrap; transition: opacity .26s ease; }
+
 /* 환율 카드(오늘의 추천) — 하늘 영상이 없어졌으니 반투명 블러 대신 평범한 흰 카드 + 그림자 */
 /* 2026-10-21: 지침서 지정 소프트 섀도우로 교체(구 0 30px 60px -28px rgba(,.18) — 더 진하고 번지는 톤) */
 .t-fxcard { background: #fff; border: 1px solid var(--border); border-radius: 24px; padding: 28px; box-shadow: 0 10px 30px rgba(30,41,59,.03); }
