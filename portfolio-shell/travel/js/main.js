@@ -34,6 +34,7 @@
   const hero = root.querySelector(".t-hero");
   const heroInner = hero && hero.querySelector(".hero__grid");
   const heroScrollEl = hero && hero.querySelector(".hero__scroll");
+  const heroGlobe = hero && hero.querySelector("[data-hero-globe]");
   const navEl = document.querySelector(".nav");
   const railTrail = root.querySelector(".t-rail-trail");
   const railEl = root.querySelector(".t-rail");
@@ -82,6 +83,9 @@
       heroInner.style.transform = `translateY(${(t * -60).toFixed(1)}px)`;
       // 하단 SCROLL 텍스트: 다음 섹션으로 넘어가면 스르륵 사라짐
       if (heroScrollEl) heroScrollEl.style.opacity = Math.max(0, 1 - t * 2.4).toFixed(3);
+      // 배경 지구본: 전경(heroInner, -60px)보다 느리게 움직여 패럴럭스 깊이감 — 스크롤마다
+      // 위치가 스르륵 바뀌며 "진짜 배경" 느낌을 냄(2026-11-10, 사용자 요청).
+      if (heroGlobe) heroGlobe.style.transform = `translate(-50%, calc(-50% + ${(t * -28).toFixed(1)}px))`;
     }
     // nav: 최상단은 배경 없음, 스크롤하면 반투명 배경 생김
     if (navEl) navEl.classList.toggle("is-scrolled", y > 30);

@@ -125,13 +125,13 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     addGraticuleLine(pts);
   }
 
-  // 외곽 테두리(구체 실루엣) — 아주 옅게
-  const rimPts = [];
-  for (let i = 0; i <= 128; i++) {
-    const a = (i / 128) * Math.PI * 2;
-    rimPts.push(new THREE.Vector3(Math.cos(a) * radius, Math.sin(a) * radius, 0));
-  }
-  globeGroup.add(new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(rimPts), new THREE.LineBasicMaterial({ color: new THREE.Color(inkColor), transparent: true, opacity: 0.18 })));
+  // ⚠️ 2026-11-10: 여기 있던 "외곽 테두리"는 z=0 평면에 그린 2D 원을 globeGroup(계속 회전)에
+  // 그대로 매달아놓은 것이었음 — 평면 원은 Y축 회전 그룹에 종속되면 회전하면서 타원으로
+  // 찌그러짐(진짜 3D 구체가 아니라서 카메라 시점에서 실루엣이 항상 원으로 유지되지 않음).
+  // 사용자가 "모양이 변형된다"고 정확히 지적한 그 버그 — 제대로 고치려면 실제 SphereGeometry가
+  // 필요한데(원본 컴포넌트의 oceanMesh처럼), 이번엔 "제대로 재포팅" 대신 "더 옅은 배경"으로
+  // 방향을 바꿨으므로 이 장식용 테두리 자체를 제거 — 점·그리드만으로도(둘 다 실제 구면 좌표라
+  // 회전해도 찌그러지지 않음) 충분히 구체처럼 읽힘.
 
   // 포인트컬러(테라코타) 마커 — "오늘의 추천"(현재 히어로 카드 기준 일본) + 출발지(서울)를 짚어줌.
   const markerPositions = [
@@ -163,7 +163,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   resize();
   window.addEventListener("resize", resize);
 
-  const rotSpeed = prefersReduced ? 0 : 0.0017;
+  const rotSpeed = prefersReduced ? 0 : 0.001; // 배경 텍스처용이라 더 느긋하게(2026-11-10)
   function tick() {
     requestAnimationFrame(tick);
     globeGroup.rotation.y += rotSpeed;
