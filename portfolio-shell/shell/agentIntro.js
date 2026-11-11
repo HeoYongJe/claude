@@ -40,7 +40,7 @@
   const HOLD_MS = 280;
   const CLEAR_MS = 140;
   const TYPE_MS = 13;
-  const SCROLL_MS = 650;
+  const SCROLL_MS = 900; // 2026-11-11: 이징을 ease-in-out으로 바꾸면서 살짝 늘려 더 여유롭게
   const AGENTS_WIDE = 5; // 한 묶음(웨이브)당 동시 작업 커서 수
 
   // ⚠️ 2026-11-11 "강약조절" 요청 — 내비 링크·스킬 칩처럼 작고 수가 많은 조각들을 제목/아이콘과
@@ -50,6 +50,9 @@
   // 하드코딩하지 않고 크기로만 판정해서, 나중에 비슷한 작은 UI가 추가돼도 자동으로 똑같이 빨라짐.
   const PACE_NORMAL = { move: MOVE_MS, grow: GROW_MS, hold: HOLD_MS, clear: CLEAR_MS, type: TYPE_MS };
   const PACE_FAST = { move: 90, grow: 90, hold: 90, clear: 60, type: 5 };
+  // ⚠️ 2026-11-11 "NAV 만들 때 좀 더 빠르게" 요청 — 내비 링크 5개처럼 "동급 조각이 여러 개"인
+  // 묶음은 하나씩 순서대로 지어도(앞서 요청한 순서 보장은 그대로 유지) 더 빠르게 훑고 지나가게.
+  const PACE_RAPID = { move: 45, grow: 45, hold: 45, clear: 30, type: 3 };
   function paceFor(el) {
     const r = el.getBoundingClientRect();
     return r.width <= 150 && r.height <= 42 ? PACE_FAST : PACE_NORMAL;
@@ -253,10 +256,18 @@
   // 끝나면 다시 자유롭게 돌아다니게" 요청 — 커서가 할 일이 없는 동안 화면 안에서 계속
   // 무작위로 느긋하게 떠다니도록(살아있는 느낌) 한다. 실제 할 일이 생기면(buildGroup이 그
   // 커서를 다음 작업에 배정) 떠다니기를 멈추고 drawBox가 실제 목표 위치로 데려간다.
+  // ⚠️ 재지적 "그래도 거의 가만히 있는 것 같다, 더 자유롭게" — 원인: 한 걸음(.17s 글라이드) 뒤
+  // 0.55~1.25초나 완전히 멈춰 서있었음(쉬는 시간이 글라이드 시간보다 훨씬 길어서 "서 있다 찔끔
+  // 움직이고 또 서 있고"로 보임). 수정: 쉬는 시간 없이 한 걸음의 전환이 끝나자마자 바로 다음
+  // 걸음으로 이어 붙이고(사실상 끊임없이 이동), 이동 범위도 더 넓혀서(화면 전체를 널찍하게
+  // 가로지르도록) 훨씬 "자유롭게 돌아다니는" 느낌으로. 전환 자체도 느긋한 ease-in-out으로 걸어
+  // (실제 빌드 이동에 쓰는 CSS 기본 전환과는 별개로 이 때만 더 긴 시간을 인라인으로 지정).
+  const WANDER_EASE = "cubic-bezier(.45,0,.4,1)";
   const WANDER_TIMERS = new Map(); // cursor -> timeoutId
   function stopWander(cursor) {
     const t = WANDER_TIMERS.get(cursor);
     if (t) { clearTimeout(t); WANDER_TIMERS.delete(cursor); }
+    cursor.style.transition = ""; // 다음 실제 빌드 이동은 CSS 기본 전환 속도로 돌아가게
   }
   function startWander(cursor) {
     if (ABORTED || skipped) return;
@@ -264,11 +275,15 @@
       if (ABORTED || skipped) return;
       const curLeft = parseFloat(cursor.style.left) || window.innerWidth / 2;
       const curTop = parseFloat(cursor.style.top) || window.innerHeight / 2;
-      const nx = Math.min(window.innerWidth - 40, Math.max(20, curLeft + (Math.random() - 0.5) * 280));
-      const ny = Math.min(window.innerHeight - 60, Math.max(80, curTop + (Math.random() - 0.5) * 200));
+      const nx = Math.min(window.innerWidth - 40, Math.max(20, curLeft + (Math.random() - 0.5) * 520));
+      const ny = Math.min(window.innerHeight - 60, Math.max(80, curTop + (Math.random() - 0.5) * 380));
+      const dur = 900 + Math.random() * 700;
+      cursor.style.transition =
+        `left ${dur}ms ${WANDER_EASE}, top ${dur}ms ${WANDER_EASE}, opacity .18s ease`;
       cursor.style.left = nx + "px";
       cursor.style.top = ny + "px";
-      WANDER_TIMERS.set(cursor, setTimeout(step, 550 + Math.random() * 700));
+      // 쉬는 시간 없이(전환이 끝나는 즉시) 바로 다음 목적지로 — 멈춰 서는 구간이 없어진다.
+      WANDER_TIMERS.set(cursor, setTimeout(step, dur));
     };
     step();
   }
@@ -301,7 +316,7 @@
     }
   }
 
-  async function buildOne(agentColor, cursor, el) {
+  async function buildOne(agentColor, cursor, el, rapid) {
     if (ABORTED) return;
     const info = REGISTRY.get(el);
     if (!info) return;
@@ -315,7 +330,10 @@
     // 레이아웃 뼈대라, 크기와 무관하게 항상 빠르게 스케치하고 넘어간다(안쪽 진짜 내용은 각자
     // paceFor로 알맞은 속도로 지어짐) — 안 그러면 카드처럼 여러 단계로 중첩된 곳에서 매
     // 단계마다 "바깥 틀 그리기" 시간이 더해져 체감 속도가 눈에 띄게 느려짐.
-    const pace = info.kind === "container" ? PACE_FAST : paceFor(el);
+    // `rapid`: 형제가 4개 이상인 "동급 묶음"(내비 링크 5개, 칩 5개 등) 안에서 내려오는 신호 —
+    // 이미 작은(PACE_FAST) 요소라면 한 단계 더 빠른 PACE_RAPID로, 의미 있는 큰 요소는 그대로.
+    let pace = info.kind === "container" ? PACE_FAST : paceFor(el);
+    if (rapid && pace !== PACE_NORMAL) pace = PACE_RAPID;
     const drawn = await drawBox(cursor, agentColor, el, pace);
     const stage = el.closest(".yj-stage");
 
@@ -329,9 +347,10 @@
       // "아이콘 → 그 아래 제목" 순서가 보장됨. 카드 간(스텝1~4) 병렬성은 바깥 buildGroup의
       // Promise.all이 그대로 담당하므로 그대로 유지됨.
       el.style.opacity = "1";
+      const kidsRapid = rapid || info.kids.length >= 4;
       for (const kid of info.kids) {
         if (ABORTED) break;
-        await buildOne(agentColor, cursor, kid);
+        await buildOne(agentColor, cursor, kid, kidsRapid);
       }
     } else if (info.kind === "type") {
       const original = document.createDocumentFragment();
@@ -393,6 +412,13 @@
   }
 
   // ---- 섹션 간 자동 스크롤 ----
+  // ⚠️ 2026-11-11 "이징을 넘어서 최대한 부드럽게" 요청 — 예전 easeOutCubic은 시작 속도가 이미
+  // 최고 속도라(가속 구간이 없음) 스크롤이 "툭" 치고 나가는 것처럼 보일 수 있었음. 천천히
+  // 가속했다가 천천히 감속하는 easeInOutQuint로 바꿔 시작·끝 모두 더 부드럽게, 지속시간도
+  // 살짝 늘려 서두르지 않는 느낌으로.
+  function easeInOutQuint(p) {
+    return p < 0.5 ? 16 * p * p * p * p * p : 1 - Math.pow(-2 * p + 2, 5) / 2;
+  }
   function animateScrollTo(targetY, duration) {
     return new Promise((resolve) => {
       if (ABORTED) { window.scrollTo(0, targetY); resolve(); return; }
@@ -403,8 +429,7 @@
       function step(now) {
         if (ABORTED) { resolve(); return; }
         const p = Math.min((now - t0) / duration, 1);
-        const eased = 1 - Math.pow(1 - p, 3);
-        window.scrollTo(0, startY + delta * eased);
+        window.scrollTo(0, startY + delta * easeInOutQuint(p));
         if (p < 1) requestAnimationFrame(step);
         else resolve();
       }

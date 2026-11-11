@@ -411,7 +411,7 @@ html.yj-intro-pending [data-build]{opacity:0}
    명시적으로 갖는다. 핸들·배지는 항상 뷰포트 고정(3D 안에 두면 점/글자가 비스듬히 누움). */
 #agent-cursor-overlay{position:fixed;inset:0;z-index:300;pointer-events:none}
 .ac-cursor{position:absolute;top:0;left:0;width:22px;height:22px;opacity:0;z-index:300;pointer-events:none;
-  transition:left .17s linear,top .17s linear,opacity .18s ease}
+  transition:left .32s cubic-bezier(.22,.61,.36,1),top .32s cubic-bezier(.22,.61,.36,1),opacity .18s ease}
 .ac-cursor svg{display:block;width:100%;height:100%;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
 .ac-box{position:absolute;top:0;left:0;width:0;height:0;opacity:0;border-width:1.5px;border-style:solid;background:transparent;
   z-index:50;pointer-events:none;
