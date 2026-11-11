@@ -905,7 +905,8 @@
     if (!set.length) { const t = track.closest(".t-pop__ticker"); if (t) t.remove(); return; }
     const chip = (r) => {
       const up = r.fxChange >= 0;
-      return `<span class="t-chip">${flagTag(r.code, "t-chip__flag")}<span class="t-chip__name">${esc(r.nameKo)}</span>` +
+      // data-country: 아래 document 위임 클릭 핸들러(한 번만 바인딩됨)가 이 값으로 상세뷰를 연다.
+      return `<span class="t-chip" data-country="${esc(r.code)}">${flagTag(r.code, "t-chip__flag")}<span class="t-chip__name">${esc(r.nameKo)}</span>` +
         `<span class="t-chip__delta ${up ? "is-up" : "is-down"}">${up ? "▲" : "▼"}${Math.abs(r.fxChange).toFixed(1)}%</span></span>`;
     };
     const html = set.map(chip).join("");
@@ -1005,6 +1006,14 @@
     const btn = document.querySelector("[data-pop-all]");
     if (btn) btn.addEventListener("click", () => { modalMode = "popular"; if (typeof openModal === "function") openModal(); });
   })();
+  // ⚠️ 2026-11-11 "어디서든 나라 클릭 시 상세로" 요청 — 티커(장식) 칩도 클릭하면 상세뷰로 이동.
+  // 트랙 내용은 무한 루프 연출을 위해 renderPopTicker가 호출될 때마다 통째로 다시 그려지므로
+  // 칩 하나하나에 개별 바인딩하지 않고 document 위임 하나로 처리 — 다시 그려져도(심지어 데이터가
+  // 스냅샷→라이브로 교체되며 renderPopular가 두 번 불려도) 재바인딩이 필요 없다.
+  document.addEventListener("click", (e) => {
+    const chip = e.target.closest(".t-chip[data-country]");
+    if (chip) openDetail(popData(chip.dataset.country));
+  });
 
   // ---- 이벤트 ----
   root.querySelectorAll(".t-rtab").forEach((tab) => {

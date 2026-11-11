@@ -242,7 +242,13 @@ class GlobeScene {
     fillTexture.flipY = false;
     fillTexture.needsUpdate = true;
     const fillGeo = new THREE.SphereGeometry(this.radius * 1.0015, 64, 64);
-    const fillMat = new THREE.MeshBasicMaterial({ map: fillTexture, transparent: true });
+    // ⚠️ 2026-11-11 "가로선(위도선)이 안 보인다" — 원인: three.js 기본값은 `transparent:true`여도
+    // `depthWrite`는 여전히 `true`라, 바다 영역(알파 0이라 눈엔 안 보임)까지 포함한 구체 전체가
+    // 깊이버퍼를 채워버려서 그 안쪽(r=1.001)의 위도선(LineLoop)들이 가려짐 — 세로선(경도선)은
+    // THREE.Line(열린 폴리라인)이라 공교롭게 그리기 순서/정렬에서 덜 가려 보였을 뿐, 같은 버그의
+    // 영향을 받고 있었음. `depthWrite:false`로 고쳐 이 레이어가 깊이버퍼에 아예 기록되지 않게 함
+    // (바다 구체 자체는 불투명(opaque)이라 원래부터 정상적으로 깊이를 기록하며 뒷면을 가림).
+    const fillMat = new THREE.MeshBasicMaterial({ map: fillTexture, transparent: true, depthWrite: false });
     this.group.add(new THREE.Mesh(fillGeo, fillMat));
 
     this.renderer.domElement.style.opacity = "1";

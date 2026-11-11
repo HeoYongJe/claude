@@ -485,14 +485,18 @@ ul, ol { list-style: none; padding: 0; }
 /* 2026-10-21: 흰 배경+보더 버튼 → Secondary 캡슐(.t-cta--secondary, 위 버튼 섹션 참고)로 교체 */
 .t-pop__all { flex: none; }
 
-/* 티커(장식) — 페이드는 배경 무관하게 mask-image로 */
-.t-pop__ticker { position: relative; height: 40px; margin-top: 28px; overflow: hidden; pointer-events: none; opacity: .55;
+/* 티커 — 페이드는 배경 무관하게 mask-image로 */
+/* ⚠️ 2026-11-11 "어디서든 나라 클릭 시 상세로" 요청 — 예전엔 pointer-events:none이라 칩을
+   눌러도 클릭 자체가 DOM에 닿지 않았음(순수 장식 취급). 칩도 나라 클릭 지점이 되어야 하므로
+   auto로 바꿈 — 가로 스크롤 애니메이션 자체는 CSS 애니메이션이라 pointer-events와 무관해
+   그대로 동작(:hover 정지 규칙도 이제서야 실제로 작동하게 되는 부수 효과). */
+.t-pop__ticker { position: relative; height: 40px; margin-top: 28px; overflow: hidden; pointer-events: auto; opacity: .55;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
 .t-pop__track { display: flex; gap: 8px; width: max-content; will-change: transform; animation: t-marquee 72s linear infinite; }
 @keyframes t-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-.t-chip { display: flex; align-items: center; gap: 7px; white-space: nowrap; background: rgba(255,255,255,.9); border-radius: 999px; padding: 8px 14px; }
+.t-chip { display: flex; align-items: center; gap: 7px; white-space: nowrap; background: rgba(255,255,255,.9); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
 .t-chip__flag { width: 17px; height: 12px; object-fit: cover; border-radius: 2px; }
 .t-chip__name { font-size: 14px; font-weight: 700; letter-spacing: -.01em; color: var(--muted); }
 .t-chip__delta { font-size: 14px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
