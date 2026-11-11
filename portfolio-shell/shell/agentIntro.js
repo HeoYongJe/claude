@@ -266,11 +266,19 @@
     const stage = el.closest(".yj-stage");
 
     if (info.kind === "container") {
-      // 바깥 틀만 먼저 그려두고(위 drawBox), 안쪽 "진짜 조각"들은 각자의 커서가 와서 짓는다 —
-      // 이 틀의 opacity를 1로 열어도 자식 리프들은 registerTree 때 이미 opacity:0으로 숨겨둬서
-      // 한꺼번에 와르르 보이지 않는다.
+      // 바깥 틀만 먼저 그려두고(위 drawBox), 안쪽 "진짜 조각"들은 opacity:0으로 이미 숨겨둔
+      // 채로 하나씩 차례대로 짓는다(같은 커서 재사용 — "이 카드는 이 에이전트 하나가 맡아서
+      // 위에서부터 순서대로 완성해나간다"는 느낌).
+      // ⚠️ 2026-11-11 재지적 — "아이콘 4개가 한꺼번에 나오고 그 아래 글자 4개가 또 한꺼번에
+      // 나온다"(Think 스텝 카드: 아이콘과 제목이 "같은 웨이브"라 Promise.all로 전부 동시에
+      // 진행됐던 것) — 카드 내부 조각들은 병렬(buildGroup)이 아니라 순차(for await)로 지어야
+      // "아이콘 → 그 아래 제목" 순서가 보장됨. 카드 간(스텝1~4) 병렬성은 바깥 buildGroup의
+      // Promise.all이 그대로 담당하므로 그대로 유지됨.
       el.style.opacity = "1";
-      await buildGroup(info.kids);
+      for (const kid of info.kids) {
+        if (ABORTED) break;
+        await buildOne(agentColor, cursor, kid);
+      }
     } else if (info.kind === "type") {
       const original = document.createDocumentFragment();
       Array.from(el.childNodes).forEach((n) => original.appendChild(n.cloneNode(true)));
