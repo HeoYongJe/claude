@@ -788,7 +788,7 @@ ul, ol { list-style: none; padding: 0; }
   .detail__price, .detail__cols, .d-tips { grid-template-columns: 1fr; }
   .d-tip { border-left: none; border-top: 1px solid var(--border-strong); padding: 16px 0; }
   .d-tip:first-child { border-top: none; padding-left: 0; }
-  .hero__grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero__grid { grid-template-columns: 1fr; gap: 28px; }
   .t-rankgrid, .t-rankgrid[data-count] { grid-template-columns: 1fr; }
   .t-modal__grid { grid-template-columns: 1fr; }
   .price__body { grid-template-columns: 1fr; }
@@ -836,7 +836,11 @@ ul, ol { list-style: none; padding: 0; }
   .hero__title { font-size: 47px; }
   .section-title { font-size: 26px; }
   .nav__inner { padding: 14px 18px; }
-  .hero__grid { padding: 88px 18px 40px; }
+  .hero__grid { padding: 80px 18px 28px; }
+  /* 2026-11-11: 모바일에서 히어로(타이틀+설명+버튼+카드)가 1열로 쌓이며 뷰포트(≈812px)보다
+     커지는 문제(§ 2026-10-22 sticky 해제 코멘트 참고) — 패딩/카드 내부 여백을 조금 더 줄여
+     스크롤 한 번으로 카드 전체가 보이게(완전히 1화면에 넣기엔 환율 카드 정보량이 많아 무리). */
+  .t-hero-card { padding: 22px; }
   .rank__inner { padding: 0 18px; }
   /* 모달: 좌우 여백을 줄이고 높이를 더 쓴다. 패딩이 head/tools/body로 나뉘어 각각 조정 */
   .t-modal { padding: 16px; }
