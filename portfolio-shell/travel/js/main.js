@@ -102,9 +102,15 @@
   // 터치 자체에 이미 자연스러운 모멘텀이 있어 손댈 필요 없음), 국가 상세 모달(.t-modal__body)
   // 내부 스크롤은 그대로 비켜줘서(자기 영역 안에서 네이티브로) 깨지지 않게 함,
   // prefers-reduced-motion이면 아예 끔.
+  // 2026-11-11: 이 가상 목표(scrollTarget)는 휠 입력에만 반응해서, 코드로 scrollToRank() 등을
+  // 호출해 "smooth" 스크롤을 걸어도 모르고 자기 목표로 매 프레임 되돌려버림(관성 중이던 휠
+  // 스크롤과 충돌 — "나라 클릭했는데 중간에 걸쳐서 멈춤" 버그의 원인). syncScrollTarget으로
+  // 코드 스크롤 목적지를 이 가상 목표에도 동기화시켜 서로 다른 곳을 겨냥하지 않게 한다.
+  let syncScrollTarget = () => {};
   if (window.innerWidth >= 901 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     let scrollTarget = window.scrollY;
     let scrolling = false;
+    syncScrollTarget = (top) => { scrollTarget = top; };
     const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
 
     const scrollTick = () => {
@@ -684,6 +690,7 @@
   let detailOpen = false;
   const scrollToRank = () => {
     const top = rankSec.getBoundingClientRect().top + window.pageYOffset - 70;
+    syncScrollTarget(top);
     window.scrollTo({ top, behavior: "smooth" });
   };
 
@@ -1185,6 +1192,7 @@
   if (navBrand) navBrand.addEventListener("click", (e) => {
     e.preventDefault();
     if (detailOpen) closeDetail();
+    syncScrollTarget(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
   // 히어로 '오늘의 추천' 카드 클릭 → 해당(강세 1위) 나라 상세뷰.
