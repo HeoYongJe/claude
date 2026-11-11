@@ -151,6 +151,15 @@
     overlay.appendChild(el);
     return el;
   }
+  // ⚠️ 2026-11-11 "커서가 사라지지 않고 쭉 보이면서 돌아다니게" 요청 — 예전엔 요소 하나 지을
+  // 때마다 커서를 새로 만들고(makeCursor) 다 짓고 나면 지웠음(opacity:0 후 remove) — 그래서
+  // 웨이브가 끝나거나 섹션이 바뀔 때마다 커서가 사라졌다가 다음 자리에서 다시 나타났음. 이제는
+  // 색상별로 커서를 처음에 딱 한 번만 만들어 전체 인트로가 끝날 때까지 재사용 — 박스·핸들·배지
+  // (그릴 때마다 표시되는 "지금 이거 짓는 중" 표식)만 요소 하나 끝날 때마다 사라지고, 커서
+  // 화살표 자체는 마지막 위치에 그대로 남아있다가 다음 차례가 되면(drawBox) 그 다음 자리로
+  // 부드럽게(기존 CSS transition) 이동한다 — 여러 에이전트가 화면에 계속 상주하며 돌아다니는
+  // 느낌.
+  const CURSOR_POOL = COLORS.map(makeCursor);
   function makeBoxSet(color, parent) {
     const el = document.createElement("div");
     el.className = "ac-box";
@@ -231,15 +240,13 @@
     return { vRect, box, stage };
   }
 
+  // 커서 화살표 자체는 건드리지 않는다(계속 보여야 함) — 박스·핸들·배지만 지운다.
   function clearBox(cursor, drawn, pace) {
-    if (!drawn) { cursor.style.opacity = "0"; return; }
-    if (drawn.box) {
-      drawn.box.el.style.opacity = "0";
-      drawn.box.handles.forEach((h) => (h.style.opacity = "0"));
-      drawn.box.badge.style.opacity = "0";
-      setTimeout(() => removeBoxSet(drawn.box), pace.clear + 40);
-    }
-    cursor.style.opacity = "0";
+    if (!drawn || !drawn.box) return;
+    drawn.box.el.style.opacity = "0";
+    drawn.box.handles.forEach((h) => (h.style.opacity = "0"));
+    drawn.box.badge.style.opacity = "0";
+    setTimeout(() => removeBoxSet(drawn.box), pace.clear + 40);
   }
 
   // ---- 타이핑(중첩 태그·<br> 보존) ----
@@ -343,9 +350,10 @@
       let j = i + 1;
       while (j < elements.length && elements[j].parentElement === elements[i].parentElement && (j - i) < maxLanes) j++;
       const wave = elements.slice(i, j);
-      const cursors = wave.map((_, k) => makeCursor(COLORS[k % COLORS.length]));
-      await Promise.all(wave.map((el, k) => buildOne(COLORS[k % COLORS.length], cursors[k], el)));
-      cursors.forEach((c) => c.remove());
+      // 커서는 매번 새로 안 만들고 CURSOR_POOL에서 재사용(화면에서 안 사라지게).
+      await Promise.all(
+        wave.map((el, k) => buildOne(COLORS[k % COLORS.length], CURSOR_POOL[k % CURSOR_POOL.length], el))
+      );
       i = j;
     }
   }
