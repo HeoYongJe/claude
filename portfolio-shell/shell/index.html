@@ -23,7 +23,7 @@ if (window.innerWidth >= 961 && !window.matchMedia("(prefers-reduced-motion: red
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
-<link rel="stylesheet" href="styles.css?v=20261111b">
+<link rel="stylesheet" href="styles.css?v=20261111d">
 </head>
 <body>
 
@@ -47,7 +47,13 @@ if (window.innerWidth >= 961 && !window.matchMedia("(prefers-reduced-motion: red
   <!-- nav -->
   <nav class="yj-nav" id="yj-nav">
     <a href="#top" class="yj-nav__logo" data-build>YONG JE</a>
-    <div class="yj-nav__menu" data-build>
+    <!-- 2026-11-11: 640px 이하에서 메뉴가 뷰포트를 넘어 Resume이 잘리던 버그 수정 — 좁은 화면만
+         이 버튼이 보이고(styles.css), 누르면 .yj-nav__menu가 우측에서 슬라이드인하는 패널이 됨. -->
+    <button type="button" class="yj-nav__burger" id="yj-nav-burger" aria-label="메뉴 열기" aria-expanded="false" aria-controls="yj-nav-menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="yj-nav__backdrop" id="yj-nav-backdrop"></div>
+    <div class="yj-nav__menu" data-build id="yj-nav-menu">
       <a href="#top" class="yj-navlink active" data-nav="top">Intro</a>
       <a href="#works" class="yj-navlink" data-nav="works">Works</a>
       <a href="#about" class="yj-navlink" data-nav="about">About</a>
@@ -478,7 +484,7 @@ if (window.innerWidth >= 961 && !window.matchMedia("(prefers-reduced-motion: red
     </div>
   </section>
 
-  <script src="script.js?v=20261111b"></script>
+  <script src="script.js?v=20261111c"></script>
   <script src="agentIntro.js?v=20261111q"></script>
 </body>
 </html>

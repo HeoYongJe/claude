@@ -41,6 +41,27 @@
   window.addEventListener("scroll", () => { if (!ticking) { ticking = true; requestAnimationFrame(onScroll); } }, { passive: true });
   onScroll();
 
+  // ---- 모바일 햄버거 메뉴(640px 이하, styles.css 참고) ----
+  (function () {
+    const burger = q("#yj-nav-burger");
+    const menu = q("#yj-nav-menu");
+    const backdrop = q("#yj-nav-backdrop");
+    if (!burger || !menu || !backdrop) return;
+
+    function setOpen(open) {
+      burger.setAttribute("aria-expanded", String(open));
+      menu.classList.toggle("is-open", open);
+      backdrop.classList.toggle("is-open", open);
+      document.body.classList.toggle("yj-noscroll", open);
+    }
+    burger.addEventListener("click", () => setOpen(burger.getAttribute("aria-expanded") !== "true"));
+    backdrop.addEventListener("click", () => setOpen(false));
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+    window.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
+    // 좁은 화면에서 열어둔 채로 데스크톱 폭까지 리사이즈되면(또는 그 반대) 잔상 없이 초기화.
+    window.addEventListener("resize", () => { if (window.innerWidth > 640) setOpen(false); });
+  })();
+
   // ---- smooth scroll (lerp) ----
   // 네이티브 스크롤 위치는 그대로 두고(=scrollY 정확 → 패럴랙스/리빌/앵커 모두 정상),
   // 휠 입력을 목표값에 누적한 뒤 매 프레임 현재값을 목표로 부드럽게 보간한다.

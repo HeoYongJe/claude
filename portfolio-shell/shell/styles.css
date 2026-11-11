@@ -123,6 +123,19 @@ p{margin:0}
 .yj-nav__resume:hover{background:#fff;color:var(--bg);border-color:#fff}
 .yj-nav__resume-arrow{font-size:12px}
 
+/* ---- 모바일 햄버거·슬라이드 메뉴 (2026-11-11, 640px 이하에서만 보임) ---- */
+.yj-nav__burger{display:none;flex:none;width:30px;height:30px;padding:0;border:none;background:transparent;
+  position:relative;z-index:111;cursor:pointer}
+.yj-nav__burger span{position:absolute;left:4px;right:4px;height:2px;background:#fff;border-radius:2px;
+  transition:transform .3s ease,opacity .2s ease}
+.yj-nav__burger span:nth-child(1){top:9px}
+.yj-nav__burger span:nth-child(2){top:14px}
+.yj-nav__burger span:nth-child(3){top:19px}
+.yj-nav__burger[aria-expanded="true"] span:nth-child(1){top:14px;transform:rotate(45deg)}
+.yj-nav__burger[aria-expanded="true"] span:nth-child(2){opacity:0}
+.yj-nav__burger[aria-expanded="true"] span:nth-child(3){top:14px;transform:rotate(-45deg)}
+.yj-nav__backdrop{display:none}
+
 /* ==========================================================================
    hero
    ========================================================================== */
@@ -389,9 +402,37 @@ html.yj-intro-pending [data-build]{opacity:0}
   .yj-contact-outer{grid-template-columns:1fr;gap:32px}
   .yj-contact-grid{grid-template-columns:1fr}
   .yj-head__note{text-align:left}
+
+  /* 2026-11-11: --section-y가 vh 기준(clamp(112px,15vh,200px))이라 데스크톱에선 적당했지만,
+     세로로 긴 모바일 화면에선 섹션 사이 빈 공간이 위아래로 합쳐 240px 가까이 쌓여 "콘텐츠가
+     빠진 것처럼" 보이던 문제 — 모바일 전용 값으로 축소(가로폭 기준 clamp라 화면 비율과 무관하게
+     일정). 히어로도 min-height:100vh를 그대로 쓰면 텍스트 한 덩어리가 화면 한가운데 붕 뜨고
+     위아래로 큰 공백이 생겨서(장식 카드가 오른쪽을 채우던 데스크톱 레이아웃 전제가 깨짐),
+     콘텐츠 높이에 맞춰 자연스럽게 줄임. */
+  :root{ --section-y:clamp(64px,10vw,96px) }
+  .yj-hero{min-height:0;padding:132px var(--gutter) 110px}
+}
+@media (max-width:640px){
+  /* 2026-11-11: "모바일 UI/UX 정리" 요청 — 내비 메뉴(링크 4개+Resume)의 실제 콘텐츠 폭이
+     448px라 640px 이하 화면에선 뷰포트를 넘어 Resume이 잘렸음(로고도 공간이 부족해 두 줄로
+     꺾임). 이 폭부턴 메뉴를 숨기고 햄버거 버튼으로 토글하는 우측 슬라이드 패널로 전환. */
+  .yj-nav__burger{display:block}
+  .yj-nav__menu{position:fixed;top:0;right:0;z-index:110;
+    display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:26px;
+    width:min(78vw,320px);height:100vh;height:100dvh;padding:32px clamp(28px,8vw,40px);
+    background:rgba(9,13,22,.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+    border-left:1px solid rgba(255,255,255,.08);
+    transform:translateX(100%);transition:transform .35s cubic-bezier(.22,.61,.36,1);opacity:1}
+  .yj-nav__menu.is-open{transform:translateX(0)}
+  .yj-navlink{font-size:19px}
+  .yj-nav__resume{margin-top:6px}
+  .yj-nav__backdrop{display:block;position:fixed;inset:0;z-index:109;background:rgba(5,7,12,.55);
+    opacity:0;pointer-events:none;transition:opacity .3s ease}
+  .yj-nav__backdrop.is-open{opacity:1;pointer-events:auto}
 }
 @media (max-width:560px){
   .yj-steps{grid-template-columns:1fr}
+  :root{ --section-y:clamp(52px,12vw,80px) }
 }
 
 @media (prefers-reduced-motion:reduce){
