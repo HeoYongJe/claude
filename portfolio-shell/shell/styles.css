@@ -63,8 +63,6 @@ p{margin:0}
 .yj-head__num{font-family:var(--font-mono);font-size:14px;letter-spacing:.06em;color:var(--blue-mid);margin-bottom:10px}
 .yj-head__title{font-family:var(--font-wanted-sans);font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.02em}
 .yj-head__note{max-width:320px;text-align:right;font-size:15px;line-height:1.7;color:rgba(255,255,255,.55)}
-.yj-head__link{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:600;color:rgba(255,255,255,.66);transition:color .3s ease}
-.yj-head__link:hover{color:var(--blue-light)}
 
 /* ==========================================================================
    preloader — 첫 로드 시 카운터 인트로. 끝나면 위로 걷히고 DOM에서 제거된다.
@@ -244,7 +242,7 @@ p{margin:0}
 .yj-glass__pager span:first-child{background:rgba(120,160,255,.55)}
 
 /* ---- scroll indicator ---- */
-.yj-scroll{position:absolute;bottom:34px;left:var(--gutter);display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.5)}
+.yj-scroll{position:absolute;bottom:34px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.5)}
 .yj-scroll__label{font-family:var(--font-mono);font-size:11px;letter-spacing:.18em}
 .yj-scroll__mouse{display:inline-block;width:22px;height:34px;border-radius:12px;border:1px solid rgba(255,255,255,.28);position:relative}
 .yj-scroll__dot{position:absolute;top:7px;left:50%;width:3px;height:7px;border-radius:2px;background:var(--blue-mid);animation:yjBounce 1.6s ease-in-out infinite}
@@ -429,9 +427,14 @@ html.yj-intro-pending [data-build]{opacity:0}
   .yj-nav__backdrop{display:block;position:fixed;inset:0;z-index:109;background:rgba(5,7,12,.55);
     opacity:0;pointer-events:none;transition:opacity .3s ease}
   .yj-nav__backdrop.is-open{opacity:1;pointer-events:auto}
+
+  /* 2026-11-11: "THINK 아이콘이 하나씩 떨어진다" — 560px 이하에서 .yj-steps를 1열로 접던
+     규칙을 없애 960px부터 쓰던 2열(.yj-steps{grid-template-columns:1fr 1fr}, 위 960px 블록)을
+     폰 폭에서도 그대로 유지 — 스크롤 리빌이 한 번에 2개씩(같은 행) 걸리게 됨. */
+  /* 2026-11-11: "About Me 작업 공간 사진 안 보이게" 요청 — 플레이스홀더 사진을 모바일에서만 제거. */
+  .yj-about__photo{display:none}
 }
 @media (max-width:560px){
-  .yj-steps{grid-template-columns:1fr}
   :root{ --section-y:clamp(52px,12vw,80px) }
 }
 
