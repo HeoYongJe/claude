@@ -9,7 +9,17 @@
 // "에이전트 코드" 인트로(2026-11-11 — 매 방문마다 재생으로 변경) — CSS가 참조할 수 있게 아주
 // 이른 시점에 <html>에 클래스로 표시. 동기 인라인 스크립트라 첫 페인트 전에 반드시 끝나
 // 깜빡임이 없다. styles.css의 `html.yj-intro-pending [data-build]{opacity:0}`가 이 클래스를 본다.
-document.documentElement.classList.add("yj-intro-pending");
+// ⚠️ 2026-11-11 재발견(태블릿/모바일 점검 중) — 폭이 좁거나(<961px) prefers-reduced-motion이면
+// agentIntro.js가 알아서 이 클래스를 지워주긴 하는데, 그건 body 맨 아래 script.js보다도 "뒤에"
+// 실행됨. script.js는 이 클래스가 "아직 붙어있는 그 순간"(동기 실행 시점)에
+// `[data-reveal]` IntersectionObserver 리빌 등록 여부를 딱 한 번 결정하는데, 좁은 화면에서는
+// agentIntro.js가 클래스를 지우기도 전에 script.js가 이미 "건너뛰기"로 결정해버려서, 히어로
+// 아래 모든 섹션이 영원히 opacity:0으로 남는 버그가 있었음(실측으로 발견: Think 섹션
+// [data-reveal] 전부 opacity:0, is-in 없음). 애초에 폭이 좁거나 reduced-motion이면 이 클래스를
+// 붙이지도 않도록 여기서 먼저 판정 — 그래야 뒤따르는 모든 스크립트가 처음부터 일관되게 본다.
+if (window.innerWidth >= 961 && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  document.documentElement.classList.add("yj-intro-pending");
+}
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-jp.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.1/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css">
