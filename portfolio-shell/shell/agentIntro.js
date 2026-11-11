@@ -41,10 +41,12 @@
   const CLEAR_MS = 140;
   const TYPE_MS = 13;
   const SCROLL_MS = 650;
-  const AGENTS_WIDE = 4; // 섹션당 동시 작업 커서 수
+  const AGENTS_WIDE = 5; // 한 묶음(웨이브)당 동시 작업 커서 수
 
-  const INLINE_TAGS = new Set(["BR", "EM", "SPAN", "STRONG", "B", "I", "A", "SMALL"]);
-  const COLORS = ["rgb(51,102,255)", "rgb(120,160,255)", "rgb(167,139,250)", "rgb(94,210,180)"];
+  const COLORS = [
+    "rgb(51,102,255)", "rgb(120,160,255)", "rgb(167,139,250)",
+    "rgb(94,210,180)", "rgb(255,159,67)", "rgb(255,107,157)",
+  ];
 
   function wait(ms) {
     return new Promise((r) => {
@@ -55,11 +57,71 @@
 
   // ---- 전역 상태 ----
   let ABORTED = false;
-  const REGISTRY = new Map(); // el -> { kind: 'type'|'reveal', originalHTML }
+  // el -> { kind: 'type'|'reveal'(리프) | 'container'(더 잘게 쪼갠 하위 요소들이 있음),
+  //         originalHTML(type일 때만), kids(container일 때만, 자식 빌드 대상들) }
+  const REGISTRY = new Map();
 
+  // ⚠️ 2026-11-11 "더 잘게 쪼개서, 더 많은 커서가 각자 만드는 것처럼" 요청으로 추가.
+  // 예전엔 index.html에 미리 박아둔 [data-build] 하나하나(카드 전체, 칩 묶음 전체 등)를
+  // 통째로 한 개의 박스로만 지었음. 이제는 그 안의 실제 "조각"(아이콘/제목/설명/칩 하나하나
+  // /내비 링크 하나하나 등)까지 재귀적으로 찾아내 각자 자기 커서로 따로 짓게 한다.
+  //  - 어떤 자식이 "그냥 문장의 일부"(예: 제목 안의 <em> 강조색)인지, 아니면 "독자적인 조각"
+  //    (칩 배지, 아이콘, 카드 안의 소제목 등)인지는 CSS 계산값 display로 구분한다: 진짜 순수
+  //    inline(자기 박스가 없는 텍스트 장식)이면 문장의 일부로 보고 안 쪼갠다. flex/grid 안의
+  //    자식은 브라우저가 자동으로 "blockify"해서 display가 inline이어도 계산값은 block/flex
+  //    등으로 나오므로, 실제로 레이아웃 박스를 갖는(=쪼갤 가치가 있는) 자식과 자연스럽게
+  //    구분된다.
+  //  - 점 하나짜리 장식(스킬 칩 앞의 색 점 등 16×10px 미만)은 너무 작아 박스를 그려봐야 의미가
+  //    없으므로 "쪼갤 자식" 후보에서 제외(부모 쪽 리프에 묻어서 같이 보임).
+  //  - SVG(아이콘 그림) 내부는 절대 더 안 쪼갠다(의미 없고 깨지기 쉬움) — svg 자신이나 svg를
+  //    담은 아이콘 래퍼는 항상 "그 자체가 리프"로 멈춘다.
+  //  - 히어로의 글래스 카드 7장(`.yj-stage` 안)은 3D 로컬 박스 보정이 카드 단위로만 맞춰져
+  //    있어 더 쪼개면 내부 요소 좌표가 깨짐 — `.yj-stage` 안의 요소는 항상 리프로 고정.
+  function isProseInline(el) {
+    return el.tagName === "BR" || getComputedStyle(el).display === "inline";
+  }
+  function isTinyDecorative(el) {
+    const r = el.getBoundingClientRect();
+    return r.width < 16 || r.height < 10;
+  }
+  // 바로 이 요소에 직접 매달린(=자식 요소 안이 아니라 el 자신의 childNodes에 바로 있는) 의미
+  // 있는 텍스트가 있는지. 있으면 "문장"(예: 버튼 라벨+화살표, 제목+강조 스팬)이므로 절대
+  // 쪼개지 않는다 — 어떤 자식의 display가 뭐든(flex 안에서 blockify 됐든) 상관없이, 이미
+  // typeInto가 중첩 태그를 그대로 보존하며 통째로 타이핑하는 걸 더 잘 처리한다.
+  function hasOwnText(el) {
+    return Array.from(el.childNodes).some(
+      (n) => n.nodeType === Node.TEXT_NODE && n.textContent.trim().length > 0
+    );
+  }
+  function explodableChildren(el) {
+    if (el instanceof SVGElement || el.closest(".yj-stage")) return [];
+    if (hasOwnText(el)) return [];
+    const kids = Array.from(el.children).filter(
+      (c) => !(c instanceof SVGElement) && !isTinyDecorative(c)
+    );
+    if (kids.length < 2) return []; // 쪼갤 조각이 2개는 돼야 쪼갤 가치가 있음
+    if (kids.every(isProseInline)) return []; // 전부 순수 inline 텍스트 조각 — 문장이므로 안 쪼갬
+    return kids;
+  }
   function classify(el) {
-    const hasBlockChild = Array.from(el.children).some((c) => !INLINE_TAGS.has(c.tagName));
-    return hasBlockChild ? "reveal" : "type";
+    if (!el.children.length) return "type";
+    if (Array.from(el.children).some((c) => c instanceof SVGElement)) return "reveal";
+    return Array.from(el.children).every(isProseInline) ? "type" : "reveal";
+  }
+  // 요소 하나를 등록 — 더 쪼갤 수 있으면 'container'로 기록하고 자식들을 재귀 등록(각 리프는
+  // 지금 당장 opacity:0으로 숨김, 깊이와 무관하게 전부 — 조상이 나중에 한꺼번에 보여져도
+  // 각자 자기 차례가 올 때까지는 숨어있어야 하므로).
+  function registerTree(el) {
+    const kids = explodableChildren(el);
+    if (!kids.length) {
+      const kind = classify(el);
+      REGISTRY.set(el, { kind, originalHTML: kind === "type" ? el.innerHTML : null });
+      el.style.transition = "none";
+      el.style.opacity = "0";
+      return;
+    }
+    REGISTRY.set(el, { kind: "container", kids });
+    kids.forEach(registerTree);
   }
 
   // ---- 오버레이(뷰포트 고정 — 핸들·배지·대부분의 박스) ----
@@ -203,7 +265,13 @@
     const drawn = await drawBox(cursor, agentColor, el);
     const stage = el.closest(".yj-stage");
 
-    if (info.kind === "type") {
+    if (info.kind === "container") {
+      // 바깥 틀만 먼저 그려두고(위 drawBox), 안쪽 "진짜 조각"들은 각자의 커서가 와서 짓는다 —
+      // 이 틀의 opacity를 1로 열어도 자식 리프들은 registerTree 때 이미 opacity:0으로 숨겨둬서
+      // 한꺼번에 와르르 보이지 않는다.
+      el.style.opacity = "1";
+      await buildGroup(info.kids);
+    } else if (info.kind === "type") {
       const original = document.createDocumentFragment();
       Array.from(el.childNodes).forEach((n) => original.appendChild(n.cloneNode(true)));
       el.style.opacity = "1";
@@ -348,12 +416,9 @@
     window.addEventListener("click", skipIntro, true);
     window.addEventListener("keydown", skipIntro, true);
 
-    // 레지스트리 구성(원본 보존) — 건너뛰기가 언제 눌려도 즉시 복원 가능해야 함.
+    // 레지스트리 구성(원본 보존, 재귀적으로 더 잘게) — 건너뛰기가 언제 눌려도 즉시 복원 가능해야 함.
     const all = Array.from(document.querySelectorAll("[data-build]"));
-    all.forEach((el) => {
-      const kind = classify(el);
-      REGISTRY.set(el, { kind, originalHTML: kind === "type" ? el.innerHTML : null });
-    });
+    all.forEach(registerTree);
 
     const nav = document.getElementById("yj-nav");
     const hero = document.getElementById("top");
