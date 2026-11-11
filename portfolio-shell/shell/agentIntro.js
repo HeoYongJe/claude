@@ -249,6 +249,33 @@
     setTimeout(() => removeBoxSet(drawn.box), pace.clear + 40);
   }
 
+  // ⚠️ 2026-11-11 "멈춰 서있지 말고 자유롭게 돌아다니다가 할 일이 생기면 그 자리로 가서 짓고,
+  // 끝나면 다시 자유롭게 돌아다니게" 요청 — 커서가 할 일이 없는 동안 화면 안에서 계속
+  // 무작위로 느긋하게 떠다니도록(살아있는 느낌) 한다. 실제 할 일이 생기면(buildGroup이 그
+  // 커서를 다음 작업에 배정) 떠다니기를 멈추고 drawBox가 실제 목표 위치로 데려간다.
+  const WANDER_TIMERS = new Map(); // cursor -> timeoutId
+  function stopWander(cursor) {
+    const t = WANDER_TIMERS.get(cursor);
+    if (t) { clearTimeout(t); WANDER_TIMERS.delete(cursor); }
+  }
+  function startWander(cursor) {
+    if (ABORTED || skipped) return;
+    const step = () => {
+      if (ABORTED || skipped) return;
+      const curLeft = parseFloat(cursor.style.left) || window.innerWidth / 2;
+      const curTop = parseFloat(cursor.style.top) || window.innerHeight / 2;
+      const nx = Math.min(window.innerWidth - 40, Math.max(20, curLeft + (Math.random() - 0.5) * 280));
+      const ny = Math.min(window.innerHeight - 60, Math.max(80, curTop + (Math.random() - 0.5) * 200));
+      cursor.style.left = nx + "px";
+      cursor.style.top = ny + "px";
+      WANDER_TIMERS.set(cursor, setTimeout(step, 550 + Math.random() * 700));
+    };
+    step();
+  }
+  function stopAllWander() {
+    CURSOR_POOL.forEach(stopWander);
+  }
+
   // ---- 타이핑(중첩 태그·<br> 보존) ----
   async function typeInto(sourceNode, mountParent, speed) {
     for (const node of Array.from(sourceNode.childNodes)) {
@@ -350,9 +377,16 @@
       let j = i + 1;
       while (j < elements.length && elements[j].parentElement === elements[i].parentElement && (j - i) < maxLanes) j++;
       const wave = elements.slice(i, j);
-      // 커서는 매번 새로 안 만들고 CURSOR_POOL에서 재사용(화면에서 안 사라지게).
+      // 커서는 매번 새로 안 만들고 CURSOR_POOL에서 재사용(화면에서 안 사라지게). 이 "묶음
+      // 단위" 작업을 맡는 순간만 떠다니기를 멈추고(stopWander) 실제 목표로 이동시키며,
+      // 그 작업(내부 재귀 포함) 전체가 끝나면 다시 자유롭게 떠다니게(startWander) 한다 —
+      // 한 카드/스텝을 짓는 도중에는 안 멈추고 쭉 이어지게, 카드와 카드 "사이"에서만 떠다님.
       await Promise.all(
-        wave.map((el, k) => buildOne(COLORS[k % COLORS.length], CURSOR_POOL[k % CURSOR_POOL.length], el))
+        wave.map((el, k) => {
+          const cursor = CURSOR_POOL[k % CURSOR_POOL.length];
+          stopWander(cursor);
+          return buildOne(COLORS[k % COLORS.length], cursor, el).then(() => startWander(cursor));
+        })
       );
       i = j;
     }
@@ -413,6 +447,7 @@
     if (skipped) return;
     skipped = true;
     ABORTED = true;
+    stopAllWander();
     forceFinishAll();
     overlay.remove();
     window.scrollTo(0, 0);
@@ -480,6 +515,7 @@
 
     if (!skipped) {
       await animateScrollTo(0, SCROLL_MS);
+      stopAllWander();
       overlay.remove();
       unlockScroll();
       document.documentElement.classList.remove("yj-intro-pending");
