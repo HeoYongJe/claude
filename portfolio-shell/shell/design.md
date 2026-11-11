@@ -455,3 +455,18 @@
     모바일(1열)에서는 폭이 넉넉해 원래도 1줄로 들어가 영향 없음.
   - **검증**: 1440px에서 `hyj.campus@gmail.com`·`https://github.com/HeoYongJe`·`https://velog.io/
     @yj_heo/posts` 전부 안 잘리고 2줄로 완전히 보이는 것 확인. 375px에서도 정상(1줄). 콘솔 에러 없음.
+
+## 섹션 헤드 서브텍스트 위치 통일(2026-11-11)
+
+사용자 피드백: 02(THINK)/05(About)/06(Contact)는 전부 타이틀 바로 아래에 서브텍스트가 쌓이는데,
+04(Design Principles)만 `.yj-head--wide`(번호+제목 ←→ 보조텍스트, 좌우 분할) 구조를 써서
+나란히 배치돼 있어 통일성이 깨져 보임.
+
+- **수정**: html에서 `<p class="yj-head__note">`를 번호+제목과 같은 `<div>` 안, `<h2>` 바로
+  아래로 이동(02/05/06과 동일한 구조). `.yj-head--wide` 클래스는 더 이상 쓰는 곳이 없어 제거.
+  `.yj-head__note`는 우측 정렬+320px 폭 제한(옆에 나란히 둘 때 쓰던 스타일)을 버리고, 다른
+  섹션의 lead 텍스트처럼 좌측 정렬+위 여백(16px)으로 변경.
+- **검증**: 1440px/768px/375px 전부 "Design Principles" 타이틀 아래에 서브텍스트가 자연스럽게
+  오는 것을 확인 — 05(About Me) 등 다른 섹션과 동일한 흐름. `.yj-head`의 유일한 다른 사용처인
+  03(Selected Work)은 애초에 note가 없어 영향 없음. 콘솔 에러 없음.
+  cache-bust: `styles.css?v=20261111f→20261111g`.
