@@ -163,6 +163,20 @@
   // 부드럽게(기존 CSS transition) 이동한다 — 여러 에이전트가 화면에 계속 상주하며 돌아다니는
   // 느낌.
   const CURSOR_POOL = COLORS.map(makeCursor);
+  // ⚠️ 2026-11-11 재지적 "커서가 3개만 일하고 나머지(주황·민트)는 계속 논다" — 원인: 웨이브마다
+  // 커서를 `k % 길이`로(웨이브 안에서 0번부터 다시) 배정했는데, 실제 사이트 대부분의 웨이브가
+  // 2~3개짜리(해더 3개, 카드 3장 등)라 앞쪽 인덱스(0,1,2)만 거의 매번 쓰이고 뒤쪽(3,4,5)은
+  // 웨이브가 어쩌다 4~5개로 큰 몇 번(히어로 카드, Think 스텝)만 걸림 — 실측상 사용 횟수가
+  // 8~16회 대 2~3회로 크게 치우침. 해결: 웨이브마다 0번으로 리셋하지 않고, 전체 인트로에 걸쳐
+  // 계속 돌아가는 전역 포인터(CURSOR_RR)로 배정 — 작은 웨이브가 연달아 나와도 다음 웨이브는
+  // 이어서 다음 순번 커서부터 받으므로, 인트로 전체로 보면 모든 커서가 고르게(실측상 7~8회씩)
+  // 작업에 참여하게 됨.
+  let CURSOR_RR = 0;
+  function nextCursor() {
+    const idx = CURSOR_RR % CURSOR_POOL.length;
+    CURSOR_RR++;
+    return { cursor: CURSOR_POOL[idx], color: COLORS[idx] };
+  }
   function makeBoxSet(color, parent) {
     const el = document.createElement("div");
     el.className = "ac-box";
@@ -254,15 +268,13 @@
 
   // ⚠️ 2026-11-11 "멈춰 서있지 말고 자유롭게 돌아다니다가 할 일이 생기면 그 자리로 가서 짓고,
   // 끝나면 다시 자유롭게 돌아다니게" 요청 — 커서가 할 일이 없는 동안 화면 안에서 계속
-  // 무작위로 느긋하게 떠다니도록(살아있는 느낌) 한다. 실제 할 일이 생기면(buildGroup이 그
+  // 무작위로 떠다니도록(살아있는 느낌) 한다. 실제 할 일이 생기면(buildGroup이 그
   // 커서를 다음 작업에 배정) 떠다니기를 멈추고 drawBox가 실제 목표 위치로 데려간다.
-  // ⚠️ 재지적 "그래도 거의 가만히 있는 것 같다, 더 자유롭게" — 원인: 한 걸음(.17s 글라이드) 뒤
-  // 0.55~1.25초나 완전히 멈춰 서있었음(쉬는 시간이 글라이드 시간보다 훨씬 길어서 "서 있다 찔끔
-  // 움직이고 또 서 있고"로 보임). 수정: 쉬는 시간 없이 한 걸음의 전환이 끝나자마자 바로 다음
-  // 걸음으로 이어 붙이고(사실상 끊임없이 이동), 이동 범위도 더 넓혀서(화면 전체를 널찍하게
-  // 가로지르도록) 훨씬 "자유롭게 돌아다니는" 느낌으로. 전환 자체도 느긋한 ease-in-out으로 걸어
-  // (실제 빌드 이동에 쓰는 CSS 기본 전환과는 별개로 이 때만 더 긴 시간을 인라인으로 지정).
-  const WANDER_EASE = "cubic-bezier(.45,0,.4,1)";
+  // ⚠️ 재지적 "더 빠릿빠릿하게, 분주하게 작업하는 것처럼" — 느긋한 ease-in-out 드리프트(0.9~
+  // 1.6초짜리 한 걸음)는 "자유롭다"기보다 "둥둥 떠다닌다"에 가까워 보였음. 한 걸음 지속시간을
+  // 훨씬 짧게(0.22~0.4초) 줄이고, 끝에서 스냅되듯 멈추는 ease-out 곡선으로 바꿔서 빠르게
+  // 휙휙 움직이는("분주히 일하는") 느낌으로.
+  const WANDER_EASE = "cubic-bezier(.16,1,.3,1)";
   const WANDER_TIMERS = new Map(); // cursor -> timeoutId
   function stopWander(cursor) {
     const t = WANDER_TIMERS.get(cursor);
@@ -275,9 +287,9 @@
       if (ABORTED || skipped) return;
       const curLeft = parseFloat(cursor.style.left) || window.innerWidth / 2;
       const curTop = parseFloat(cursor.style.top) || window.innerHeight / 2;
-      const nx = Math.min(window.innerWidth - 40, Math.max(20, curLeft + (Math.random() - 0.5) * 520));
-      const ny = Math.min(window.innerHeight - 60, Math.max(80, curTop + (Math.random() - 0.5) * 380));
-      const dur = 900 + Math.random() * 700;
+      const nx = Math.min(window.innerWidth - 40, Math.max(20, curLeft + (Math.random() - 0.5) * 360));
+      const ny = Math.min(window.innerHeight - 60, Math.max(80, curTop + (Math.random() - 0.5) * 260));
+      const dur = 220 + Math.random() * 180;
       cursor.style.transition =
         `left ${dur}ms ${WANDER_EASE}, top ${dur}ms ${WANDER_EASE}, opacity .18s ease`;
       cursor.style.left = nx + "px";
@@ -401,10 +413,10 @@
       // 그 작업(내부 재귀 포함) 전체가 끝나면 다시 자유롭게 떠다니게(startWander) 한다 —
       // 한 카드/스텝을 짓는 도중에는 안 멈추고 쭉 이어지게, 카드와 카드 "사이"에서만 떠다님.
       await Promise.all(
-        wave.map((el, k) => {
-          const cursor = CURSOR_POOL[k % CURSOR_POOL.length];
+        wave.map((el) => {
+          const { cursor, color } = nextCursor();
           stopWander(cursor);
-          return buildOne(COLORS[k % COLORS.length], cursor, el).then(() => startWander(cursor));
+          return buildOne(color, cursor, el).then(() => startWander(cursor));
         })
       );
       i = j;
