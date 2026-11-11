@@ -360,7 +360,7 @@ p{margin:0}
   border-radius:12px;background:rgba(51,102,255,.14);color:var(--blue-soft)}
 .yj-contact-card__body{flex:1;min-width:0}
 .yj-contact-card__title{font-family:var(--font-wanted-sans);font-weight:700;font-size:17px;margin-bottom:4px}
-.yj-contact-card__value{font-size:13px;color:rgba(255,255,255,.55);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yj-contact-card__value{font-size:13px;color:rgba(255,255,255,.55);overflow-wrap:anywhere}
 
 /* ---- footer ---- */
 .yj-footer{margin-top:clamp(88px,13vh,150px);padding:36px 0;border-top:1px solid rgba(255,255,255,.1);

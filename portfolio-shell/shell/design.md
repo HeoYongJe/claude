@@ -441,3 +441,17 @@
     보조를 맞춰 순차적으로 빌드되는 것 확인, 재생 완료 후(Works 섹션 도달 시점) 3개 전부 `1`
     확인. Escape로 중간 스킵 시에도 즉시 3개 전부 `1`로 정상 복원 확인. 375px에서는 `display:
     none`이고 인트로 자체가 안 돎(`yj-intro-pending` 없음) 확인. 콘솔 에러 없음.
+
+## 전체 해상도(모바일·태블릿·PC) UI/UX 점검(2026-11-11)
+
+사용자 요청으로 셸·가뿐·나이키 세 프로젝트를 375/768/1440px 세 해상도에서 전수 점검. 아래는 셸에서
+발견·수정한 것.
+
+- **Contact 카드(`.yj-contact-card__value`) 이메일/URL이 "..."로 잘림(PC, ≥961px)**: 3열 그리드로
+  배치되는 `.yj-contact-outer{grid-template-columns:.8fr 2.1fr}` 때문에 카드 하나당 실제 텍스트
+  공간이 `github.com/HeoYongJe` 같은 URL이 들어가기엔 좁은데, `white-space:nowrap;text-overflow:
+  ellipsis`가 걸려 있어 중간에 잘려 보였음(연락처 정보인데 끝까지 안 보이는 건 실사용에 문제).
+  - **수정**: `nowrap`+`ellipsis` 제거, `overflow-wrap:anywhere`만 남겨 2줄로 자연스럽게 줄바꿈.
+    모바일(1열)에서는 폭이 넉넉해 원래도 1줄로 들어가 영향 없음.
+  - **검증**: 1440px에서 `hyj.campus@gmail.com`·`https://github.com/HeoYongJe`·`https://velog.io/
+    @yj_heo/posts` 전부 안 잘리고 2줄로 완전히 보이는 것 확인. 375px에서도 정상(1줄). 콘솔 에러 없음.
