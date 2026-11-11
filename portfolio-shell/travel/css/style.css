@@ -806,15 +806,17 @@ ul, ol { list-style: none; padding: 0; }
 /* ---- 모바일(폰) 세부: 380px 기준 ---- */
 @media (max-width: 560px) {
   /* 999만원 상한 + IDR처럼 환율이 높은 통화가 겹치면 결과가 10자리까지 나오는데, 좁은 폰 폭에서는
-     3열 그리드(캡션 2개+박스+화살표+결과)로 욱여넣을 공간이 부족해 카드 밖으로 넘침 — 보내는/받는
-     금액 전체를 세로 1열로 쌓아 결과가 카드 전체 폭(≈300px)을 온전히 쓸 수 있게 함. */
-  .fxcard__convert { grid-template-columns: 1fr; row-gap: 10px; }
-  .fxcard__cap--send, .fxcard__amt--send, .fxcard__arrow, .fxcard__cap--recv, .t-hero-recv { grid-column: 1; }
-  .fxcard__cap--send { grid-row: 1; }
-  .fxcard__amt--send { grid-row: 2; }
-  .fxcard__arrow { grid-row: 3; margin: 2px 0; }
-  .fxcard__cap--recv { grid-row: 4; }
-  .t-hero-recv { grid-row: 5; }
+     3열 그리드(캡션 2개+박스+화살표+결과)로 욱여넣을 공간이 부족해 카드 밖으로 넘침 — 그렇다고
+     캡션/금액을 각각 따로 세로로 쌓으면(이전 방식) "KRW" / "1,000원" / "→" / "BRL" / "4.1헤알"이
+     한 줄씩 뚝뚝 끊어져 보여 지저분함(2026-11-11 피드백) — 캡션+금액을 같은 줄(2열: 캡션 auto +
+     금액 1fr)로 묶고 화살표만 가운데 한 줄 차지하게 해, 3줄("KRW 1,000원" / "→" / "BRL 4.1헤알")로
+     깔끔하게 정리하면서도 금액 칸은 여전히 1fr이라 긴 결과값이 카드 밖으로 넘치지 않음. */
+  .fxcard__convert { grid-template-columns: auto minmax(0,1fr); column-gap: 10px; row-gap: 10px; }
+  .fxcard__cap--send { grid-column: 1; grid-row: 1; }
+  .fxcard__amt--send { grid-column: 2; grid-row: 1; }
+  .fxcard__arrow { grid-column: 1 / -1; grid-row: 2; text-align: center; margin: 2px 0; }
+  .fxcard__cap--recv { grid-column: 1; grid-row: 3; }
+  .t-hero-recv { grid-column: 2; grid-row: 3; }
   /* 주요 품목 물가: [아이콘·이름·%] 한 줄 + 비교 막대는 아래 풀너비(고정폭 그리드 넘침 방지) */
   .d-item { grid-template-columns: 28px 1fr auto; grid-template-areas: "icon name pct" "cmp cmp cmp"; column-gap: 10px; row-gap: 10px; }
   .d-item__icon { grid-area: icon; }
