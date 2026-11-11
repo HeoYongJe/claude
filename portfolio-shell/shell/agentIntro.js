@@ -43,6 +43,18 @@
   const SCROLL_MS = 650;
   const AGENTS_WIDE = 5; // 한 묶음(웨이브)당 동시 작업 커서 수
 
+  // ⚠️ 2026-11-11 "강약조절" 요청 — 내비 링크·스킬 칩처럼 작고 수가 많은 조각들을 제목/아이콘과
+  // 똑같이 느긋한 속도로 하나씩 지으니 답답하다는 피드백. 요소 자체의 실제 렌더링 크기로
+  // "작은 배지류"(내비 링크, 칩, 태그 등)인지 "의미 있는 제목/아이콘/문단"인지 자동 구분해서,
+  // 작은 쪽만 훨씬 빠른 속도로 진행한다(순서는 그대로 하나씩 — 속도만 다름). 특정 클래스 이름을
+  // 하드코딩하지 않고 크기로만 판정해서, 나중에 비슷한 작은 UI가 추가돼도 자동으로 똑같이 빨라짐.
+  const PACE_NORMAL = { move: MOVE_MS, grow: GROW_MS, hold: HOLD_MS, clear: CLEAR_MS, type: TYPE_MS };
+  const PACE_FAST = { move: 90, grow: 90, hold: 90, clear: 60, type: 5 };
+  function paceFor(el) {
+    const r = el.getBoundingClientRect();
+    return r.width <= 150 && r.height <= 42 ? PACE_FAST : PACE_NORMAL;
+  }
+
   const COLORS = [
     "rgb(51,102,255)", "rgb(120,160,255)", "rgb(167,139,250)",
     "rgb(94,210,180)", "rgb(255,159,67)", "rgb(255,107,157)",
@@ -181,7 +193,7 @@
   // 커서 이동 + 박스를 실제 크기까지 드래그로 확장 — 3D 스테이지 안의 요소(글래스 카드)는
   // 박스 "테두리"만 같은 3D 부모 안에 로컬 좌표로 그려 정확히 겹치게 하고(핸들·배지는
   // 그냥 뷰포트 좌표), 그 외 모든 요소는 통째로 뷰포트 기준.
-  async function drawBox(cursor, color, el) {
+  async function drawBox(cursor, color, el, pace) {
     const stage = el.closest(".yj-stage");
     if (stage) el.style.animationPlayState = "paused";
 
@@ -193,7 +205,7 @@
     cursor.style.opacity = "1";
     cursor.style.left = vRect.left + "px";
     cursor.style.top = vRect.top + "px";
-    await wait(MOVE_MS);
+    await wait(pace.move);
     if (ABORTED) { if (stage) el.style.animationPlayState = ""; return vRect; }
 
     const box = makeBoxSet(color, stage || overlay);
@@ -207,7 +219,7 @@
     box.el.style.height = boxRect.height + "px";
     cursor.style.left = vRect.left + vRect.width + "px";
     cursor.style.top = vRect.top + vRect.height + "px";
-    await wait(GROW_MS);
+    await wait(pace.grow);
 
     placeHandles(box.handles, vRect.left, vRect.top, vRect.width, vRect.height);
     box.handles.forEach((h) => (h.style.opacity = "1"));
@@ -219,13 +231,13 @@
     return { vRect, box, stage };
   }
 
-  function clearBox(cursor, drawn) {
+  function clearBox(cursor, drawn, pace) {
     if (!drawn) { cursor.style.opacity = "0"; return; }
     if (drawn.box) {
       drawn.box.el.style.opacity = "0";
       drawn.box.handles.forEach((h) => (h.style.opacity = "0"));
       drawn.box.badge.style.opacity = "0";
-      setTimeout(() => removeBoxSet(drawn.box), CLEAR_MS + 40);
+      setTimeout(() => removeBoxSet(drawn.box), pace.clear + 40);
     }
     cursor.style.opacity = "0";
   }
@@ -262,7 +274,15 @@
     el.style.transition = "none";
     el.style.transform = "none";
 
-    const drawn = await drawBox(cursor, agentColor, el);
+    // ⚠️ 2026-11-11 "강약조절" 요청 — 내비 링크·스킬 칩처럼 작고 수가 많은 조각은 더 빠르게,
+    // 제목·아이콘·문단처럼 의미 있는 덩어리는 기존 속도 그대로. el 자신의 실제 렌더링 크기로
+    // 자동 판정(paceFor) — 쪼개진 모든 레벨에서 공통으로 적용되므로 하드코딩 없이 일관됨.
+    // 컨테이너(카드처럼 안에 또 쪼갤 내용이 있는 요소)의 "바깥 틀" 자체는 내용이 아니라 그냥
+    // 레이아웃 뼈대라, 크기와 무관하게 항상 빠르게 스케치하고 넘어간다(안쪽 진짜 내용은 각자
+    // paceFor로 알맞은 속도로 지어짐) — 안 그러면 카드처럼 여러 단계로 중첩된 곳에서 매
+    // 단계마다 "바깥 틀 그리기" 시간이 더해져 체감 속도가 눈에 띄게 느려짐.
+    const pace = info.kind === "container" ? PACE_FAST : paceFor(el);
+    const drawn = await drawBox(cursor, agentColor, el, pace);
     const stage = el.closest(".yj-stage");
 
     if (info.kind === "container") {
@@ -285,16 +305,16 @@
       el.style.opacity = "1";
       el.innerHTML = "";
       if (ABORTED) { el.innerHTML = info.originalHTML; }
-      else await typeInto(original, el, TYPE_MS);
+      else await typeInto(original, el, pace.type);
     } else {
       el.style.transition = "opacity .28s cubic-bezier(.2,.7,.2,1)";
       el.style.opacity = "1";
     }
     if (stage) el.style.animationPlayState = "";
 
-    await wait(HOLD_MS);
-    clearBox(cursor, drawn);
-    await wait(CLEAR_MS);
+    await wait(pace.hold);
+    clearBox(cursor, drawn, pace);
+    await wait(pace.clear);
   }
 
   // 한 묶음(섹션)의 요소들을 N개 병렬 커서로 나눠 돌림.
