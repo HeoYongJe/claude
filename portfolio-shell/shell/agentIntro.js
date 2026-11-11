@@ -222,22 +222,36 @@
   }
 
   // 한 묶음(섹션)의 요소들을 N개 병렬 커서로 나눠 돌림.
+  // ⚠️ 2026-11-11 재지적 "첫 덩어리들 타이밍이 어긋난다" — 실측으로 2단계 원인을 확정:
+  //  1차: 예전엔 레인마다 `idx % lanes`로 자기 몫을 뽑아 독립적으로(서로 기다리지 않고) 쭉
+  //     진행했음 — reveal류(즉시 opacity만 바뀜, ~460ms)는 type류(글자 수만큼 타이핑,
+  //     700~1200ms)보다 항상 먼저 끝나버려서, 전혀 다른 다음 섹션/다음 줄 요소가 아직 타이핑
+  //     중인 제목보다 먼저 완성되는 게 실측됨(Contact: 타이틀이 19619ms로 가장 늦게 끝나는데
+  //     Email 카드는 407ms 먼저 끝남). → 레인을 독립 큐 대신 "웨이브"로 바꿔 Promise.all로
+  //     한 웨이브가 전부 끝나야 다음 웨이브로 넘어가게 1차 수정.
+  //  2차(더 근본 원인): 웨이브를 그냥 문서 순서 4개씩 끊으면, "제목(해더)"과 "그 아래 첫 번째
+  //     줄(스텝/스킬/카드) 중 하나"가 우연히 같은 웨이브에 같이 묶여버림 — Think 섹션 실측:
+  //     eyebrow+title+lead(해더, 3개)와 "01. Information"(스텝 줄의 첫 요소, 전혀 다른 그룹)이
+  //     한 웨이브에 섞여서, 짧은 "01. Information"만 먼저 끝나고(8921ms) 나머지 해더 텍스트는
+  //     한참 더 타이핑 중(9160/9541ms)인 채로 남아 "첫 덩어리가 어긋나 보이는" 현상의 진짜
+  //     원인이었음. 해결: 웨이브 경계를 고정 개수(4개)가 아니라 **실제 마크업에서 같은 부모를
+  //     공유하는 형제 요소 단위**로 나눔 — index.html을 보면 eyebrow/title/lead는 항상 같은
+  //     해더용 `<div>`의 자식이고, 스텝/스킬그룹/카드는 항상 별도 줄 컨테이너(`.yj-steps`/
+  //     `.yj-skills`/`.yj-contact-grid`)의 자식이라 이 기준이면 "해더 묶음"과 "줄 묶음"이
+  //     구조적으로 절대 섞이지 않는다(한 부모의 자식이 4개 넘으면 그 안에서만 추가로 나눔).
   async function buildGroup(elements) {
     if (!elements.length) return;
-    const lanes = Math.min(AGENTS_WIDE, elements.length);
-    const workers = [];
-    for (let i = 0; i < lanes; i++) {
-      const color = COLORS[i % COLORS.length];
-      const cursor = makeCursor(color);
-      const mine = elements.filter((_, idx) => idx % lanes === i);
-      workers.push(
-        (async () => {
-          for (const el of mine) await buildOne(color, cursor, el);
-          cursor.remove();
-        })()
-      );
+    const maxLanes = AGENTS_WIDE;
+    let i = 0;
+    while (i < elements.length) {
+      let j = i + 1;
+      while (j < elements.length && elements[j].parentElement === elements[i].parentElement && (j - i) < maxLanes) j++;
+      const wave = elements.slice(i, j);
+      const cursors = wave.map((_, k) => makeCursor(COLORS[k % COLORS.length]));
+      await Promise.all(wave.map((el, k) => buildOne(COLORS[k % COLORS.length], cursors[k], el)));
+      cursors.forEach((c) => c.remove());
+      i = j;
     }
-    await Promise.all(workers);
   }
 
   // ---- 섹션 간 자동 스크롤 ----
