@@ -939,6 +939,12 @@ button, input { font: inherit; }
      →리스트가 원래대로 위→아래 순서로 쌓이게 함. */
   .showcase__info { display: block; left: 50%; right: auto; top: 34%; bottom: auto; width: 90vw;
     max-height: 36vh; overflow-y: auto; transform: translateX(-50%); }
+  /* 2026-11-11: 자체 스크롤 영역이라 글자가 박스 위/아래 경계에서 중간에 뚝 잘려 보임(스크롤
+     가능하다는 단서가 없어 깨져 보인다는 피드백) — 레이아웃·구조는 그대로 두고(§39차 하이브리드
+     타협 유지) 위/아래 가장자리만 투명하게 서서히 사라지게 해 "아래/위에 더 있다"는 시각적 단서로
+     바꿈. */
+  .showcase__info { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%); }
   .specs { left: 16px; right: 16px; bottom: 16px; }
   /* 2026-11-07 52차: 2열 그리드라 데스크톱의 :first-child/:last-child 구분선 규칙(4열 기준)이
      안 맞음 — 각 행의 첫 칸(홀수 번째)은 보더 없이, 둘째 칸(짝수 번째)만 왼쪽에 세로 구분선을
