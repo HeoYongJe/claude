@@ -171,14 +171,14 @@ button, input { font: inherit; }
    맞추지 않고 `main.js`(아래 syncHeroTagline)가 실제 분할선 위치를 매 로드·리사이즈마다 측정해
    margin-top을 동적으로 계산하도록 변경 — 어떤 해상도에서도 항상 정확. 여기 margin-top은 JS가
    덮어쓰기 전 기본값(= 원래 디자인값)일 뿐. */
-.hero__tagline { font-family: var(--font-display); font-weight: 600; font-size: clamp(22px, 3.4vw, 34px);
-  color: var(--volt); -webkit-text-stroke: .5px var(--ink); margin-top: 24px; }
+.hero__tagline { font-family: var(--font-display); font-weight: 700; font-size: clamp(22px, 3.4vw, 38px);
+  color: var(--ink);margin-top: 28px; }
 /* 63차 추가 수정: 모바일처럼 sub가 2줄로 줄바꿈되는 폭에서는 분할선이 sub 중간을 가로지를 수 있음
    (실측: 375px에서 재현) — muted-on-dark(어두운 배경 기준 색)를 기본으로 유지하면서 얇은 ink
    스트로크를 더해, ink 배경에서는 스트로크가 배경과 거의 같은 색이라 기존 그대로 보이고 paper
    배경에서는 스트로크가 가장자리를 잡아줘 최소한의 가독성을 확보(태그라인과 동일 원리, 톤은 volt로
    바꾸지 않고 원래의 "보조 텍스트" 톤 유지 — volt를 여기까지 쓰면 포인트컬러 과다 사용이 됨). */
-.hero__sub { font-size: 16px; color: var(--muted-on-dark); -webkit-text-stroke: .35px var(--ink); margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto; }
+.hero__sub { font-size: 16px; color: var(--muted-on-dark); -webkit-text-stroke: .35px var(--ink); margin-top: 10px; max-width: 420px; margin-left: auto; margin-right: auto; }
 /* 2026-11-07 58차: "스크롤을 시작하면 자연스럽게 사라지도록" — js(main.js onScroll)가 80px
    넘어가면 .is-hidden을 토글, 여기서는 opacity 전환만 담당(위치는 그대로 둬 다시 위로 올라오면
    바로 보이게). */
@@ -811,7 +811,13 @@ button, input { font: inherit; }
   transition: filter .8s ease, transform .8s cubic-bezier(.16,1,.3,1); }
 .lookbook__panel.is-active .lookbook__panel-img,
 .lookbook__panel:focus-visible .lookbook__panel-img { filter: grayscale(0) contrast(1) brightness(1); transform: scale(1); }
-@media (hover: hover) and (pointer: fine) {
+/* 2026-11-11: min-width:901px 추가 — 이 hover 전용 규칙이 폭 조건 없이 걸려 있어서, ≤900px의
+   모바일 세로 아코디언(아래 참고, flex:none·column)과 "마우스+좁은 화면"(브라우저 창을 좁혀 쓰는
+   데스크톱, 트랙패드 2-in-1 등 hover:hover && pointer:fine가 참인 환경)이 겹치면 하나의 패널이
+   hover 때마다 flex:7로 늘어나려다 다른 패널의 고정 height:84px와 충돌해 레이아웃이 끝없이
+   흔들리는(한 패널이 ~1px로 찌그러졌다 복구됐다 반복) 버그로 이어짐 — 데스크톱 폭(901px~)에서만
+   hover 확장이 걸리게 제한해 모바일 폭에서는 아래 탭/포커스 토글 방식만 작동하도록 분리. */
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
   .lookbook__panel:hover .lookbook__panel-img { filter: grayscale(0) contrast(1) brightness(1); transform: scale(1); }
 }
 .lookbook__panel::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -819,7 +825,7 @@ button, input { font: inherit; }
 .lookbook__panel:focus-visible { outline: 2px solid var(--volt); outline-offset: -4px; }
 .lookbook__panel.is-active,
 .lookbook__panel:focus-visible { flex: 7 1 0%; }
-@media (hover: hover) and (pointer: fine) {
+@media (hover: hover) and (pointer: fine) and (min-width: 901px) {
   .lookbook__panel:hover { flex: 7 1 0%; }
 }
 /* 평소(좁을 때) 보이는 라벨 — 가로로 조립한 뒤 통째로 -90deg 회전해 세로로 읽히게. 확장되면 사라짐. */
