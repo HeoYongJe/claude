@@ -625,16 +625,19 @@ ul, ol { list-style: none; padding: 0; }
 .d-items { margin-top: 16px; }
 .d-item { display: grid; grid-template-columns: 30px 58px 1fr 60px; align-items: center; gap: 14px; }
 /* 2026-10-21: 품목 사이가 카드 여백에 비해 붙어 보인다는 피드백 — 24→32px, 그래도 붙어 보인다 해서
-   2026-10-22에 40px로 재확대 */
-.d-item + .d-item { margin-top: 40px; }
+   2026-10-22에 40px로 재확대, 2026-11-12에 또 붙어 보인다는 지적(스크린샷 동그라미 — 빅맥/코카콜라
+   행 사이)으로 52px로 재확대 */
+.d-item + .d-item { margin-top: 52px; }
 .d-item__icon { display: flex; align-items: center; justify-content: center; color: var(--accent); }
 .d-item__icon svg { width: 24px; height: 24px; display: block; }
 .d-item__name { font-size: 15px; font-weight: 800; }
 /* 2026-11-12: 막대(.d-cmp__track)가 카드 폭에 맞춰 1fr로 끝까지 늘어나 데스크톱처럼 넓은 화면에서
-   지나치게 길어 보인다는 피드백 — 막대 칼럼을 minmax(0,200px)로 캡. 금액(74px)은 그대로 막대 바로
-   뒤에 붙고, 남는 공간은 %(.d-item__pct, 바깥 .d-item 그리드의 고정 칼럼) 앞 여백으로 빠져 %는 여전히
-   카드 우측 끝에 정렬됨(바깥 그리드 칼럼 폭은 안 바꿔서 세로 정렬 유지). */
-.d-cmp__row { display: grid; grid-template-columns: 80px minmax(0,200px) 74px; align-items: center; gap: 10px; }
+   지나치게 길어 보인다는 피드백 — 막대 칼럼에 상한을 둠. 금액(74px)은 그대로 막대 바로 뒤에 붙고,
+   남는 공간은 %(.d-item__pct, 바깥 .d-item 그리드의 고정 칼럼) 앞 여백으로 빠져 %는 여전히 카드
+   우측 끝에 정렬됨(바깥 그리드 칼럼 폭은 안 바꿔서 세로 정렬 유지). 처음 200px로 캡했다가 "너무
+   줄였다"는 재지적으로 325px로 재조정. minmax(0,325px)라 좁은 화면(태블릿 1열·모바일 560px 이하
+   재배치)에서 가용폭이 325px보다 작으면 그만큼만 쓰고 자동으로 더 줄어듦 — 반응형 그대로 유지. */
+.d-cmp__row { display: grid; grid-template-columns: 80px minmax(0,325px) 74px; align-items: center; gap: 10px; }
 .d-cmp__row + .d-cmp__row { margin-top: 8px; }
 .d-cmp__label { font-size: 14px; font-weight: 700; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .d-cmp__track { height: 10px; background: var(--border); border-radius: 999px; overflow: hidden; }
