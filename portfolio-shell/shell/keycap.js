@@ -53,18 +53,18 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     words: ["HTML", "CSS", "Figma", "Design", "Flexbox"],
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
-    // 2026-11-12(3차): "Web Publisher" 캡션은 빼되, 그 자리(카메라가 거의 정면으로 보는 히어로
-    // 앞면)를 비워두지 않고 "ME"를 큼직하게 벡터 폰트로 박았다 — 윗면 도트매트릭스 "ME"는
-    // 캡 상단이 시야각상 거의 옆에서 보여 아무리 해상도를 올려도 알아보기 힘든 반면, 앞면은
-    // 카메라를 거의 정면으로 바라봐서 또렷하게 읽힘(가독성 피드백의 실질적 해결책).
-    caption: { show: true, lines: ["ME"] },
+    // 2026-11-12(5차): 캡 앞면에 "ME"를 올렸던 건 되돌림 — 사용자가 원한 건 앞면은 비워두고
+    // (X 표시 = 텍스트 없음), 기존 코드 그대로 윗면 도트매트릭스에만 "ME"를 찍되 잉크 색만
+    // 흰색으로 바꾸는 것이었음. 앞면/옆면 캡션은 다시 끔.
+    caption: { show: false, lines: [] },
     font: {
       fontFamily: "Wanted Sans Variable, Pretendard JP, system-ui, sans-serif",
       fontWeight: 700,
       lineHeight: "1.15em",
       letterSpacing: "-0.02em",
     },
-    textColor: "#0b0e14",
+    // 2026-11-12(5차): 윗면 "ME" 도트매트릭스 잉크 색 — 어두운 네이비(#0b0e14)에서 흰색으로.
+    textColor: "#ffffff",
     scale: 100,
     colors: {
       accent: read("--blue-light", "#5E8AFF"),
