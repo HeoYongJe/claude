@@ -45,7 +45,12 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   /* ---- 고정 설정(원본 CitronLegendProps 기본값 대신 이 카드 전용 값을 직접 박음) ---- */
   const cfg = {
-    words: ["HTML", "CSS", "Figma", "Design"], // 2026-11-12: Photoshop 제거, 그 자리를 Figma로(중복 제거)
+    // 2026-11-12(4차): "HTML 글자가 너무 많이 보인다" 피드백 — 원인은 단어가 4개일 때
+    // 아래 wordClass()의 링 인덱스 공식 (c + 4*m) % n 이 n=4에서는 4*m이 항상 n의 배수라
+    // m(바깥 링으로 갈수록 커지는 값)이 전혀 반영되지 않고 그리드 전체가 4개 클래스 패턴
+    // 하나로만 고정 타일링되던 버그였다(한 단어가 유독 넓은 면적을 차지). 5개로(gcd(4,5)=1)
+    // 늘려 링마다 단어가 실제로 순환되도록 고쳤고, 실제 스킬 목록에 있는 "Flexbox"를 추가.
+    words: ["HTML", "CSS", "Figma", "Design", "Flexbox"],
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
     // 2026-11-12(3차): "Web Publisher" 캡션은 빼되, 그 자리(카메라가 거의 정면으로 보는 히어로
@@ -120,7 +125,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 2026-11-12(3차): "ME" 가독성을 한 단계 더 올리기 위해 소스 래스터를 2배→3배로.
   const DOT_RASTER_SCALE = 3;
   const DOT_FONT = `${16 * DOT_RASTER_SCALE}px "Courier New", Courier, monospace`;
-  const CAPTION_CAP = 0.17;
+  // 2026-11-12(4차): 단어가 Web/Publisher 2줄이 아니라 "ME" 한 단어뿐이라, 더 크고 또렷하게
+  // 보이도록 상한을 키움(실측하며 room/widest 쪽 제약에 안 걸리는지 확인 후 적용).
+  const CAPTION_CAP = 0.3;
   const FALLBACK_FAMILY = '"Helvetica Neue", Helvetica, Arial, sans-serif';
   const MAX_PIXELS = 2.4e6;
 
@@ -901,11 +908,11 @@ void main() {
       }
       const fctx = heroFrontCv.getContext("2d");
       if (fctx) paintCaption(fctx, 1024, ch, heroShape, lines, f);
+      // 2026-11-12(4차): 사용자가 스크린샷에 X로 표시한 "지저분한" 부분 중 하나 — 옆면의
+      // 장식용 스머지 텍스처가 캡션 옆에 긁힌 자국처럼 보여 정리된 느낌을 해쳤다. "ME" 하나만
+      // 깔끔하게 보이게 아예 그리지 않는다.
       const sctx = heroSideCv.getContext("2d");
-      if (sctx) {
-        if (lines.length) paintSmear(sctx, 1024, ch, heroShape);
-        else sctx.clearRect(0, 0, 1024, ch);
-      }
+      if (sctx) sctx.clearRect(0, 0, 1024, ch);
       heroFrontTex.needsUpdate = true;
       heroSideTex.needsUpdate = true;
       return true;
