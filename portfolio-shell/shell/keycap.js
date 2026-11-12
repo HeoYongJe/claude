@@ -678,14 +678,14 @@ void main() {
 
   /* ----------------------------------------------------------- layout */
 
-  /** 히어로를 둘러싼 고리가 점대칭으로 보이도록(뒤 "create", 좌/앞 "edge" 식) 칼럼·로우의
-   *  홀짝으로 4가지 클래스를 나누고, 더 바깥 링에서는 두 칸마다 다음 단어로 순환시킨다. */
-  function wordClass(i, j) {
-    const oi = Math.abs(i) % 2;
-    const oj = Math.abs(j) % 2;
-    const c = oi && oj ? 0 : !oi && oj ? 1 : oi && !oj ? 2 : 3;
-    const m = Math.floor(Math.abs(i) / 2) + Math.floor(Math.abs(j) / 2);
-    return { c, m };
+  // 2026-11-12(8차): "html me app / design html css 식으로 교차해서 섞으라는거잖아" — 이전의
+  // 점대칭(홀짝 클래스) 배치는 대각선으로 같은 단어 4칸이 뭉치는 구조라 아무리 배열 순서를
+  // 바꿔도 "뭉침" 자체는 안 없어졌음(그 뭉친 단어가 HTML이냐 Design이냐만 바뀜). 그래서 클래스
+  // 방식 자체를 버리고 (i + 2*j) 선형 해시로 바꿈 — 바로 옆/대각선 포함 8방향 이웃이 전부
+  // 중심과 다른 단어가 되도록(5개 단어 기준 수학적으로 검증, 그리드 전체 인접 쌍 0개 중복)
+  // 체커보드처럼 어긋나게 섞이게 함.
+  function wordIndex(i, j, n) {
+    return (((i + 2 * j) % n) + n) % n;
   }
 
   /* ----------------------------------------------------------- scene */
@@ -834,9 +834,8 @@ void main() {
       const byKey = new Map();
       for (let g = 0; g < COUNT; g++) {
         if (g === HERO) continue;
-        const { c, m } = wordClass(gi(g), gj(g));
-        const word = n ? (c + 4 * m) % n : -1;
-        const style = (n ? word : c) % 3;
+        const word = n ? wordIndex(gi(g), gj(g), n) : -1;
+        const style = (n ? word : 0) % 3;
         const k = `${style}:${word}`;
         if (!byKey.has(k)) byKey.set(k, { style, word, cells: [] });
         byKey.get(k).cells.push(g);
