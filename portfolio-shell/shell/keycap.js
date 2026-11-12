@@ -117,8 +117,13 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const FOCUS_RANGE = 16;
   const FOG_START = 1.2;
   const PRESS_TRAVEL = 0.2;
-  const LEGEND_WIDTH = 0.75;
-  const DOT_MAX = 0.04;
+  // 2026-11-12(9차): "텍스트 사이즈 전체적으로 살짝씩만 줄여줘(ME 포함)" — 공유 상수라
+  // 캡 레전드와 히어로 "ME" 양쪽에 다 같이 적용됨.
+  const LEGEND_WIDTH = 0.68;
+  const DOT_MAX = 0.036;
+  // 2026-11-12(9차): "컬러/opacity 살짝 죽여줘(ME는 컬러 그대로)" — 캡 레전드 잉크에만 곱해지는
+  // 알파(아래 uPrintA), 히어로는 1(그대로)로 둬서 ME 색은 안 건드림.
+  const LEGEND_INK_ALPHA = 0.62;
   // 2026-11-12: "ME"(2글자라 DOT_MAX 상한에 걸려 점이 가장 커지는 경우)가 뭉개져 보인다는 피드백 —
   // 원인은 이 16px 래스터 자체의 해상도 부족(M/E의 획을 몇 픽셀만으로 표현해 점으로 확대하면
   // 블록처럼 뭉침). 폰트 두께 문제가 아니라 소스 해상도 문제라 2배로 올림(치수들은 전부 이
@@ -250,6 +255,7 @@ uniform float uRange;
 varying float vFocusD;
 uniform float uAo;
 uniform float uCapH;
+uniform float uPrintA;
 #ifdef HERO
 uniform sampler2D uFrontMap;
 uniform sampler2D uSideMap;
@@ -270,7 +276,7 @@ vec3 printInk = vec3(0.0);
     float topW = smoothstep(0.8, 0.96, on.y);
     vec4 t = texture2D(uTopMap, vObjP.xz / (2.0 * uTopHalf) + 0.5);
     vec3 ink = mix(t.rgb, uTopInk, uTopTint);
-    float a = t.a * topW;
+    float a = t.a * topW * uPrintA;
     diffuseColor.rgb = mix(diffuseColor.rgb, ink, a);
     printA = a;
     printInk = ink;
@@ -792,6 +798,7 @@ void main() {
       uTopInk: { value: new THREE.Color() },
       uTopTint: { value: 1 },
       uInkGlow: { value: 0 },
+      uPrintA: { value: 1 },
       uFrontMap: { value: heroFrontTex },
       uSideMap: { value: heroSideTex },
       uFaceInk: { value: new THREE.Color() },
@@ -847,6 +854,7 @@ void main() {
           uTopInk: { value: new THREE.Color() },
           uTopTint: { value: 1 },
           uInkGlow: { value: 0 },
+          uPrintA: { value: LEGEND_INK_ALPHA },
           uRange,
           uFwd,
           uAo,
