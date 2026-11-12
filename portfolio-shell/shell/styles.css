@@ -308,6 +308,9 @@ p{margin:0}
             linear-gradient(120deg,rgba(51,102,255,.18),rgba(51,102,255,0) 60%)}
 .yj-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:rgba(255,255,255,.28);font-size:13px;font-weight:600;text-align:center;padding:12px}
+/* 2026-11-12: 키캡 3D 장면은 사진이 아니라 "위쪽에 은은한 푸른 배경 처리가 거슬린다"는 피드백 —
+   다른 .yj-thumb(작업물 썸네일)는 사진 위 비네팅 용도로 계속 필요하니 이 카드에서만 끈다. */
+.yj-keycap::after{background:none}
 
 /* ==========================================================================
    design principles — 세로 그리드 라인 (의도된 컨셉, 제거 금지)

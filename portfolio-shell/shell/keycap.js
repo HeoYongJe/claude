@@ -45,7 +45,7 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   /* ---- 고정 설정(원본 CitronLegendProps 기본값 대신 이 카드 전용 값을 직접 박음) ---- */
   const cfg = {
-    words: ["HTML", "CSS", "Photoshop", "Design", "Figma"],
+    words: ["HTML", "CSS", "Figma", "Design"], // 2026-11-12: Photoshop 제거, 그 자리를 Figma로(중복 제거)
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
     caption: { show: true, lines: ["Web", "Publisher"] },
@@ -62,7 +62,10 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       light: "#E2E2E2",
       dark: "#121212",
     },
-    glow: 10,
+    // 2026-11-12: "ME"가 번져 보인다는 피드백 — 블룸이 히어로 가장자리(롤된 모서리) 주변에서
+    // 밝게 번지며 중앙 글자 쪽으로 새어들던 것도 한 원인이라 글로우를 10→6으로 낮춤(점 래스터
+    // 개선과 함께 적용).
+    glow: 6,
     parallax: 10,
     press: 10,
     speed: 3,
@@ -76,7 +79,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       lens: 21,
       blur: 100,
       exposure: 100,
-      haze: 100,
+      // 2026-11-12: "위쪽에 은은한 푸른 배경 처리"로 지적된 상단 빔/코너 헤이즈를 꺼서 제거.
+      haze: 0,
       fringe: 100,
       vignette: 55,
       grain: 4,
@@ -103,7 +107,12 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   const PRESS_TRAVEL = 0.2;
   const LEGEND_WIDTH = 0.75;
   const DOT_MAX = 0.04;
-  const DOT_FONT = '16px "Courier New", Courier, monospace';
+  // 2026-11-12: "ME"(2글자라 DOT_MAX 상한에 걸려 점이 가장 커지는 경우)가 뭉개져 보인다는 피드백 —
+  // 원인은 이 16px 래스터 자체의 해상도 부족(M/E의 획을 몇 픽셀만으로 표현해 점으로 확대하면
+  // 블록처럼 뭉침). 폰트 두께 문제가 아니라 소스 해상도 문제라 2배로 올림(치수들은 전부 이
+  // 배율에 맞춰 함께 스케일 — 아래 th/baseline/oy 참고).
+  const DOT_RASTER_SCALE = 2;
+  const DOT_FONT = `${16 * DOT_RASTER_SCALE}px "Courier New", Courier, monospace`;
   const CAPTION_CAP = 0.17;
   const FALLBACK_FAMILY = '"Helvetica Neue", Helvetica, Arial, sans-serif';
   const MAX_PIXELS = 2.4e6;
@@ -333,14 +342,14 @@ gl_FragColor.a = clamp(0.5 + vFocusD / (2.0 * uRange), 0.002, 1.0);
     const w = word.trim();
     if (!w) return;
     scratch.font = DOT_FONT;
-    const tw = Math.ceil(scratch.measureText(w).width) + 2;
-    const th = 22;
+    const tw = Math.ceil(scratch.measureText(w).width) + 2 * DOT_RASTER_SCALE;
+    const th = 22 * DOT_RASTER_SCALE;
     scratch.canvas.width = tw;
     scratch.canvas.height = th;
     scratch.font = DOT_FONT;
     scratch.fillStyle = "#fff";
     scratch.textBaseline = "alphabetic";
-    scratch.fillText(w, 1, 15);
+    scratch.fillText(w, 1 * DOT_RASTER_SCALE, 15 * DOT_RASTER_SCALE);
     const px = scratch.getImageData(0, 0, tw, th).data;
     let x0 = tw;
     let x1 = 0;
@@ -355,10 +364,12 @@ gl_FragColor.a = clamp(0.5 + vFocusD / (2.0 * uRange), 0.002, 1.0);
           y1 = Math.max(y1, y + 1);
         }
     if (x1 <= x0) return;
-    const pitch = Math.min((N * LEGEND_WIDTH) / (x1 - x0), N * DOT_MAX);
+    // DOT_MAX 상한도 raster 배율만큼 나눠, 2배 해상도로 세밀해진 점이 전체 폭(짧은 단어가
+    // 상한에 걸릴 때)까지 덩달아 2배로 늘어나지 않고 전과 같은 폭에 더 촘촘히 들어가게 한다.
+    const pitch = Math.min((N * LEGEND_WIDTH) / (x1 - x0), (N * DOT_MAX) / DOT_RASTER_SCALE);
     const ox = N / 2 - ((x0 + x1) / 2) * pitch;
-    const oy = N / 2 - 11 * pitch;
-    const d = pitch * 0.9;
+    const oy = N / 2 - 11 * DOT_RASTER_SCALE * pitch;
+    const d = pitch * 0.82;
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     for (let y = 0; y < th; y++) {
