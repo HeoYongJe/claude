@@ -45,10 +45,13 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   /* ---- 고정 설정(원본 CitronLegendProps 기본값 대신 이 카드 전용 값을 직접 박음) ---- */
   const cfg = {
-    // 2026-11-12(6차): "html,css 일부 지우고 design/web/app 섞어" — Figma/Flexbox를 빼고
-    // 그 자리에 Web/App을 넣어 HTML·CSS 비중을 낮추고 다양하게 섞음(5개 유지, gcd(4,5)=1이라
-    // 링 변주 정상 동작).
-    words: ["HTML", "CSS", "Design", "Web", "App"],
+    // 2026-11-12(7차): "html,css 계속 겹친다, design/web/app 적절히 섞어서 다양해보이게" —
+    // 원인은 wordClass()의 대칭 배치 자체가 히어로 바로 옆 가장 눈에 띄는 링에는 배열의
+    // 앞쪽 3개 단어만 나오게 만드는 구조였음(안쪽 링일수록 word=c로 결정, c는 0~2만 등장,
+    // 그중에서도 array[0]이 대각선 4칸을 독점). 지난번엔 array[0]이 "HTML"이라 HTML이
+    // 제일 가까운 링을 독점했던 것 — 배열 순서를 바꿔 design/web/app을 앞쪽(히어로에서 가장
+    // 가까운 링)으로, html/css를 뒤쪽(바깥 링)으로 보냄.
+    words: ["Design", "Web", "App", "HTML", "CSS"],
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
     // 2026-11-12(5차): 캡 앞면에 "ME"를 올렸던 건 되돌림 — 사용자가 원한 건 앞면은 비워두고
