@@ -328,6 +328,11 @@ p{margin:0}
 .yj-about__lead{font-size:16px;line-height:1.8;color:rgba(255,255,255,.62)}
 .yj-about__photo{aspect-ratio:4/3;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:var(--bg-thumb)}
 
+/* 2026-11-12: "작업 공간 사진" 자리에 키캡 3D 비주얼(keycap.js) — 캔버스가 뜨기 전/WebGL
+   미지원일 땐 .yj-keycap__fallback(.yj-ph 재사용) 텍스트가 보이다가, keycap.js가 초기화에
+   성공하면 .yj-keycap__stage가 opacity 1로 올라오며 그 위를 덮는다(DOM 순서상 뒤에 와서 위에 쌓임). */
+.yj-keycap__stage{position:absolute;inset:0;z-index:1;opacity:0;transition:opacity .5s ease;touch-action:pan-y;user-select:none}
+
 .yj-skills{display:flex;flex-direction:column;gap:38px}
 .yj-skillgroup__head{display:flex;align-items:center;gap:9px;margin-bottom:16px}
 .yj-skillgroup__dot{width:7px;height:7px;border-radius:50%;background:var(--blue-mid);box-shadow:0 0 8px 1px rgba(74,124,255,.7)}
