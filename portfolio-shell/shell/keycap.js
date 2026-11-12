@@ -45,12 +45,10 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
   /* ---- 고정 설정(원본 CitronLegendProps 기본값 대신 이 카드 전용 값을 직접 박음) ---- */
   const cfg = {
-    // 2026-11-12(4차): "HTML 글자가 너무 많이 보인다" 피드백 — 원인은 단어가 4개일 때
-    // 아래 wordClass()의 링 인덱스 공식 (c + 4*m) % n 이 n=4에서는 4*m이 항상 n의 배수라
-    // m(바깥 링으로 갈수록 커지는 값)이 전혀 반영되지 않고 그리드 전체가 4개 클래스 패턴
-    // 하나로만 고정 타일링되던 버그였다(한 단어가 유독 넓은 면적을 차지). 5개로(gcd(4,5)=1)
-    // 늘려 링마다 단어가 실제로 순환되도록 고쳤고, 실제 스킬 목록에 있는 "Flexbox"를 추가.
-    words: ["HTML", "CSS", "Figma", "Design", "Flexbox"],
+    // 2026-11-12(6차): "html,css 일부 지우고 design/web/app 섞어" — Figma/Flexbox를 빼고
+    // 그 자리에 Web/App을 넣어 HTML·CSS 비중을 낮추고 다양하게 섞음(5개 유지, gcd(4,5)=1이라
+    // 링 변주 정상 동작).
+    words: ["HTML", "CSS", "Design", "Web", "App"],
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
     // 2026-11-12(5차): 캡 앞면에 "ME"를 올렸던 건 되돌림 — 사용자가 원한 건 앞면은 비워두고
