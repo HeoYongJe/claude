@@ -48,7 +48,11 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
     words: ["HTML", "CSS", "Figma", "Design"], // 2026-11-12: Photoshop 제거, 그 자리를 Figma로(중복 제거)
     heroWord: "ME",
     background: read("--bg-thumb", "#0c111b"),
-    caption: { show: true, lines: ["Web", "Publisher"] },
+    // 2026-11-12(3차): "Web Publisher" 캡션은 빼되, 그 자리(카메라가 거의 정면으로 보는 히어로
+    // 앞면)를 비워두지 않고 "ME"를 큼직하게 벡터 폰트로 박았다 — 윗면 도트매트릭스 "ME"는
+    // 캡 상단이 시야각상 거의 옆에서 보여 아무리 해상도를 올려도 알아보기 힘든 반면, 앞면은
+    // 카메라를 거의 정면으로 바라봐서 또렷하게 읽힘(가독성 피드백의 실질적 해결책).
+    caption: { show: true, lines: ["ME"] },
     font: {
       fontFamily: "Wanted Sans Variable, Pretendard JP, system-ui, sans-serif",
       fontWeight: 700,
@@ -62,10 +66,9 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       light: "#E2E2E2",
       dark: "#121212",
     },
-    // 2026-11-12: "ME"가 번져 보인다는 피드백 — 블룸이 히어로 가장자리(롤된 모서리) 주변에서
-    // 밝게 번지며 중앙 글자 쪽으로 새어들던 것도 한 원인이라 글로우를 10→6으로 낮춤(점 래스터
-    // 개선과 함께 적용).
-    glow: 6,
+    // 2026-11-12(3차): 여전히 "ME"가 번진다는 피드백 — bloom 자체(아래 composite 단계의
+    // uBloom 기본치)를 더 낮췄고, 글로우도 6→4로 한 번 더 낮춰 블룸 번짐을 줄임.
+    glow: 4,
     parallax: 10,
     press: 10,
     speed: 3,
@@ -77,12 +80,15 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
       yaw: 47,
       tilt: 42.6,
       lens: 21,
-      blur: 100,
+      // 2026-11-12(3차): "작은 화면에서 보면 그냥 흐리다" — 심도흐림(배경/전경 보케)이
+      // 전체적으로 선명도를 깎아먹던 주범이라 완전히 끔(아래 dofOn이 false가 됨).
+      blur: 0,
       exposure: 100,
       // 2026-11-12: "위쪽에 은은한 푸른 배경 처리"로 지적된 상단 빔/코너 헤이즈를 꺼서 제거.
       haze: 0,
       fringe: 100,
-      vignette: 55,
+      // 2026-11-12(3차): 비네트(가장자리 어둡게)도 "뿌옇다"는 인상에 한몫 — 55→25로 완화.
+      vignette: 25,
       grain: 4,
     },
   };
@@ -111,7 +117,8 @@ import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   // 원인은 이 16px 래스터 자체의 해상도 부족(M/E의 획을 몇 픽셀만으로 표현해 점으로 확대하면
   // 블록처럼 뭉침). 폰트 두께 문제가 아니라 소스 해상도 문제라 2배로 올림(치수들은 전부 이
   // 배율에 맞춰 함께 스케일 — 아래 th/baseline/oy 참고).
-  const DOT_RASTER_SCALE = 2;
+  // 2026-11-12(3차): "ME" 가독성을 한 단계 더 올리기 위해 소스 래스터를 2배→3배로.
+  const DOT_RASTER_SCALE = 3;
   const DOT_FONT = `${16 * DOT_RASTER_SCALE}px "Courier New", Courier, monospace`;
   const CAPTION_CAP = 0.17;
   const FALLBACK_FAMILY = '"Helvetica Neue", Helvetica, Arial, sans-serif';
@@ -1302,9 +1309,12 @@ void main() {
       P.set(0, hy + CAP_H, 0).project(camera);
       composite.uniforms.uHero.value.set(P.x * 0.5 + 0.5, P.y * 0.5 + 0.5);
       composite.uniforms.uBg.value.set(bg.r, bg.g, bg.b);
-      composite.uniforms.uBloom.value = 0.15 + 0.5 * gl * (1 + 0.6 * flare);
+      // 2026-11-12(3차): bloom 기본치와 거리-배경 페이드(fog)가 "흐릿한 배경 그라데이션"처럼
+      // 보인다는 피드백 — bloom 바닥값을 낮추고 fog는 완전히 0으로(거리에 따라 배경색으로
+      // 섞이던 효과 자체를 제거).
+      composite.uniforms.uBloom.value = 0.08 + 0.35 * gl * (1 + 0.6 * flare);
       composite.uniforms.uExposure.value = clamp(num(A.exposure, 100), 20, 300) / 100;
-      composite.uniforms.uFog.value = 1.6 * sc;
+      composite.uniforms.uFog.value = 0;
       composite.uniforms.uHaze.value = clamp(num(A.haze, 100), 0, 300) / 100;
       composite.uniforms.uFringe.value = (0.008 * clamp(num(A.fringe, 100), 0, 300)) / 100;
       composite.uniforms.uVignette.value = clamp(num(A.vignette, 55), 0, 100) / 100;
