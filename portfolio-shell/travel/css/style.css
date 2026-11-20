@@ -184,7 +184,8 @@ ul, ol { list-style: none; padding: 0; }
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: transparent; border-bottom: 1px solid transparent; transition: background .3s ease, border-color .3s ease, backdrop-filter .3s ease; }
 .nav.is-scrolled { background: rgba(255,255,255,.8); backdrop-filter: blur(14px); border-bottom-color: var(--border); }
 .nav__inner { max-width: 1200px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; }
-.nav__brand { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; }
+.nav__brand { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -.01em; display: flex; align-items: center; }
+.nav__brand-logo { height: 24px; width: auto; display: block; }
 .nav__right { display: flex; align-items: center; gap: 28px; }
 .nav__links { display: flex; gap: 22px; font-size: 15px; font-weight: 600; color: var(--muted); }
 .nav__link { color: var(--muted); }
